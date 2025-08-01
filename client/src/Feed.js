@@ -1,34 +1,33 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
-// Adjust to your backend API
+// BACKEND BASE URL
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// ---- ICONS (SVG, styled similar to what you described) ----
+// ICONS (You can swap out the SVGs below for your own if you have SVG files)
 function HeartIcon({ filled, ...props }) {
   return filled ? (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" {...props}>
+    <svg viewBox="0 0 24 24" width={36} height={36}>
       <path
         d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5 10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
+        fill="#e11d48"
+        stroke="#e11d48"
         strokeWidth="2"
         strokeLinejoin="round"
-        filter="url(#glow-heart)"
       />
-      <defs>
-        <filter id="glow-heart" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="3" result="glow"/>
-          <feMerge>
-            <feMergeNode in="glow"/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-      </defs>
+      <filter id="glow-heart" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3" result="glow"/>
+        <feMerge>
+          <feMergeNode in="glow"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
     </svg>
   ) : (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" {...props}>
+    <svg viewBox="0 0 24 24" width={36} height={36} fill="none">
       <path
         d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5 10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
+        stroke="#fff"
         strokeWidth="2"
         strokeLinejoin="round"
       />
@@ -37,7 +36,7 @@ function HeartIcon({ filled, ...props }) {
 }
 function CommentIcon(props) {
   return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" {...props}>
+    <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="#fff">
       <rect x="3" y="5" width="18" height="12" rx="4" strokeWidth="2"/>
       <path d="M8 21l2-4h4l2 4" strokeWidth="2"/>
     </svg>
@@ -45,14 +44,14 @@ function CommentIcon(props) {
 }
 function ShareIcon(props) {
   return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" {...props}>
+    <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="#fff">
       <path d="M13 5l7 7-7 7" strokeWidth="2" strokeLinejoin="round"/>
       <path d="M5 12h15" strokeWidth="2"/>
     </svg>
   );
 }
 
-// ---- LocalStorage like utils (for demo, real apps use accounts/db) ----
+// Helper: like state in localStorage (no login)
 function isLiked(filename) {
   return localStorage.getItem("like_" + filename) === "1";
 }
@@ -64,6 +63,7 @@ function setLiked(filename, yes) {
 export default function Feed() {
   const [shorts, setShorts] = useState([]);
   const videoRefs = useRef([]);
+
   const [likePending, setLikePending] = useState({});
   const [showComments, setShowComments] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
@@ -73,14 +73,12 @@ export default function Feed() {
     axios.get(HOST + "/shorts").then((res) => setShorts(res.data));
   }, []);
 
-  // Like (one per browser, toggle like/unlike)
   function handleLike(idx, filename) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
     setLikePending((l) => ({ ...l, [filename]: true }));
 
     if (!liked) {
-      // Like
       axios.post(`${HOST}/shorts/${filename}/like`).then(() => {
         setShorts((prev) =>
           prev.map((v, i) =>
@@ -91,7 +89,7 @@ export default function Feed() {
         setLikePending((l) => ({ ...l, [filename]: false }));
       });
     } else {
-      // Unlike: local only (unless you have an unlike endpoint)
+      // For "unlike" demo: just update UI
       setShorts((prev) =>
         prev.map((v, i) =>
           i === idx && (v.likes || 0) > 0
@@ -104,15 +102,12 @@ export default function Feed() {
     }
   }
 
-  // Double-tap handler for like/unlike
   function handleVideoDoubleTap(idx, filename) {
     const now = Date.now();
-    const liked = isLiked(filename);
     if (now - lastTapTime < 350) {
-      // Double-tap: toggle like
-      handleLike(idx, filename);
+      handleLike(idx, filename); // double-tap = like/unlike
     } else {
-      // Single tap: pause/play
+      // single-tap = pause/play
       const vid = videoRefs.current[idx];
       if (vid) {
         if (vid.paused) vid.play();
@@ -122,7 +117,6 @@ export default function Feed() {
     setLastTapTime(now);
   }
 
-  // Comment logic
   function handleAddComment(idx, filename) {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
@@ -158,6 +152,7 @@ export default function Feed() {
         justifyContent: "center",
       }}
     >
+      {/* Centered phone ratio container */}
       <div
         style={{
           width: "clamp(320px, 28vw, 430px)",
@@ -206,7 +201,7 @@ export default function Feed() {
                 alignItems: "center",
               }}
             >
-              {/* Video full-screen */}
+              {/* Video */}
               <video
                 ref={(el) => (videoRefs.current[idx] = el)}
                 src={HOST + v.url}
@@ -225,12 +220,12 @@ export default function Feed() {
                 onTouchEnd={() => handleVideoDoubleTap(idx, filename)}
               />
 
-              {/* Overlay: Actions (right side vertical) */}
+              {/* Overlay: Actions (right) */}
               <div
                 style={{
                   position: "absolute",
                   right: 12,
-                  bottom: 110,
+                  bottom: 108,
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
@@ -258,7 +253,7 @@ export default function Feed() {
                 >
                   {v.author?.[0]?.toUpperCase() || "👤"}
                 </div>
-                {/* Like (Glowing, pink, toggles and with animation) */}
+                {/* Like */}
                 <button
                   style={{
                     background: "none",
@@ -266,13 +261,13 @@ export default function Feed() {
                     cursor: "pointer",
                     outline: "none",
                     filter: liked
-                      ? "drop-shadow(0 0 18px #e11d4890)"
+                      ? "drop-shadow(0 0 18px #e11d4880)"
                       : "none",
                     transition: "filter 0.18s",
                     padding: 0,
                     display: "flex",
                     flexDirection: "column",
-                    alignItems: "center"
+                    alignItems: "center",
                   }}
                   onClick={() => handleLike(idx, filename)}
                 >
@@ -283,13 +278,13 @@ export default function Feed() {
                       marginTop: 0,
                       color: liked ? "#e11d48" : "#fff",
                       fontWeight: liked ? 700 : 400,
-                      textShadow: liked ? "0 0 8px #e11d4890" : "none"
+                      textShadow: liked ? "0 0 8px #e11d4890" : "none",
                     }}
                   >
                     {v.likes || 0}
                   </div>
                 </button>
-                {/* Comments */}
+                {/* Comment */}
                 <button
                   style={{
                     background: "none",
@@ -303,10 +298,12 @@ export default function Feed() {
                     flexDirection: "column",
                     alignItems: "center",
                   }}
-                  onClick={() => setShowComments(o => ({
-                    ...o,
-                    [filename]: !o[filename],
-                  }))}
+                  onClick={() =>
+                    setShowComments((cur) => ({
+                      ...cur,
+                      [filename]: !cur[filename],
+                    }))
+                  }
                 >
                   <CommentIcon />
                   <span style={{ fontSize: 15, marginTop: "-3px" }}>
