@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
-// Change this to your backend API endpoint
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// --- SVG ICONS ---
 function HeartIcon({ filled }) {
   return filled ? (
     <svg viewBox="0 0 24 24" width={36} height={36}>
@@ -13,11 +11,7 @@ function HeartIcon({ filled }) {
         fill="#e11d48"
         stroke="#e11d48"
         strokeWidth="2"
-        strokeLinejoin="round"
-        style={{
-          filter: "drop-shadow(0 0 18px #e11d4880)",
-          transition: "filter .16s",
-        }}
+        style={{ filter: "drop-shadow(0 0 18px #e11d4880)" }}
       />
     </svg>
   ) : (
@@ -26,7 +20,6 @@ function HeartIcon({ filled }) {
         d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5 10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
         stroke="#fff"
         strokeWidth="2"
-        strokeLinejoin="round"
       />
     </svg>
   );
@@ -42,13 +35,12 @@ function CommentIcon() {
 function ShareIcon() {
   return (
     <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="#fff">
-      <path d="M13 5l7 7-7 7" strokeWidth="2" strokeLinejoin="round"/>
+      <path d="M13 5l7 7-7 7" strokeWidth="2"/>
       <path d="M5 12h15" strokeWidth="2"/>
     </svg>
   );
 }
 
-// Helpers for "one like per browser"
 function isLiked(filename) {
   return localStorage.getItem("like_" + filename) === "1";
 }
@@ -151,6 +143,8 @@ export default function Feed() {
           height: "100vh",
           overflowY: "scroll",
           scrollSnapType: "y mandatory",
+          margin: 0,
+          padding: 0,
         }}
       >
         {shorts.length === 0 && (
@@ -165,7 +159,6 @@ export default function Feed() {
             No shorts uploaded yet.
           </div>
         )}
-
         {shorts.map((v, idx) => {
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
@@ -182,9 +175,10 @@ export default function Feed() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                margin: 0,
+                padding: 0,
               }}
             >
-              {/* Video fills whole screen but always fits via objectFit: contain */}
               <video
                 ref={(el) => (videoRefs.current[idx] = el)}
                 src={HOST + v.url}
@@ -203,7 +197,7 @@ export default function Feed() {
                 onTouchEnd={() => handleVideoDoubleTap(idx, filename)}
               />
 
-              {/* RIGHT: Buttons overlays */}
+              {/* Overlay UI (Like/Comment/Share, Caption, etc.) */}
               <div
                 style={{
                   position: "absolute",
@@ -214,9 +208,9 @@ export default function Feed() {
                   alignItems: "center",
                   gap: 16,
                   zIndex: 10,
+                  userSelect: "none",
                 }}
               >
-                {/* Avatar */}
                 <div
                   style={{
                     width: 44,
@@ -232,11 +226,11 @@ export default function Feed() {
                     alignItems: "center",
                     justifyContent: "center",
                     marginBottom: 8,
+                    userSelect: "none",
                   }}
                 >
                   {v.author?.[0]?.toUpperCase() || "👤"}
                 </div>
-                {/* Like */}
                 <button
                   style={{
                     background: "none",
@@ -250,7 +244,6 @@ export default function Feed() {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    outline: "none",
                   }}
                   onClick={() => handleLike(idx, filename)}
                 >
@@ -267,7 +260,6 @@ export default function Feed() {
                     {v.likes || 0}
                   </div>
                 </button>
-                {/* Comment */}
                 <button
                   style={{
                     background: "none",
@@ -293,7 +285,6 @@ export default function Feed() {
                     {(v.comments && v.comments.length) || 0}
                   </span>
                 </button>
-                {/* Share */}
                 <button
                   style={{
                     background: "none",
@@ -321,20 +312,20 @@ export default function Feed() {
                 </button>
               </div>
 
-              {/* BOTTOM OVERLAY: Caption, author, comments preview */}
+              {/* Caption/author/comments at bottom */}
               <div
                 style={{
                   position: "absolute",
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background:
-                    "linear-gradient(0deg,#000c 76%,#0005 94%,transparent)",
+                  background: "linear-gradient(0deg,#000d 88%,transparent 100%)",
                   color: "#fff",
-                  padding: "22px 18px 38px 18px",
+                  padding: "20px 18px 34px 18px",
                   zIndex: 6,
                   display: "flex",
                   flexDirection: "column",
+                  userSelect: "none",
                 }}
               >
                 <div style={{ fontWeight: 700, fontSize: 18 }}>
@@ -418,7 +409,6 @@ export default function Feed() {
                         <span style={{ color: "#fff" }}>{c.text}</span>
                       </div>
                     ))}
-                    {/* Comment input box */}
                     <div
                       style={{
                         marginTop: 15,
