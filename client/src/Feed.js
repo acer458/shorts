@@ -1,38 +1,128 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
-// Your backend URL:
+// Adjust to your backend API
 const HOST = "https://shorts-t2dk.onrender.com";
+
+// ---- ICONS (SVG, styled similar to what you described) ----
+function HeartIcon({ filled, ...props }) {
+  return filled ? (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" {...props}>
+      <path
+        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5 10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
+        strokeWidth="2"
+        strokeLinejoin="round"
+        filter="url(#glow-heart)"
+      />
+      <defs>
+        <filter id="glow-heart" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="glow"/>
+          <feMerge>
+            <feMergeNode in="glow"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+    </svg>
+  ) : (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" {...props}>
+      <path
+        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5 10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+function CommentIcon(props) {
+  return (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" {...props}>
+      <rect x="3" y="5" width="18" height="12" rx="4" strokeWidth="2"/>
+      <path d="M8 21l2-4h4l2 4" strokeWidth="2"/>
+    </svg>
+  );
+}
+function ShareIcon(props) {
+  return (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" {...props}>
+      <path d="M13 5l7 7-7 7" strokeWidth="2" strokeLinejoin="round"/>
+      <path d="M5 12h15" strokeWidth="2"/>
+    </svg>
+  );
+}
+
+// ---- LocalStorage like utils (for demo, real apps use accounts/db) ----
+function isLiked(filename) {
+  return localStorage.getItem("like_" + filename) === "1";
+}
+function setLiked(filename, yes) {
+  if (yes) localStorage.setItem("like_" + filename, "1");
+  else localStorage.removeItem("like_" + filename);
+}
 
 export default function Feed() {
   const [shorts, setShorts] = useState([]);
   const videoRefs = useRef([]);
-
-  // For likes and comments form state
   const [likePending, setLikePending] = useState({});
   const [showComments, setShowComments] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
+  const [lastTapTime, setLastTapTime] = useState(0);
 
-  // Fetch all videos on mount
   useEffect(() => {
     axios.get(HOST + "/shorts").then((res) => setShorts(res.data));
   }, []);
 
-  // Like a video
+  // Like (one per browser, toggle like/unlike)
   function handleLike(idx, filename) {
     if (likePending[filename]) return;
+    const liked = isLiked(filename);
     setLikePending((l) => ({ ...l, [filename]: true }));
-    axios.post(`${HOST}/shorts/${filename}/like`).then(() => {
+
+    if (!liked) {
+      // Like
+      axios.post(`${HOST}/shorts/${filename}/like`).then(() => {
+        setShorts((prev) =>
+          prev.map((v, i) =>
+            i === idx ? { ...v, likes: (v.likes || 0) + 1 } : v
+          )
+        );
+        setLiked(filename, true);
+        setLikePending((l) => ({ ...l, [filename]: false }));
+      });
+    } else {
+      // Unlike: local only (unless you have an unlike endpoint)
       setShorts((prev) =>
         prev.map((v, i) =>
-          i === idx ? { ...v, likes: (v.likes || 0) + 1 } : v
+          i === idx && (v.likes || 0) > 0
+            ? { ...v, likes: v.likes - 1 }
+            : v
         )
       );
+      setLiked(filename, false);
       setLikePending((l) => ({ ...l, [filename]: false }));
-    });
+    }
   }
 
-  // Add a comment
+  // Double-tap handler for like/unlike
+  function handleVideoDoubleTap(idx, filename) {
+    const now = Date.now();
+    const liked = isLiked(filename);
+    if (now - lastTapTime < 350) {
+      // Double-tap: toggle like
+      handleLike(idx, filename);
+    } else {
+      // Single tap: pause/play
+      const vid = videoRefs.current[idx];
+      if (vid) {
+        if (vid.paused) vid.play();
+        else vid.pause();
+      }
+    }
+    setLastTapTime(now);
+  }
+
+  // Comment logic
   function handleAddComment(idx, filename) {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
@@ -54,15 +144,6 @@ export default function Feed() {
         );
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
       });
-  }
-
-  // Play/pause on tap/click
-  function handleVideoClick(idx) {
-    const vid = videoRefs.current[idx];
-    if (vid) {
-      if (vid.paused) vid.play();
-      else vid.pause();
-    }
   }
 
   return (
@@ -109,6 +190,8 @@ export default function Feed() {
 
         {shorts.map((v, idx) => {
           const filename = v.url.split("/").pop();
+          const liked = isLiked(filename);
+
           return (
             <div
               key={idx}
@@ -117,7 +200,7 @@ export default function Feed() {
                 height: "100%",
                 scrollSnapAlign: "start",
                 position: "relative",
-                background: "#1b2029",
+                background: "#181D23",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
@@ -138,15 +221,15 @@ export default function Feed() {
                   cursor: "pointer",
                   display: "block",
                 }}
-                onClick={() => handleVideoClick(idx)}
-                onTouchEnd={() => handleVideoClick(idx)}
+                onClick={() => handleVideoDoubleTap(idx, filename)}
+                onTouchEnd={() => handleVideoDoubleTap(idx, filename)}
               />
 
               {/* Overlay: Actions (right side vertical) */}
               <div
                 style={{
                   position: "absolute",
-                  right: 10,
+                  right: 12,
                   bottom: 110,
                   display: "flex",
                   flexDirection: "column",
@@ -158,48 +241,53 @@ export default function Feed() {
                 {/* Avatar */}
                 <div
                   style={{
-                    width: 46,
-                    height: 46,
+                    width: 44,
+                    height: 44,
                     borderRadius: "50%",
                     background:
                       "linear-gradient(135deg,#81ecec,#0984e3 90%)",
-                    border: "2.5px solid #ffffffda",
+                    border: "2px solid #ffffffda",
                     fontWeight: "bold",
                     color: "#fff",
                     fontSize: 18,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    marginBottom: 4,
+                    marginBottom: 8,
                   }}
                 >
                   {v.author?.[0]?.toUpperCase() || "👤"}
                 </div>
-                {/* Like */}
+                {/* Like (Glowing, pink, toggles and with animation) */}
                 <button
                   style={{
                     background: "none",
                     border: "none",
-                    color: "#fff",
                     cursor: "pointer",
-                    fontSize: 36,
+                    outline: "none",
+                    filter: liked
+                      ? "drop-shadow(0 0 18px #e11d4890)"
+                      : "none",
+                    transition: "filter 0.18s",
                     padding: 0,
                     display: "flex",
                     flexDirection: "column",
-                    alignItems: "center",
+                    alignItems: "center"
                   }}
                   onClick={() => handleLike(idx, filename)}
                 >
-                  ❤️
-                  <span
+                  <HeartIcon filled={liked} />
+                  <div
                     style={{
-                      fontSize: 17,
-                      marginTop: "-3px",
-                      color: "#fff",
+                      fontSize: 16,
+                      marginTop: 0,
+                      color: liked ? "#e11d48" : "#fff",
+                      fontWeight: liked ? 700 : 400,
+                      textShadow: liked ? "0 0 8px #e11d4890" : "none"
                     }}
                   >
                     {v.likes || 0}
-                  </span>
+                  </div>
                 </button>
                 {/* Comments */}
                 <button
@@ -215,15 +303,13 @@ export default function Feed() {
                     flexDirection: "column",
                     alignItems: "center",
                   }}
-                  onClick={() => {
-                    setShowComments((cur) => ({
-                      ...cur,
-                      [filename]: !cur[filename],
-                    }));
-                  }}
+                  onClick={() => setShowComments(o => ({
+                    ...o,
+                    [filename]: !o[filename],
+                  }))}
                 >
-                  💬
-                  <span style={{ fontSize: 17, marginTop: "-3px" }}>
+                  <CommentIcon />
+                  <span style={{ fontSize: 15, marginTop: "-3px" }}>
                     {(v.comments && v.comments.length) || 0}
                   </span>
                 </button>
@@ -233,14 +319,13 @@ export default function Feed() {
                     background: "none",
                     border: "none",
                     color: "#fff",
-                    fontSize: 30,
+                    fontSize: 28,
                     cursor: "pointer",
                     padding: 0,
                     margin: 0,
                   }}
                   onClick={() => {
-                    const url =
-                      window.location.origin + "/?v=" + filename;
+                    const url = window.location.origin + "/?v=" + filename;
                     if (navigator.share) {
                       navigator.share({
                         url,
@@ -252,13 +337,11 @@ export default function Feed() {
                     }
                   }}
                 >
-                  <span role="img" aria-label="share">
-                    📤
-                  </span>
+                  <ShareIcon />
                 </button>
               </div>
 
-              {/* Bottom overlay: Caption, user, comment preview */}
+              {/* Bottom overlay: Caption/User/Comment */}
               <div
                 style={{
                   position: "absolute",
@@ -275,21 +358,17 @@ export default function Feed() {
                   width: "100%",
                 }}
               >
-                {/* Username/@handle */}
                 <div style={{ fontWeight: 700, fontSize: 18 }}>
                   @{v.author || "anonymous"}
                 </div>
-                {/* Caption */}
                 <div style={{ fontSize: 17, margin: "5px 0 8px 0" }}>
                   {v.caption}
                 </div>
-                {/* Latest comment preview */}
                 {v.comments && v.comments.length > 0 && (
                   <div style={{ fontSize: 15, color: "#bae6fd" }}>
                     <b>{v.comments[0].name}:</b> {v.comments[0].text}
                   </div>
                 )}
-                {/* View all comments link */}
                 <div
                   style={{
                     color: "#b2bec3",
@@ -360,7 +439,6 @@ export default function Feed() {
                         <span style={{ color: "#fff" }}>{c.text}</span>
                       </div>
                     ))}
-
                     {/* Comment input box */}
                     <div
                       style={{
