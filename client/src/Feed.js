@@ -3,21 +3,27 @@ import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
+// ICONS
 function HeartIcon({ filled }) {
   return filled ? (
     <svg viewBox="0 0 24 24" width={36} height={36}>
       <path
-        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5 10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
+        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5
+        10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5
+        0 5-7.5 11.5-7.5 11.5Z"
         fill="#e11d48"
         stroke="#e11d48"
         strokeWidth="2"
-        style={{ filter: "drop-shadow(0 0 18px #e11d4880)" }}
+        style={{ filter: "drop-shadow(0 0 16px #e11d4890)" }}
       />
     </svg>
   ) : (
     <svg viewBox="0 0 24 24" width={36} height={36} fill="none">
       <path
-        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5 10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
+        d="M12 21C12 21 4.5 14.5 4.5 9.5
+         4.5 6.5 7 5 9 5
+         10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5
+         c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
         stroke="#fff"
         strokeWidth="2"
       />
@@ -41,6 +47,7 @@ function ShareIcon() {
   );
 }
 
+// One-like-per-browser helpers
 function isLiked(filename) {
   return localStorage.getItem("like_" + filename) === "1";
 }
@@ -79,9 +86,7 @@ export default function Feed() {
     } else {
       setShorts((prev) =>
         prev.map((v, i) =>
-          i === idx && (v.likes || 0) > 0
-            ? { ...v, likes: v.likes - 1 }
-            : v
+          i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v
         )
       );
       setLiked(filename, false);
@@ -159,6 +164,7 @@ export default function Feed() {
             No shorts uploaded yet.
           </div>
         )}
+
         {shorts.map((v, idx) => {
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
@@ -179,6 +185,8 @@ export default function Feed() {
                 padding: 0,
               }}
             >
+              {/* The critical fix: BOTH the parent div & the video have background: #000 */}
+              {/* Any aspect video; black will "letterbox" or "pillarbox" where blank */}
               <video
                 ref={(el) => (videoRefs.current[idx] = el)}
                 src={HOST + v.url}
@@ -188,7 +196,7 @@ export default function Feed() {
                 style={{
                   width: "100vw",
                   height: "100vh",
-                  objectFit: "contain",
+                  objectFit: "contain", // Change to "cover" for crop effect
                   background: "#000",
                   cursor: "pointer",
                   display: "block",
@@ -197,7 +205,7 @@ export default function Feed() {
                 onTouchEnd={() => handleVideoDoubleTap(idx, filename)}
               />
 
-              {/* Overlay UI (Like/Comment/Share, Caption, etc.) */}
+              {/* Overlays (Like/Comment/Share/Caption/Comments) */}
               <div
                 style={{
                   position: "absolute",
@@ -216,8 +224,7 @@ export default function Feed() {
                     width: 44,
                     height: 44,
                     borderRadius: "50%",
-                    background:
-                      "linear-gradient(135deg,#81ecec,#0984e3 90%)",
+                    background: "linear-gradient(135deg,#81ecec,#0984e3 90%)",
                     border: "2px solid #ffffffda",
                     fontWeight: "bold",
                     color: "#fff",
@@ -226,7 +233,6 @@ export default function Feed() {
                     alignItems: "center",
                     justifyContent: "center",
                     marginBottom: 8,
-                    userSelect: "none",
                   }}
                 >
                   {v.author?.[0]?.toUpperCase() || "👤"}
@@ -254,7 +260,7 @@ export default function Feed() {
                       marginTop: 0,
                       color: liked ? "#e11d48" : "#fff",
                       fontWeight: liked ? 700 : 400,
-                      textShadow: liked ? "0 0 8px #e11d4890" : "none"
+                      textShadow: liked ? "0 0 8px #e11d4890" : "none",
                     }}
                   >
                     {v.likes || 0}
@@ -312,14 +318,14 @@ export default function Feed() {
                 </button>
               </div>
 
-              {/* Caption/author/comments at bottom */}
+              {/* Bottom: Caption, author, comments preview */}
               <div
                 style={{
                   position: "absolute",
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background: "linear-gradient(0deg,#000d 88%,transparent 100%)",
+                  background: "linear-gradient(0deg,#000e 88%,transparent 100%)",
                   color: "#fff",
                   padding: "20px 18px 34px 18px",
                   zIndex: 6,
@@ -356,7 +362,6 @@ export default function Feed() {
                   View all {v.comments ? v.comments.length : 0} comments
                 </div>
               </div>
-
               {/* Comments modal */}
               {showComments[filename] && (
                 <div
