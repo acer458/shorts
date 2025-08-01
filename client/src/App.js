@@ -1,33 +1,38 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const HOST = "https://shorts-t2dk.onrender.com/"; // Replace with your actual backend URL
+const HOST = "https://YOUR_BACKEND_URL.onrender.com"; // Replace with your actual backend URL
 
 export default function App() {
   const [shorts, setShorts] = useState([]);
   const [video, setVideo] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [status, setStatus] = useState(""); // NEW: status message
 
   useEffect(() => {
-    axios.get(HOST + "/shorts").then((res) => setShorts(res.data));
+    axios.get(HOST + "/shorts")
+      .then((res) => setShorts(res.data))
+      .catch(() => setStatus("Could not fetch shorts."));
   }, []);
 
   const handleUpload = (e) => {
     e.preventDefault();
     if (!video) return;
     setUploading(true);
+    setStatus(""); // Clear status at start
 
     const formData = new FormData();
     formData.append("video", video);
 
-    axios
-      .post(HOST + "/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
+    axios.post(HOST + "/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
       .then((res) => {
-        setShorts((prev) => [res.data, ...prev]);
+        setShorts(prev => [res.data, ...prev]);
         setVideo(null);
+        setStatus("Upload Successful!");
       })
+      .catch(() => setStatus("Upload Failed."))
       .finally(() => setUploading(false));
   };
 
@@ -47,6 +52,18 @@ export default function App() {
         onSubmit={handleUpload}
       >
         <b>Admin Upload Video</b>
+        {status && (
+          <div style={{
+            background: status.includes("Successful") ? "#0f0" : "#f33",
+            color: "#000",
+            borderRadius: 4,
+            padding: "4px 0",
+            textAlign: "center",
+            marginBottom: 5,
+          }}>
+            {status}
+          </div>
+        )}
         <input
           accept="video/*"
           type="file"
