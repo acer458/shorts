@@ -36,11 +36,16 @@ function adminAuth(req, res, next) {
 // Upload endpoint (admin only)
 app.post('/upload', adminAuth, upload.single('video'), (req, res) => {
   const videoUrl = `/uploads/${req.file.filename}`;
-  videos.unshift({ url: videoUrl, createdAt: new Date() });
+  const stats = fs.statSync(path.join('uploads', req.file.filename)); // for size (bytes)
+  videos.unshift({
+    url: videoUrl,
+    createdAt: new Date(),
+    size: stats.size     // <-- include file size!
+  });
   res.json({ success: true, url: videoUrl });
 });
 
-// Get all shorts
+// Get all shorts and send file size info to admin dashboard
 app.get('/shorts', (req, res) => {
   res.json(videos);
 });
@@ -54,12 +59,12 @@ app.delete('/delete/:filename', adminAuth, (req, res) => {
     if (err) {
       return res.status(404).json({ error: 'File not found.' });
     }
-    // Remove the deleted file from the in-memory list
+    // Remove the video from the in-memory videos list:
     videos = videos.filter(v => !v.url.endsWith(filename));
     res.json({ success: true });
   });
 });
 
-// Server listen
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
