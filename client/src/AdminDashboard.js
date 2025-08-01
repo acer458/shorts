@@ -31,7 +31,9 @@
             .delete(`${HOST}/delete/${filename}`, {
               headers: { "x-admin-key": ADMIN_KEY }
             })
-            .then(() => setShorts(prev => prev.filter(v => !v.url.endsWith(filename))))
+            .then(() =>
+              setShorts(prev => prev.filter(v => !v.url.endsWith(filename)))
+            )
             .catch(() => alert("Delete failed!"));
         }}
       >
