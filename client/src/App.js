@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const HOST = "https://YOUR_BACKEND_URL.onrender.com"; // Replace with your actual backend URL
+const HOST = "https://shorts-t2dk.onrender.com"; // Replace with your actual backend URL
 
 export default function App() {
   const [shorts, setShorts] = useState([]);
