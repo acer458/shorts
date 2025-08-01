@@ -1,58 +1,65 @@
 const fs = require('fs');
-if (!fs.existsSync('uploads')) {
-  fs.mkdirSync('uploads');
-}
-
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use('/uploads', express.static('uploads'));
 
+// Ensure uploads folder exists
+if (!fs.existsSync('uploads')) {
+  fs.mkdirSync('uploads');
+}
+
+// Multer setup for video storage
 const storage = multer.diskStorage({
-    destination: 'uploads/',
-    filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+  destination: 'uploads/',
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
 const upload = multer({ storage });
 
+// In-memory video list
 let videos = [];
 
-app.post('/upload', upload.single('video'), (req, res) => {
-    const videoUrl = `/uploads/${req.file.filename}`;
-    videos.unshift({ url: videoUrl, createdAt: new Date() });
-    res.json({ success: true, url: videoUrl });
+// --- Admin Auth Middleware ---
+function adminAuth(req, res, next) {
+  const ADMIN_KEY = 'Hindi@1234'; // Set your real secret key
+  if (req.header("x-admin-key") === ADMIN_KEY) {
+    return next();
+  } else {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+}
+
+// Upload endpoint (admin only)
+app.post('/upload', adminAuth, upload.single('video'), (req, res) => {
+  const videoUrl = `/uploads/${req.file.filename}`;
+  videos.unshift({ url: videoUrl, createdAt: new Date() });
+  res.json({ success: true, url: videoUrl });
 });
 
+// Get all shorts
 app.get('/shorts', (req, res) => {
-    res.json(videos);
+  res.json(videos);
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
-
-// DELETE endpoint to remove a video file -- place BELOW your uploads and shorts endpoints!
-
-const fs = require('fs');
-const path = require('path');
-
-// If you're not already tracking the "videos" array in memory, define it above with your other globals
-// let videos = []; // If not already present
-
+// Delete endpoint (admin only)
 app.delete('/delete/:filename', adminAuth, (req, res) => {
   const filename = req.params.filename;
-  // If you use persistent disk, change 'uploads' to your persistent folder if needed
-  const filePath = path.join(__dirname, 'uploads', filename); // or '/mnt/data/uploads/filename' for persistent disk
+  const filePath = path.join(__dirname, 'uploads', filename);
 
   fs.unlink(filePath, (err) => {
     if (err) {
       return res.status(404).json({ error: 'File not found.' });
     }
-    // Remove the deleted file from the in-memory videos list, if you keep one
+    // Remove the deleted file from the in-memory list
     videos = videos.filter(v => !v.url.endsWith(filename));
     res.json({ success: true });
   });
 });
 
+// Server listen
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));
