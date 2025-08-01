@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
-// Adjust this to your backend URL
+// Change this to your backend API endpoint
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// --- Icons (SVG or extend as needed for custom icons) ---
+// --- SVG ICONS ---
 function HeartIcon({ filled }) {
   return filled ? (
     <svg viewBox="0 0 24 24" width={36} height={36}>
@@ -48,7 +48,7 @@ function ShareIcon() {
   );
 }
 
-// --- Like handler using localStorage for "one like per user" (no login/user system) ---
+// Helpers for "one like per browser"
 function isLiked(filename) {
   return localStorage.getItem("like_" + filename) === "1";
 }
@@ -69,7 +69,6 @@ export default function Feed() {
     axios.get(HOST + "/shorts").then((res) => setShorts(res.data));
   }, []);
 
-  // LIKE LOGIC
   function handleLike(idx, filename) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
@@ -86,7 +85,6 @@ export default function Feed() {
         setLikePending((l) => ({ ...l, [filename]: false }));
       });
     } else {
-      // Local, for unlike: decrease count (demo only—backend unlike not implemented)
       setShorts((prev) =>
         prev.map((v, i) =>
           i === idx && (v.likes || 0) > 0
@@ -99,7 +97,6 @@ export default function Feed() {
     }
   }
 
-  // Double-tap video for like/unlike, single tap to pause/play
   function handleVideoDoubleTap(idx, filename) {
     const now = Date.now();
     if (now - lastTapTime < 350) {
@@ -114,7 +111,6 @@ export default function Feed() {
     setLastTapTime(now);
   }
 
-  // COMMENT LOGIC
   function handleAddComment(idx, filename) {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
@@ -142,28 +138,19 @@ export default function Feed() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#000",
         width: "100vw",
+        background: "#000",
+        margin: 0,
+        padding: 0,
         overflow: "hidden",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
       }}
     >
-      {/* Phone frame: only one video in view, always, on any screen */}
       <div
         style={{
-          width: "clamp(320px, 28vw, 430px)",
-          aspectRatio: "9/16",
-          background: "#111",
-          borderRadius: 20,
-          overflow: "hidden",
-          maxHeight: "90vh",
-          height: "min(90vh, 900px)",
-          boxShadow: "0 0 32px #000c",
-          position: "relative",
-          scrollSnapType: "y mandatory",
+          width: "100vw",
+          height: "100vh",
           overflowY: "scroll",
+          scrollSnapType: "y mandatory",
         }}
       >
         {shorts.length === 0 && (
@@ -182,56 +169,45 @@ export default function Feed() {
         {shorts.map((v, idx) => {
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
+
           return (
             <div
               key={idx}
               style={{
-                width: "100%",
-                height: "100%",
+                width: "100vw",
+                height: "100vh",
                 scrollSnapAlign: "start",
                 position: "relative",
-                background: "#181D23",
+                background: "#000",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              {/* Video: any ratio—objectFit: contain centers, never crops */}
-              <div
+              {/* Video fills whole screen but always fits via objectFit: contain */}
+              <video
+                ref={(el) => (videoRefs.current[idx] = el)}
+                src={HOST + v.url}
+                loop
+                autoPlay={idx === 0}
+                playsInline
                 style={{
-                  width: "100%",
-                  height: "100%",
-                  background: "#181d23",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
+                  width: "100vw",
+                  height: "100vh",
+                  objectFit: "contain",
+                  background: "#000",
+                  cursor: "pointer",
+                  display: "block",
                 }}
-              >
-                <video
-                  ref={(el) => (videoRefs.current[idx] = el)}
-                  src={HOST + v.url}
-                  loop
-                  autoPlay={idx === 0}
-                  playsInline
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "100%",
-                    objectFit: "contain",
-                    background: "#000",
-                    cursor: "pointer",
-                    display: "block",
-                    borderRadius: 8,
-                  }}
-                  onClick={() => handleVideoDoubleTap(idx, filename)}
-                  onTouchEnd={() => handleVideoDoubleTap(idx, filename)}
-                />
-              </div>
-              {/* RIGHT: Overlays */}
+                onClick={() => handleVideoDoubleTap(idx, filename)}
+                onTouchEnd={() => handleVideoDoubleTap(idx, filename)}
+              />
+
+              {/* RIGHT: Buttons overlays */}
               <div
                 style={{
                   position: "absolute",
-                  right: 12,
+                  right: 14,
                   bottom: 108,
                   display: "flex",
                   flexDirection: "column",
@@ -285,7 +261,7 @@ export default function Feed() {
                       marginTop: 0,
                       color: liked ? "#e11d48" : "#fff",
                       fontWeight: liked ? 700 : 400,
-                      textShadow: liked ? "0 0 8px #e11d4890" : "none",
+                      textShadow: liked ? "0 0 8px #e11d4890" : "none"
                     }}
                   >
                     {v.likes || 0}
@@ -345,7 +321,7 @@ export default function Feed() {
                 </button>
               </div>
 
-              {/* Bottom overlay: Caption/user/comments */}
+              {/* BOTTOM OVERLAY: Caption, author, comments preview */}
               <div
                 style={{
                   position: "absolute",
