@@ -3,14 +3,12 @@ import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// ICONS
+// Icons
 function HeartIcon({ filled }) {
   return filled ? (
     <svg viewBox="0 0 24 24" width={36} height={36}>
       <path
-        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5
-        10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5
-        0 5-7.5 11.5-7.5 11.5Z"
+        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5 10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
         fill="#e11d48"
         stroke="#e11d48"
         strokeWidth="2"
@@ -21,9 +19,9 @@ function HeartIcon({ filled }) {
     <svg viewBox="0 0 24 24" width={36} height={36} fill="none">
       <path
         d="M12 21C12 21 4.5 14.5 4.5 9.5
-         4.5 6.5 7 5 9 5
-         10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5
-         c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
+          4.5 6.5 7 5 9 5
+          10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5
+          c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
         stroke="#fff"
         strokeWidth="2"
       />
@@ -47,7 +45,7 @@ function ShareIcon() {
   );
 }
 
-// Like per browser
+// Like helpers
 function isLiked(filename) {
   return localStorage.getItem("like_" + filename) === "1";
 }
@@ -64,14 +62,28 @@ export default function Feed() {
   const [likePending, setLikePending] = useState({});
   const [showComments, setShowComments] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
-  // For video progress
   const [videoProgress, setVideoProgress] = useState({});
 
   useEffect(() => {
     axios.get(HOST + "/shorts").then((res) => setShorts(res.data));
   }, []);
 
-  // Only play video in view
+  // Play/unmute current, pause/mute others
+  useEffect(() => {
+    videoRefs.current.forEach((vid, idx) => {
+      if (!vid) return;
+      if (idx === currentIdx) {
+        vid.muted = false;
+        vid.play().catch(()=>{});
+      } else {
+        vid.pause();
+        vid.currentTime = 0; // optional: resets others
+        vid.muted = true;
+      }
+    });
+  }, [currentIdx]);
+
+  // Scroll-snap: Detect fully visible video for autoplay
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       (entries) => {
@@ -90,15 +102,6 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length]);
 
-  useEffect(() => {
-    videoRefs.current.forEach((vid, idx) => {
-      if (!vid) return;
-      if (idx === currentIdx) vid.play().catch(()=>{});
-      else vid.pause();
-    });
-  }, [currentIdx]);
-
-  // Handle like
   function handleLike(idx, filename) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
@@ -125,41 +128,32 @@ export default function Feed() {
     }
   }
 
-  // TOUCH/CLICK HANDLING LOGIC
+  // Touch/click logic
   function handleVideoEvents(idx, filename) {
-    // Returns an object with appropriate handlers for <video />
-    // Touch: only double tap likes, single tap play/pause (with timer)
-    // Desktop: single click = play/pause, double click = like/unlike
     let tapTimeout = null;
     return {
       onClick: e => {
-        if (e.detail === 1) {
-          // On desktop, wait to see if a double click comes in
-          setTimeout(() => {
-            if (e.detail === 1) {
-              const vid = videoRefs.current[idx];
-              if (vid) vid.paused ? vid.play() : vid.pause();
-            }
-          }, 275);
-        }
+        // Single click = play/pause (not like)
+        setTimeout(() => {
+          if (e.detail === 1) {
+            const vid = videoRefs.current[idx];
+            if (vid) vid.paused ? vid.play() : vid.pause();
+          }
+        }, 275);
       },
-      onDoubleClick: e => {
-        handleLike(idx, filename);
-      },
-      onTouchEnd: e => {
+      onDoubleClick: () => handleLike(idx, filename),
+      onTouchEnd: () => {
         let now = Date.now();
         let vid = videoRefs.current[idx];
         if (!vid) return;
         let last = vid.__lastTapTime || 0;
         vid.__lastTapTime = now;
         if (now - last < 350) {
-          // Detected double tap
           clearTimeout(tapTimeout);
           handleLike(idx, filename);
         } else {
           tapTimeout = setTimeout(() => {
             if (Date.now() - vid.__lastTapTime >= 350) {
-              // Single tap after a delay (means not double tap)
               if (vid.paused) vid.play();
               else vid.pause();
             }
@@ -169,14 +163,12 @@ export default function Feed() {
     };
   }
 
-  // Handle video progress
-  function handleTimeUpdate(idx, filename, e) {
+  function handleTimeUpdate(idx, filename) {
     const vid = videoRefs.current[idx];
-    if (!vid) return;
     setVideoProgress((prev) => ({
       ...prev,
       [filename]:
-        vid.duration && !isNaN(vid.duration) && isFinite(vid.duration)
+        vid && vid.duration && !isNaN(vid.duration) && isFinite(vid.duration)
           ? vid.currentTime / vid.duration
           : 0,
     }));
@@ -205,20 +197,20 @@ export default function Feed() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         width: "100vw",
         background: "#000",
         margin: 0,
         padding: 0,
-        overflow: "hidden",
+        overflow: "hidden"
       }}
     >
       <div
         style={{
           width: "100vw",
-          height: "100vh",
+          height: "100dvh",
           overflowY: "scroll",
-          overflowX: "hidden",      // Hides horizontal scrollbar for good
+          overflowX: "hidden",
           scrollSnapType: "y mandatory",
           margin: 0,
           padding: 0,
@@ -250,7 +242,7 @@ export default function Feed() {
               ref={el => wrapperRefs.current[idx] = el}
               style={{
                 width: "100vw",
-                height: "100vh",
+                height: "100dvh",
                 scrollSnapAlign: "start",
                 position: "relative",
                 background: "#000",
@@ -269,7 +261,7 @@ export default function Feed() {
                 playsInline
                 style={{
                   width: "100vw",
-                  height: "100vh",
+                  height: "100dvh",
                   objectFit: "contain",
                   background: "#000",
                   cursor: "pointer",
@@ -280,10 +272,10 @@ export default function Feed() {
                   touchAction: "manipulation"
                 }}
                 {...handleVideoEvents(idx, filename)}
-                onTimeUpdate={e => handleTimeUpdate(idx, filename, e)}
+                onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
 
-              {/* --- Video progress bar at bottom --- */}
+              {/* Progress bar */}
               <div
                 style={{
                   position: "absolute",
@@ -291,7 +283,7 @@ export default function Feed() {
                   right: 0,
                   bottom: 0,
                   height: 4,
-                  background: "rgba(255,255,255,0.22)",
+                  background: "rgba(255,255,255,0.18)",
                   zIndex: 32,
                   borderRadius: 2,
                   overflow: 'hidden'
@@ -301,15 +293,13 @@ export default function Feed() {
                   style={{
                     width: `${Math.min(prog * 100, 100)}%`,
                     height: "100%",
-                    background: prog === 1
-                      ? "#0bb259"
-                      : "linear-gradient(90deg,#47a3f3,#e11d48 90%)",
+                    background: "rgb(42, 131, 254)",
                     transition: "width 0.22s cubic-bezier(.4,1,.5,1)",
                   }}
                 />
               </div>
 
-              {/* --- Like, comment, share (right, NEVER hidden) --- */}
+              {/* Right: Like, comment, share stack */}
               <div
                 style={{
                   position: "absolute",
@@ -410,7 +400,7 @@ export default function Feed() {
                 </button>
               </div>
 
-              {/* --- Bottom author/caption/comments preview --- */}
+              {/* Bottom author/caption/comments preview */}
               <div
                 style={{
                   position: "absolute",
@@ -455,7 +445,7 @@ export default function Feed() {
                 </div>
               </div>
 
-              {/* --- Comments modal --- */}
+              {/* Comments modal */}
               {showComments[filename] && (
                 <div
                   style={{
