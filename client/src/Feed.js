@@ -20,7 +20,8 @@ function HeartIcon({ filled }) {
   ) : (
     <svg viewBox="0 0 24 24" width={36} height={36} fill="none">
       <path
-        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5
+        d="M12 21C12 21 4.5 14.5 4.5 9.5
+          4.5 6.5 7 5 9 5
           10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5
           c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
         stroke="#fff"
@@ -63,24 +64,14 @@ export default function Feed() {
   const [commentInputs, setCommentInputs] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
 
-  useEffect(() => {
-    axios.get(HOST + "/shorts").then((res) => setShorts(res.data));
-  }, []);
-
+  useEffect(() => { axios.get(HOST + "/shorts").then(res => setShorts(res.data)); }, []);
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
-      if (idx === currentIdx) {
-        vid.muted = false;
-        vid.play().catch(()=>{});
-      } else {
-        vid.pause();
-        vid.currentTime = 0;
-        vid.muted = true;
-      }
+      if (idx === currentIdx) { vid.muted = false; vid.play().catch(()=>{}); }
+      else { vid.pause(); vid.currentTime = 0; vid.muted = true; }
     });
   }, [currentIdx]);
-
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       (entries) => {
@@ -92,8 +83,7 @@ export default function Feed() {
           }
         });
         if (maxRatio > 0.7) setCurrentIdx(visibleIdx);
-      },
-      { threshold: [0, 0.5, 0.7, 1] }
+      }, { threshold: [0, 0.5, 0.7, 1] }
     );
     wrapperRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
@@ -110,7 +100,9 @@ export default function Feed() {
         setLikePending(l => ({ ...l, [filename]: false }));
       });
     } else {
-      setShorts(prev => prev.map((v, i) => i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v));
+      setShorts(prev => prev.map((v, i) =>
+        i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v
+      ));
       setLiked(filename, false);
       setLikePending(l => ({ ...l, [filename]: false }));
     }
@@ -118,14 +110,12 @@ export default function Feed() {
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
-      onClick: e => {
-        setTimeout(() => {
-          if (e.detail === 1) {
-            const vid = videoRefs.current[idx];
-            if (vid) vid.paused ? vid.play() : vid.pause();
-          }
-        }, 275);
-      },
+      onClick: e => { setTimeout(() => {
+        if (e.detail === 1) {
+          const vid = videoRefs.current[idx];
+          if (vid) vid.paused ? vid.play() : vid.pause();
+        }
+      }, 275); },
       onDoubleClick: () => handleLike(idx, filename),
       onTouchEnd: () => {
         let now = Date.now();
@@ -263,7 +253,7 @@ export default function Feed() {
                 {...handleVideoEvents(idx, filename)}
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
-              {/* Seekable progress bar */}
+              {/* Progress bar */}
               <div
                 style={{
                   position: "absolute",
@@ -300,7 +290,7 @@ export default function Feed() {
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: 34,
+                  gap: 32,
                   zIndex: 10,
                   userSelect: "none",
                   pointerEvents: "auto",
@@ -314,11 +304,10 @@ export default function Feed() {
                     borderRadius: "50%",
                     width: 52,
                     height: 52,
-                    boxShadow: "0 1px 5px #0004",
+                    boxShadow: "0 2px 12px #0003",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    marginBottom: 1,
                     cursor: "pointer",
                     outline: "none"
                   }}
@@ -331,7 +320,10 @@ export default function Feed() {
                   color: liked ? "#e11d48" : "#fff",
                   fontWeight: 600,
                   fontSize: 16,
-                  textAlign: "center"
+                  textAlign: "center",
+                  lineHeight: "1.0",
+                  marginTop: 2,
+                  marginBottom: -7
                 }}>
                   {v.likes || 0}
                 </div>
@@ -343,11 +335,10 @@ export default function Feed() {
                     borderRadius: "50%",
                     width: 52,
                     height: 52,
-                    boxShadow: "0 1px 5px #0004",
+                    boxShadow: "0 2px 12px #0003",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    marginBottom: 1,
                     cursor: "pointer",
                     outline: "none"
                   }}
@@ -360,7 +351,10 @@ export default function Feed() {
                   color: "#fff",
                   fontWeight: 600,
                   fontSize: 16,
-                  textAlign: "center"
+                  textAlign: "center",
+                  marginTop: 2,
+                  lineHeight: "1.0",
+                  marginBottom: -7
                 }}>
                   {(v.comments && v.comments.length) || 0}
                 </div>
@@ -372,11 +366,10 @@ export default function Feed() {
                     borderRadius: "50%",
                     width: 52,
                     height: 52,
-                    boxShadow: "0 1px 5px #0004",
+                    boxShadow: "0 2px 12px #0003",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    marginBottom: 1,
                     cursor: "pointer",
                     outline: "none"
                   }}
@@ -398,12 +391,14 @@ export default function Feed() {
                   fontWeight: 500,
                   fontSize: 15,
                   textAlign: "center",
-                  opacity: 0.8
+                  opacity: 0.8,
+                  marginTop: 2,
+                  lineHeight: "1.0"
                 }}>
                   Share
                 </div>
               </div>
-              {/* Info/caption/comments PREVIEW */}
+              {/* Info/caption/comments preview */}
               <div
                 style={{
                   position: "absolute",
@@ -440,8 +435,7 @@ export default function Feed() {
                   onClick={() => setShowComments(cur => ({ ...cur, [filename]: true }))}
                 >View all {v.comments ? v.comments.length : 0} comments</div>
               </div>
-
-              {/* --- COMMENTS MODAL --- */}
+              {/* COMMENTS MODAL */}
               {showComments[filename] && (
                 <div
                   style={{
@@ -471,19 +465,18 @@ export default function Feed() {
                       position: 'relative',
                       left: 0,
                       bottom: 0,
-                      transition: "0.22s cubic-bezier(.48,1.5,0.5,1)",
                       display: "flex",
                       flexDirection: "column",
                     }}
                     onClick={e => e.stopPropagation()}
                   >
-                    {/* Modal Header */}
+                    {/* Header */}
                     <div style={{
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       height: 54,
-                      borderBottom: "1px solid #22263c",
+                      borderBottom: "1px solid #232345",
                       color: "#8cd9ff",
                       fontWeight: 600,
                       fontSize: 18,
@@ -509,7 +502,7 @@ export default function Feed() {
                         }}
                       >×</button>
                     </div>
-                    {/* Comments list: all comments, IG-style */}
+                    {/* All comments, IG-style */}
                     <div style={{
                       overflowY: "auto",
                       maxHeight: "33vh",
@@ -539,12 +532,19 @@ export default function Feed() {
                         </div>
                       ))}
                     </div>
-                    {/* Modern pull-up input bar */}
+                    {/* Input bar */}
                     <div
                       style={{
                         position: "sticky", bottom: 0, left: 0, right: 0, zIndex: 3,
-                        background: "#23243f", padding: "13px 11px 16px 11px", borderRadius: "0 0 14px 14px",
-                        display: "flex", alignItems: "center", gap: 10, width: "99%", margin: "auto"
+                        background: "#23243f",
+                        padding: "12px 10px 13px 10px",
+                        borderRadius: "0 0 14px 14px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        width: "99%",
+                        margin: "auto",
+                        minWidth: 0
                       }}
                     >
                       <input
@@ -555,28 +555,32 @@ export default function Feed() {
                         placeholder="Add a comment…"
                         style={{
                           flex: 1,
+                          minWidth: 0,
                           border: "none",
                           borderRadius: 22,
                           fontSize: 18,
-                          padding: "13px 16px",
+                          padding: "13px 14px",
                           outline: "none",
                           background: "#1a202f",
-                          color: "#fff"
+                          color: "#fff",
+                          boxShadow: "0 1px 3px #0003",
                         }}
                         onKeyDown={e => { if (e.key === "Enter") handleAddComment(idx, filename); }}
                         inputMode="text"
                       />
                       <button
                         style={{
-                          background: commentInputs[filename]?.trim()
-                            ? "#2983fe" : "#7daefc",
+                          background: commentInputs[filename]?.trim() ? "#2983fe" : "#7daefc",
                           color: "#fff",
                           border: "none",
                           borderRadius: 22,
-                          padding: "12px 22px",
+                          padding: "10px 16px",
                           fontWeight: 700,
                           fontSize: 17,
-                          cursor: commentInputs[filename]?.trim() ? "pointer" : "not-allowed"
+                          cursor: commentInputs[filename]?.trim() ? "pointer" : "not-allowed",
+                          boxShadow: commentInputs[filename]?.trim() ? "0 1px 5px #2983fe44" : "none",
+                          transition: "background .15s",
+                          minWidth: 0
                         }}
                         disabled={!commentInputs[filename]?.trim()}
                         onClick={() => handleAddComment(idx, filename)}
