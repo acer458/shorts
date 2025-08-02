@@ -4,7 +4,7 @@ import Feed from "./Feed";
 import AdminDashboard from "./AdminDashboard";
 import LoginPage from "./LoginPage";
 
-const ADMIN_EMAIL = "youradmin@email.com"; // set this to your admin's email
+const ADMIN_EMAIL = "propscholars@gmail.com"; // set this to your admin's email
 
 function isAdmin(session) {
   return session?.user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
