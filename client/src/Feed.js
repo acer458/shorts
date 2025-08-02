@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { supabase } from "./supabaseClient"; // <-- make sure this file exists!
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// Icons (same as before)
+// --- ICONS (like/heart, comment, share) ---
 function HeartIcon({ filled }) {
   return filled ? (
     <svg viewBox="0 0 24 24" width={36} height={36}>
@@ -77,13 +76,13 @@ export default function Feed() {
         vid.play().catch(()=>{});
       } else {
         vid.pause();
-        vid.currentTime = 0; // optional: resets others
+        vid.currentTime = 0;
         vid.muted = true;
       }
     });
   }, [currentIdx]);
 
-  // Scroll-snap: Detect fully visible video for autoplay
+  // Use intersection observer for scroll snap
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       (entries) => {
@@ -128,7 +127,6 @@ export default function Feed() {
     }
   }
 
-  // Touch/click logic
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -204,31 +202,6 @@ export default function Feed() {
         overflow: "hidden"
       }}
     >
-      {/* --- Supabase Logout Button, always visible in top right --- */}
-      <button
-        style={{
-          position: "fixed",
-          top: 12,
-          right: 18,
-          zIndex: 10001,
-          background: "#202030",
-          color: "#fff",
-          borderRadius: 22,
-          border: "none",
-          fontWeight: 600,
-          fontSize: 16,
-          padding: "8px 22px",
-          boxShadow: "0 3px 12px #0003",
-          cursor: "pointer"
-        }}
-        onClick={async () => {
-          await supabase.auth.signOut();
-          window.location.reload();
-        }}
-      >
-        Logout
-      </button>
-
       <div
         style={{
           width: "100vw",
@@ -299,7 +272,7 @@ export default function Feed() {
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
 
-              {/* Progress bar, rgb(42, 131, 254) */}
+              {/* Progress bar */}
               <div
                 style={{
                   position: "absolute",
