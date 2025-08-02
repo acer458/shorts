@@ -3,12 +3,18 @@ import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-function isLiked(filename) {
-  return localStorage.getItem("like_" + filename) === "1";
-}
-function setLiked(filename, yes) {
-  if (yes) localStorage.setItem("like_" + filename, "1");
-  else localStorage.removeItem("like_" + filename);
+// IG-style filled/outlined heart using SVG
+function HeartSVG({ filled }) {
+  return (
+    <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
+      <path
+        fill={filled ? "#ed4956" : "none"}
+        stroke={filled ? "#ed4956" : "#fff"}
+        strokeWidth="3"
+        d="M34.3 7.8c-3.4 0-6.5 1.7-8.3 4.4-1.8-2.7-4.9-4.4-8.3-4.4C11 7.8 7 12 7 17.2c0 3.7 2.6 7 6.6 11.1 3.1 3.1 9.3 8.6 10.1 9.3.6.5 1.5.5 2.1 0 .8-.7 7-6.2 10.1-9.3 4-4.1 6.6-7.4 6.6-11.1 0-5.2-4-9.4-8.6-9.4z"
+      />
+    </svg>
+  );
 }
 
 export default function Feed() {
@@ -39,7 +45,6 @@ export default function Feed() {
     });
   }, [currentIdx]);
 
-  // Scroll snap detection
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       entries => {
@@ -58,7 +63,14 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length]);
 
-  // Handler for Like button
+  function isLiked(filename) {
+    return localStorage.getItem("like_" + filename) === "1";
+  }
+  function setLiked(filename, yes) {
+    if (yes) localStorage.setItem("like_" + filename, "1");
+    else localStorage.removeItem("like_" + filename);
+  }
+
   function handleLike(idx, filename) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
@@ -70,15 +82,14 @@ export default function Feed() {
         setLikePending(l => ({ ...l, [filename]: false }));
       });
     } else {
-      setShorts(prev => prev.map(
-        (v, i) => i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v
+      setShorts(prev => prev.map((v, i) =>
+        i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v
       ));
       setLiked(filename, false);
       setLikePending(l => ({ ...l, [filename]: false }));
     }
   }
 
-  // Handle Share
   function handleShare(filename) {
     const url = window.location.origin + "/?v=" + filename;
     if (navigator.share) {
@@ -89,11 +100,11 @@ export default function Feed() {
     }
   }
 
-  // Play/pause/single/double tap logic
+  // Play/pause tap/double tap
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
-      onClick: e => {
+      onClick: () => {
         if (tapTimeout) clearTimeout(tapTimeout);
         tapTimeout = setTimeout(() => {
           const vid = videoRefs.current[idx];
@@ -123,7 +134,6 @@ export default function Feed() {
     };
   }
 
-  // Seek logic
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -170,7 +180,7 @@ export default function Feed() {
 
   function getProfilePic(v) {
     return v.avatar || v.profilePic ||
-        `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author || "anonymous")}`;
+      `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author || "anonymous")}`;
   }
 
   return (
@@ -245,7 +255,7 @@ export default function Feed() {
                 />
               </div>
 
-              {/* --- DP, Like, Comment, Share --- */}
+              {/* --- DP, Like, Comment, Share (no borders/shadows, matching Instagram) --- */}
               <div style={{
                 position: 'absolute',
                 right: '12px',
@@ -259,18 +269,18 @@ export default function Feed() {
                 {/* Profile Picture / DP */}
                 <div style={{
                   marginBottom: '6px',
-                  width: 50, height: 50,
+                  width: 48, height: 48,
                   borderRadius: "50%",
                   overflow: "hidden"
                 }}>
                   <img src={getProfilePic(v)}
-                       alt="dp"
-                       style={{
-                         width: "100%",
-                         height: "100%",
-                         borderRadius: "50%",
-                         objectFit: "cover"
-                       }}/>
+                    alt="dp"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "50%",
+                      objectFit: "cover"
+                    }}/>
                 </div>
                 {/* Like BUTTON/Count */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -283,22 +293,16 @@ export default function Feed() {
                       cursor: 'pointer'
                     }}
                   >
-                    <svg aria-label={liked ? "Unlike" : "Like"} fill={liked ? "#ed4956" : "#fff"} height="24" viewBox="0 0 24 24" width="24">
-                      <path d={liked ?
-                        "M16.792 3.904A4.989 4.989 0 0121.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 014.708-5.218 4.21 4.21 0 013.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 013.679-1.938m0-2a6.04 6.04 0 00-4.797 2.127 6.052 6.052 0 00-4.787-2.127A6.985 6.985 0 00.5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 003.518 3.018 2 2 0 002.174 0 45.263 45.263 0 003.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 00-6.708-7.218z"
-                        :
-                        "M16.792 3.904A4.989 4.989 0 0121.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 014.708-5.218 4.21 4.21 0 013.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 013.679-1.938m0-2a6.04 6.04 0 00-4.797 2.127 6.052 6.052 0 00-4.787-2.127A6.985 6.985 0 00.5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 003.518 3.018 2 2 0 002.174 0 45.263 45.263 0 003.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 00-6.708-7.218z"}/>
-                    </svg>
+                    <HeartSVG filled={liked} />
                   </button>
                   <span style={{
                     color: liked ? '#ed4956' : '#fff',
-                    fontSize: '12px',
+                    fontSize: '13px',
                     marginTop: '4px'
                   }}>
                     {v.likes || 0}
                   </span>
                 </div>
-
                 {/* Comment BUTTON/Count */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button
@@ -313,13 +317,12 @@ export default function Feed() {
                   </button>
                   <span style={{
                     color: '#fff',
-                    fontSize: '12px',
+                    fontSize: '13px',
                     marginTop: '4px'
                   }}>
                     {v.comments?.length || 0}
                   </span>
                 </div>
-
                 {/* Share BUTTON */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button
@@ -334,14 +337,14 @@ export default function Feed() {
                     </svg>
                   </button>
                   <span style={{
-                    color: '#fff', fontSize: '12px', marginTop: '4px'
+                    color: '#fff', fontSize: '13px', marginTop: '4px'
                   }}>
                     Share
                   </span>
                 </div>
               </div>
 
-              {/* Info/caption/comments preview */}
+              {/* ------ Caption/comments preview bar ------ */}
               <div
                 style={{
                   position: "absolute",
@@ -357,14 +360,16 @@ export default function Feed() {
                   userSelect: "none"
                 }}
               >
-                <div style={{ fontWeight: 700, fontSize: 17 }}>
+                <div style={{
+                  fontWeight: 600, fontSize: 16, marginBottom: 6
+                }}>
                   @{v.author || "anonymous"}
-                </div>
-                <div style={{ fontSize: 17, margin: "5px 0 8px 0" }}>
-                  {v.caption}
+                  <span style={{ fontWeight: 400, marginLeft: 9, color: "#fff" }}>
+                    {v.caption}
+                  </span>
                 </div>
                 {v.comments && v.comments.length > 0 && (
-                  <div style={{ fontSize: 15, color: "#bae6fd" }}>
+                  <div style={{ fontSize: 14, color: "#bae6fd" }}>
                     <b>{v.comments[0].name}:</b> {v.comments[0].text}
                   </div>
                 )}
@@ -372,15 +377,15 @@ export default function Feed() {
                   style={{
                     color: "#b2bec3",
                     fontSize: 15,
-                    marginTop: 1,
+                    marginTop: 3,
                     cursor: "pointer"
                   }}
                   onClick={() => setShowComments(filename)}
                 >View all {v.comments ? v.comments.length : 0} comments</div>
               </div>
 
-              {/* ---- COMMENTS MODAL ---- */}
-              {showComments === filename && (
+              {/* ---- COMMENTS MODAL (with INSTAGRAM caption/comments UI) ---- */}
+              {showComments === filename &&
                 <div
                   style={{
                     position: "fixed",
@@ -396,133 +401,115 @@ export default function Feed() {
                 >
                   <div
                     style={{
-                      background: "#181b29",
-                      borderTopLeftRadius: 18,
-                      borderTopRightRadius: 18,
-                      minHeight: 270,
-                      maxHeight: "70vh",
-                      width: "100vw",
-                      boxShadow: "0 -4px 18px #000c",
+                      background: "#fff",
+                      borderTopLeftRadius: 17,
+                      borderTopRightRadius: 17,
+                      maxWidth: 500,
+                      margin: "auto",
+                      minHeight: 390,
+                      maxHeight: "90vh",
+                      width: "97vw",
+                      boxShadow: "0 -4px 25px #0002, 0 2px 8px #ccc1",
                       display: "flex",
-                      flexDirection: "column"
+                      flexDirection: "column",
+                      position: 'relative',
+                      overflow: 'hidden'
                     }}
                     onClick={e => e.stopPropagation()}
                   >
+                    {/* Caption (IG-style) */}
                     <div style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      height: 54,
-                      borderBottom: "1px solid #232345",
-                      color: "#8cd9ff",
-                      fontWeight: 600,
-                      fontSize: 18,
-                      borderTopLeftRadius: 18,
-                      borderTopRightRadius: 18,
-                      position: "relative"
+                      borderBottom: "1px solid #efefef",
+                      fontSize: 14, lineHeight: 1.45,
+                      padding: "14px 18px", color: "#222"
                     }}>
-                      Comments
-                      <button
-                        onClick={() => setShowComments(null)}
-                        style={{
-                          position: "absolute",
-                          right: 16,
-                          top: "50%",
-                          transform: "translateY(-50%)",
-                          fontSize: 23,
-                          background: "none",
-                          color: "#fff",
-                          border: "none",
-                          cursor: "pointer"
-                        }}
-                      >×</button>
+                      <span style={{
+                        fontWeight: 600, color: "#151b3a", marginRight: 6
+                      }}>
+                        {v.author || "anonymous"}
+                      </span>
+                      {v.caption}
                     </div>
-                    <div style={{
-                      overflowY: "auto",
-                      maxHeight: "33vh",
-                      padding: "4px 0 0 0"
-                    }}>
-                      {(v.comments || []).length === 0 && (
-                        <div style={{ color: "#ccc", fontSize: 15, textAlign: "center", padding: 20 }}>No comments yet.</div>
-                      )}
-                      {(v.comments || []).map((comment, ci) => (
+                    {/* Comments - list all as in your code */}
+                    <div style={{ flex: 1, overflowY: "auto" }}>
+                      {(v.comments || []).map((c, ci) => (
                         <div key={ci} style={{
-                          display: "flex", alignItems: "flex-start", gap: 12,
-                          padding: "13px 18px 13px 18px", borderBottom: "1px solid #22263c"
+                          display: "flex", padding: "12px 16px", borderBottom: "1px solid #efefef"
                         }}>
-                          <div style={{
-                            width: 34, height: 34, borderRadius: "50%",
-                            background: "#111a", marginRight: 0, flexShrink: 0
-                          }}>
-                            <img src={`https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(comment.name || "anon")}`}
-                              alt="avatar"
-                              style={{ width: "100%", height: "100%", borderRadius: "50%" }} />
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <span style={{ color: "#9fd1ff", fontWeight: 600, fontSize: 16 }}>{comment.name}</span>
-                            {" "}
-                            <span style={{ color: "#fff", fontSize: 16 }}>{comment.text}</span>
+                          {/* No avatars as per your HTML. Add if needed */}
+                          <div style={{ flex: 1 }}>
+                            <span style={{
+                              fontWeight: 600, fontSize: 14, marginRight: 5, color: "#151b3a"
+                            }}>
+                              {c.name}
+                            </span>
+                            <span style={{
+                              fontSize: 14, color: "#242526"
+                            }}>
+                              {c.text}
+                            </span>
+                            {/* IG comment time/Reply/Like row */}
+                            <div style={{
+                              color: "#8e8e8e", fontSize: 12, marginTop: 5,
+                              display: "flex", alignItems: "center", gap: 18
+                            }}>
+                              <span>2h ago</span>
+                              <span style={{ cursor: 'pointer' }}>Reply</span>
+                              <span style={{ cursor: 'pointer' }}>Like</span>
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
-                    {/* Input bar */}
-                    <div
-                      style={{
-                        position: "sticky", bottom: 0, left: 0, right: 0, zIndex: 3,
-                        background: "#23243f",
-                        padding: "12px 10px 13px 10px",
-                        borderRadius: "0 0 14px 14px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        width: "99%",
-                        margin: "auto",
-                        minWidth: 0
-                      }}
-                    >
+                    {/* Add Comment bar (Instagram style) */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '16px',
+                      borderTop: '1px solid #efefef',
+                      background: '#fff'
+                    }}>
                       <input
+                        type="text"
+                        placeholder="Add a comment..."
                         value={commentInputs[filename] || ""}
-                        onChange={e =>
-                          setCommentInputs(prev => ({ ...prev, [filename]: e.target.value }))
-                        }
-                        placeholder="Add a comment…"
                         style={{
                           flex: 1,
-                          minWidth: 0,
                           border: "none",
-                          borderRadius: 22,
-                          fontSize: 18,
-                          padding: "13px 14px",
                           outline: "none",
-                          background: "#1a202f",
-                          color: "#fff",
-                          boxShadow: "0 1px 3px #0003",
+                          fontSize: 14,
+                          padding: "9px 0",
+                          marginRight: 6
                         }}
-                        onKeyDown={e => { if (e.key === "Enter") handleAddComment(idx, filename); }}
-                        inputMode="text"
+                        onChange={e => setCommentInputs(prev => ({
+                          ...prev, [filename]: e.target.value
+                        }))}
+                        onKeyDown={e => {
+                          if (e.key === "Enter" && (commentInputs[filename] || "").trim() !== "") {
+                            handleAddComment(idx, filename);
+                          }
+                        }}
                       />
                       <button
+                        className={`post-button${(commentInputs[filename] || "").trim() ? " active" : ""}`}
                         style={{
-                          background: commentInputs[filename]?.trim() ? "#2983fe" : "#7daefc",
-                          color: "#fff",
+                          color: "#0095f6",
+                          fontWeight: 600,
+                          fontSize: 14,
+                          background: "none",
                           border: "none",
-                          borderRadius: 22,
-                          padding: "10px 16px",
-                          fontWeight: 700,
-                          fontSize: 17,
-                          cursor: commentInputs[filename]?.trim() ? "pointer" : "not-allowed",
-                          boxShadow: commentInputs[filename]?.trim() ? "0 1px 5px #2983fe44" : "none",
-                          transition: "background .15s",
-                          minWidth: 0
+                          cursor: (commentInputs[filename] || "").trim() ? "pointer" : "not-allowed",
+                          opacity: (commentInputs[filename] || "").trim() ? 1 : 0.3,
+                          transition: "opacity .14s"
                         }}
-                        disabled={!commentInputs[filename]?.trim()}
+                        disabled={!(commentInputs[filename] || "").trim()}
                         onClick={() => handleAddComment(idx, filename)}
-                      >Send</button>
+                      >Post</button>
                     </div>
                   </div>
                 </div>
-              )}
+              }
+
             </div>
           );
         })}
