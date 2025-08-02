@@ -3,7 +3,7 @@ import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// Heart SVG (filled/outline IG style)
+// IG heart SVG
 function HeartSVG({ filled }) {
   return (
     <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
@@ -17,6 +17,52 @@ function HeartSVG({ filled }) {
   );
 }
 
+// Pause Icon SVG (bigger, IG-style)
+function PauseIcon() {
+  return (
+    <svg width={82} height={82} viewBox="0 0 82 82">
+      <circle cx="41" cy="41" r="40" fill="#000A" />
+      <rect x="26" y="20" width="10" height="42" rx="3" fill="#fff"/>
+      <rect x="46" y="20" width="10" height="42" rx="3" fill="#fff"/>
+    </svg>
+  );
+}
+
+// Heart pulse SVG (center big heart)
+function PulseHeart({ visible }) {
+  return (
+    <div
+      style={{
+        position: "absolute", left: "50%", top: "50%", zIndex: 106,
+        transform: "translate(-50%, -50%)",
+        pointerEvents: "none",
+        opacity: visible ? 1 : 0,
+        animation: visible ? "heartPulseAnim .75s cubic-bezier(.1,1.6,.6,1)" : "none"
+      }}
+    >
+      <svg viewBox="0 0 96 96" width={90} height={90} style={{ display: "block" }}>
+        <path
+          d="M48 86C48 86 12 60 12 32.5 12 18.8 24.5 10 36 10c6.2 0 11.9 3.3 12 3.3S53.8 10 60 10c11.5 0 24 8.8 24 22.5C84 60 48 86 48 86Z"
+          fill="#ed4956"
+          stroke="#ed4956"
+          strokeWidth="7"
+        />
+      </svg>
+      <style>
+        {`
+        @keyframes heartPulseAnim {
+          0% { opacity: 0; transform: translate(-50%,-50%) scale(0);}
+          10% { opacity: 0.92; transform: translate(-50%,-50%) scale(1.22);}
+          18% { opacity: 1; transform: translate(-50%,-50%) scale(0.95);}
+          40%, 82% { opacity: 0.92; transform: translate(-50%,-50%) scale(1);}
+          100% { opacity: 0; transform: translate(-50%,-50%) scale(0);}
+        }
+        `}
+      </style>
+    </div>
+  );
+}
+
 export default function Feed() {
   const [shorts, setShorts] = useState([]);
   const videoRefs = useRef([]);
@@ -26,6 +72,9 @@ export default function Feed() {
   const [showComments, setShowComments] = useState(null); // filename or null
   const [commentInputs, setCommentInputs] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
+  // Animation state:
+  const [showPause, setShowPause] = useState(false);
+  const [showPulseHeart, setShowPulseHeart] = useState(false);
 
   useEffect(() => { axios.get(HOST + "/shorts").then(res => setShorts(res.data)); }, []);
 
@@ -41,6 +90,8 @@ export default function Feed() {
         vid.muted = true;
       }
     });
+    setShowPause(false);
+    setShowPulseHeart(false);
   }, [currentIdx]);
 
   useEffect(() => {
@@ -61,13 +112,13 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length]);
 
-  // Local likes
+  // Likes
   function isLiked(filename) { return localStorage.getItem("like_" + filename) === "1"; }
   function setLiked(filename, yes) {
     if (yes) localStorage.setItem("like_" + filename, "1");
     else localStorage.removeItem("like_" + filename);
   }
-  function handleLike(idx, filename) {
+  function handleLike(idx, filename, pulse = true) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
     setLikePending(l => ({ ...l, [filename]: true }));
@@ -84,8 +135,11 @@ export default function Feed() {
       setLiked(filename, false);
       setLikePending(l => ({ ...l, [filename]: false }));
     }
+    if (pulse) { // pulse heart center if double tap
+      setShowPulseHeart(true);
+      setTimeout(() => setShowPulseHeart(false), 720);
+    }
   }
-
   function handleShare(filename) {
     const url = window.location.origin + "/?v=" + filename;
     if (navigator.share) {
@@ -96,6 +150,7 @@ export default function Feed() {
     }
   }
 
+  // --- Tap logic (with pause & pulse) ---
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -104,26 +159,49 @@ export default function Feed() {
         tapTimeout = setTimeout(() => {
           const vid = videoRefs.current[idx];
           if (!vid) return;
-          if (vid.paused) vid.play();
-          else vid.pause();
+          if (vid.paused) {
+            vid.play();
+            setShowPause(false);
+          } else {
+            vid.pause();
+            setShowPause(true);
+            // Hide the pause after .7s only if video is not resumed
+            setTimeout(() => {
+              if (vid.paused) setShowPause(false);
+            }, 750);
+          }
         }, 240);
       },
       onDoubleClick: () => {
         if (tapTimeout) { clearTimeout(tapTimeout); tapTimeout = null; }
-        handleLike(idx, filename);
+        handleLike(idx, filename, true); // Like and pulse
+        setShowPulseHeart(true);
+        setTimeout(() => setShowPulseHeart(false), 700);
       },
       onTouchEnd: e => {
         if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
-        if (tapTimeout) { clearTimeout(tapTimeout); tapTimeout = null; handleLike(idx, filename); }
-        else {
+        if (tapTimeout) {
+          clearTimeout(tapTimeout); tapTimeout = null;
+          handleLike(idx, filename, true);
+          setShowPulseHeart(true);
+          setTimeout(() => setShowPulseHeart(false), 700);
+        } else {
           tapTimeout = setTimeout(() => {
             const vid = videoRefs.current[idx];
             if (vid) {
-              if (vid.paused) vid.play();
-              else vid.pause();
+              if (vid.paused) {
+                vid.play();
+                setShowPause(false);
+              } else {
+                vid.pause();
+                setShowPause(true);
+                setTimeout(() => {
+                  if (vid.paused) setShowPause(false);
+                }, 750);
+              }
             }
             tapTimeout = null;
-          }, 240);
+          }, 250);
         }
       }
     };
@@ -146,7 +224,6 @@ export default function Feed() {
       vid.currentTime = Math.max(0, Math.min(percent, 1)) * vid.duration;
     }
   }
-
   function handleTimeUpdate(idx, filename) {
     const vid = videoRefs.current[idx];
     setVideoProgress((prev) => ({
@@ -157,7 +234,6 @@ export default function Feed() {
           : 0,
     }));
   }
-
   function handleAddComment(idx, filename) {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
@@ -175,13 +251,10 @@ export default function Feed() {
       });
   }
 
-  // DP logic
   function getProfilePic(v) {
     return v.avatar || v.profilePic ||
       `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author || "anonymous")}`;
   }
-
-  // For demo: random public avatars for comments; time string
   function fakeAvatar(i) {
     const urls = [
       "https://randomuser.me/api/portraits/men/32.jpg",
@@ -228,6 +301,8 @@ export default function Feed() {
             time: fakeTime(i)
           }));
 
+          const isCurrent = idx === currentIdx;
+
           return (
             <div
               key={idx}
@@ -236,9 +311,11 @@ export default function Feed() {
               style={{
                 width: "100vw", height: "100dvh", scrollSnapAlign: "start",
                 position: "relative", background: "#000",
-                display: "flex", alignItems: "center", justifyContent: "center"
+                display: "flex", alignItems: "center", justifyContent: "center",
+                overflow: "hidden"
               }}
             >
+              {/* Video */}
               <video
                 ref={el => (videoRefs.current[idx] = el)}
                 src={HOST + v.url}
@@ -252,23 +329,25 @@ export default function Feed() {
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
 
-              {/* Progress bar */}
-              <div style={{
-                position: "absolute", left: 0, right: 0, bottom: 0,
-                height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32,
-                borderRadius: 2, overflow: "hidden", cursor: "pointer"
-              }}
-                onClick={e => handleSeek(idx, e, false)}
-                onTouchStart={e => handleSeek(idx, e, true)}
-              >
+              {/* Pause Overlay Animation */}
+              {isCurrent && showPause && (
                 <div style={{
-                  width: `${Math.min(prog * 100, 100)}%`,
-                  height: "100%",
-                  background: "rgb(42, 131, 254)",
-                  transition: "width 0.22s cubic-bezier(.4,1,.5,1)",
-                  pointerEvents: "none"
-                }} />
-              </div>
+                  position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  zIndex: 105, background: 'rgba(0,0,0,0.26)',
+                  pointerEvents: 'none', animation: 'fadeInPause .29s'
+                }}>
+                  <PauseIcon />
+                  <style>
+                    {`
+                    @keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }
+                  `}
+                  </style>
+                </div>
+              )}
+
+              {/* Heart Pulse Animation */}
+              {isCurrent && <PulseHeart visible={showPulseHeart} />}
 
               {/* DP, Like, Comment, Share */}
               <div style={{
@@ -290,7 +369,7 @@ export default function Feed() {
                 {/* Like */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button
-                    onClick={() => handleLike(idx, filename)}
+                    onClick={e => { e.stopPropagation(); handleLike(idx, filename, false); }}
                     style={{
                       background: 'none', border: 'none',
                       padding: 0, cursor: 'pointer'
@@ -308,7 +387,7 @@ export default function Feed() {
                 {/* Comment */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button
-                    onClick={() => setShowComments(filename)}
+                    onClick={e => { e.stopPropagation(); setShowComments(filename); }}
                     style={{
                       background: 'none', border: 'none', padding: 0, cursor: 'pointer'
                     }}
@@ -343,8 +422,7 @@ export default function Feed() {
                   </span>
                 </div>
               </div>
-
-              {/* Caption/comments bottom bar */}
+              {/* Caption/comments bar */}
               <div style={{
                 position: "absolute",
                 left: 0, right: 0, bottom: 0,
@@ -371,7 +449,7 @@ export default function Feed() {
                 >View all {v.comments ? v.comments.length : 0} comments</div>
               </div>
 
-              {/* -- COMMENTS MODAL: Black IG style, all username/text white -- */}
+              {/* -- COMMENTS MODAL unchanged... */}
               {showComments === filename &&
                 <div
                   style={{
@@ -415,7 +493,6 @@ export default function Feed() {
                         onClick={() => setShowComments(null)}
                       >×</span>
                     </div>
-                    {/* Comments */}
                     <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}>
                       {allComments.length === 0 ? (
                         <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>
