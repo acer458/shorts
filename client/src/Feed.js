@@ -3,7 +3,7 @@ import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// ICONS (same as before)
+// --- ICONS ---
 function HeartIcon({ filled }) {
   return filled ? (
     <svg viewBox="0 0 24 24" width={36} height={36}><path d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5 10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z" fill="#e11d48" stroke="#e11d48" strokeWidth="2" style={{ filter: "drop-shadow(0 0 16px #e11d4890)" }} /></svg>
@@ -27,8 +27,9 @@ function ShareIcon() {
   );
 }
 
-// Like logic
-function isLiked(filename) { return localStorage.getItem("like_" + filename) === "1"; }
+function isLiked(filename) {
+  return localStorage.getItem("like_" + filename) === "1";
+}
 function setLiked(filename, yes) {
   if (yes) localStorage.setItem("like_" + filename, "1");
   else localStorage.removeItem("like_" + filename);
@@ -43,12 +44,14 @@ export default function Feed() {
   const [showComments, setShowComments] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
-  // For one-at-a-time comment page
+  // NEW: For one comment at a time per video
   const [commentPage, setCommentPage] = useState({});
 
   useEffect(() => {
     axios.get(HOST + "/shorts").then((res) => setShorts(res.data));
   }, []);
+
+  // Play/mute logic as before
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
@@ -62,8 +65,6 @@ export default function Feed() {
       }
     });
   }, [currentIdx]);
-
-  // Scroll-snap
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       (entries) => {
@@ -76,33 +77,22 @@ export default function Feed() {
     wrapperRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
   }, [shorts.length]);
-
   function handleLike(idx, filename) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
     setLikePending(l => ({ ...l, [filename]: true }));
-
     if (!liked) {
       axios.post(`${HOST}/shorts/${filename}/like`).then(() => {
-        setShorts(prev =>
-          prev.map((v, i) =>
-            i === idx ? { ...v, likes: (v.likes || 0) + 1 } : v
-          )
-        );
+        setShorts(prev => prev.map((v, i) => i === idx ? { ...v, likes: (v.likes || 0) + 1 } : v));
         setLiked(filename, true);
         setLikePending(l => ({ ...l, [filename]: false }));
       });
     } else {
-      setShorts(prev =>
-        prev.map((v, i) =>
-          i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v
-        )
-      );
+      setShorts(prev => prev.map((v, i) => i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v));
       setLiked(filename, false);
       setLikePending(l => ({ ...l, [filename]: false }));
     }
   }
-
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -135,8 +125,6 @@ export default function Feed() {
       }
     };
   }
-
-  // Seek
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -154,7 +142,6 @@ export default function Feed() {
       vid.currentTime = Math.max(0, Math.min(percent, 1)) * vid.duration;
     }
   }
-
   function handleTimeUpdate(idx, filename) {
     const vid = videoRefs.current[idx];
     setVideoProgress((prev) => ({
@@ -165,14 +152,13 @@ export default function Feed() {
           : 0,
     }));
   }
-
   function handleAddComment(idx, filename) {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
     axios
       .post(`${HOST}/shorts/${filename}/comment`, { name: "Anonymous", text })
       .then(() => {
-        setShorts((prev) =>
+        setShorts(prev =>
           prev.map((v, i) =>
             i === idx
               ? { ...v, comments: [...(v.comments || []), { name: "Anonymous", text }] }
@@ -180,62 +166,52 @@ export default function Feed() {
           )
         );
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
-        setCommentPage(p => ({ ...p, [filename]: (v.comments ? (v.comments.length) : 0) })); // advance to new last page
+        setCommentPage(p => ({ ...p, [filename]: (shorts[idx]?.comments?.length ?? 0) })); // Switch to last
       });
   }
-
-  // For Comments modal: only show one at a time
+  // Renders only one comment in the modal, with Prev/Next button
   function renderSingleComment(v, filename) {
     const page = commentPage[filename] || 0;
     const total = (v.comments || []).length || 0;
-    if (total === 0) {
-      return <div style={{ color: "#ccc", fontSize: 15 }}>No comments yet.</div>;
-    }
-    const comment = v.comments[page] || {};
+    if (total === 0) return <div style={{ color: "#ccc", fontSize: 15, textAlign: "center" }}>No comments yet.</div>;
+    const c = v.comments[page];
     return (
       <>
         <div style={{
-          margin: "14px 0 8px",
-          fontSize: 16,
-          minHeight: 28
+          margin: "18px 0 10px", fontSize: 17, minHeight: 30,
+          textAlign: "center", lineHeight: 1.4
         }}>
-          <b style={{ color: "#9fd1ff" }}>{comment.name}</b>{" "}
-          <span style={{ color: "#fff" }}>{comment.text}</span>
+          <b style={{ color: "#9fd1ff" }}>{c.name}</b>{" "}
+          <span style={{ color: "#fff" }}>{c.text}</span>
         </div>
         <div style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 14,
-          margin: "14px 0 0 0",
+          display: "flex", justifyContent: "center", alignItems: "center", gap: 13, marginTop: 4
         }}>
           <button
             style={{
-              background: "#23243f",
+              background: "none",
               color: page > 0 ? "#2983fe" : "#7daefc",
               border: "none",
               borderRadius: 18,
-              padding: "7px 16px",
-              fontWeight: 700,
-              fontSize: 16,
+              padding: "7px 18px",
+              fontWeight: 700, fontSize: 17,
               cursor: page > 0 ? "pointer" : "not-allowed",
-              opacity: page > 0 ? 1 : 0.6
+              opacity: page > 0 ? 1 : 0.58
             }}
             disabled={page === 0}
             onClick={() => setCommentPage(p => ({ ...p, [filename]: page - 1 }))}
           >Prev</button>
-          <span style={{ color: "#fff", fontSize: 15 }}>{page + 1}/{total}</span>
+          <span style={{ color: "#fff", fontSize: 16 }}>{page + 1}/{total}</span>
           <button
             style={{
-              background: "#23243f",
+              background: "none",
               color: page < total - 1 ? "#2983fe" : "#7daefc",
               border: "none",
               borderRadius: 18,
-              padding: "7px 16px",
-              fontWeight: 700,
-              fontSize: 16,
+              padding: "7px 18px",
+              fontWeight: 700, fontSize: 17,
               cursor: page < total - 1 ? "pointer" : "not-allowed",
-              opacity: page < total - 1 ? 1 : 0.6
+              opacity: page < total - 1 ? 1 : 0.58
             }}
             disabled={page >= total - 1}
             onClick={() => setCommentPage(p => ({ ...p, [filename]: page + 1 }))}
@@ -244,7 +220,6 @@ export default function Feed() {
       </>
     );
   }
-
   return (
     <div
       style={{
@@ -280,7 +255,6 @@ export default function Feed() {
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
           const prog = videoProgress[filename] || 0;
-
           return (
             <div
               key={idx}
@@ -295,9 +269,7 @@ export default function Feed() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                margin: 0,
-                padding: 0,
-                overflow: "hidden"
+                margin: 0, padding: 0, overflow: "hidden"
               }}
             >
               <video
@@ -348,8 +320,7 @@ export default function Feed() {
                   }}
                 />
               </div>
-
-              {/* Like/Comment/Share vertical stack */}
+              {/* Like/Comment/Share stack */}
               <div
                 style={{
                   position: "absolute",
@@ -400,11 +371,10 @@ export default function Feed() {
                     flexDirection: "column",
                     alignItems: "center",
                   }}
-                  onClick={() =>
-                    setShowComments(cur => ({
-                      ...cur, [filename]: !cur[filename]
-                    }))
-                  }
+                  onClick={() => {
+                    setShowComments(cur => ({ ...cur, [filename]: !cur[filename] }));
+                    setCommentPage(p => ({ ...p, [filename]: 0 })); // Open first comment when opening modal
+                  }}
                   tabIndex={-1}
                 >
                   <CommentIcon />
@@ -437,7 +407,6 @@ export default function Feed() {
                   tabIndex={-1}
                 ><ShareIcon /></button>
               </div>
-
               {/* Caption/author/comments preview */}
               <div
                 style={{
@@ -451,7 +420,7 @@ export default function Feed() {
                   zIndex: 6,
                   display: "flex",
                   flexDirection: "column",
-                  userSelect: "none",
+                  userSelect: "none"
                 }}
               >
                 <div style={{ fontWeight: 700, fontSize: 17 }}>
@@ -468,70 +437,65 @@ export default function Feed() {
                 <div
                   style={{
                     color: "#b2bec3",
-                    fontSize: 15,
-                    marginTop: 1,
-                    cursor: "pointer",
+                    fontSize: 15, marginTop: 1, cursor: "pointer",
                   }}
-                  onClick={() =>
-                    setShowComments(cur => ({ ...cur, [filename]: true }))
-                  }
+                  onClick={() => {
+                    setShowComments(cur => ({ ...cur, [filename]: true }));
+                    setCommentPage(p => ({ ...p, [filename]: 0 }));
+                  }}
                 >View all {v.comments ? v.comments.length : 0} comments</div>
               </div>
-
-              {/* Comments modal with ONE comment at a time */}
+              {/* --- Comments modal - only ONE comment at a time --- */}
               {showComments[filename] && (
                 <div
                   style={{
                     position: "fixed",
                     inset: 0,
-                    zIndex: 200,
+                    zIndex: 500,
                     background: "#000b",
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "flex-end",
+                    overscrollBehavior: "contain"
                   }}
                   onClick={() =>
-                    setShowComments(cur => ({
-                      ...cur, [filename]: false
-                    }))
+                    setShowComments(cur => ({ ...cur, [filename]: false }))
                   }
                 >
                   <div
                     style={{
                       background: "#23243f",
-                      borderTopLeftRadius: 18,
-                      borderTopRightRadius: 18,
+                      borderTopLeftRadius: 17,
+                      borderTopRightRadius: 17,
                       maxHeight: "60vh",
-                      minHeight: 190,
-                      width: "100%",
-                      overflowY: "auto",
-                      boxShadow: "0 -4px 24px #000a",
-                      padding: "14px 8px 8dvh 8px",
+                      minHeight: 210,
+                      width: "100vw",
+                      overflowY: "hidden", // hide scroll
+                      boxShadow: "0 -4px 18px #000c",
+                      padding: "12px 8px 8dvh 8px",
                       position: 'relative',
-                      bottom: 0,
                       left: 0,
+                      bottom: 0,
+                      transition: "0.22s cubic-bezier(.48,1.5,0.5,1)",
                     }}
                     onClick={e => e.stopPropagation()}
                   >
                     <div style={{
                       fontWeight: 600,
                       fontSize: 19,
-                      marginBottom: 6,
+                      marginBottom: 4,
                       color: "#aee0ff",
                       paddingLeft: 14,
-                      paddingTop: 2,
+                      textAlign: "center"
                     }}>Comments</div>
-                    <div
-                      style={{
-                        minHeight: 44,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center"
-                      }}
-                    >
+                    <div style={{
+                      minHeight: 44,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>
                       {renderSingleComment(v, filename)}
                     </div>
-                    {/* Modern floating input comment bar */}
                     <div
                       style={{
                         position: "sticky",
@@ -539,26 +503,24 @@ export default function Feed() {
                         left: 0,
                         right: 0,
                         zIndex: 200,
-                        background: "#202030",
+                        background: "#181b29",
                         display: "flex",
                         alignItems: "center",
-                        padding: "14px 10px 18px 10px",
+                        padding: "13px 11px 17px 11px",
                         gap: 10,
                         borderRadius: 14,
-                        boxShadow: "0 2px 18px #0008",
+                        boxShadow: "0 2px 18px #0007",
                         width: "99%",
                         marginLeft: "auto",
                         marginRight: "auto",
-                        maxWidth: 520,
-                        marginTop: 16,
+                        maxWidth: 520
                       }}
                     >
                       <input
                         value={commentInputs[filename] || ""}
                         onChange={e =>
                           setCommentInputs(prev => ({
-                            ...prev,
-                            [filename]: e.target.value
+                            ...prev, [filename]: e.target.value
                           }))
                         }
                         placeholder="Add a comment…"
@@ -567,9 +529,9 @@ export default function Feed() {
                           border: "none",
                           borderRadius: 22,
                           fontSize: 18,
-                          padding: "15px 16px",
+                          padding: "13px 16px",
                           outline: "none",
-                          background: "#181b29",
+                          background: "#1a202f",
                           color: "#fff",
                           boxShadow: "0 1px 3px #0003",
                         }}
@@ -586,14 +548,14 @@ export default function Feed() {
                           color: "#fff",
                           border: "none",
                           borderRadius: 22,
-                          padding: "13px 22px",
+                          padding: "12px 22px",
                           fontWeight: 700,
-                          fontSize: 18,
+                          fontSize: 17,
                           cursor: commentInputs[filename]?.trim()
                             ? "pointer"
                             : "not-allowed",
                           boxShadow: commentInputs[filename]?.trim()
-                            ? "0 1px 5px #2983fe44"
+                            ? "0 1px 4px #2983fe44"
                             : "none",
                           transition: "background .15s"
                         }}
@@ -604,7 +566,6 @@ export default function Feed() {
                   </div>
                 </div>
               )}
-
             </div>
           );
         })}
