@@ -198,34 +198,17 @@ export default function Feed() {
                 playsInline
                 className="reel-video"
                 style={{
-                  objectFit: 'contain', // Changed from 'cover' to 'contain' to prevent zooming
-                  backgroundColor: '#000'
+                  objectFit: 'contain',
+                  backgroundColor: '#000',
+                  width: '100%',
+                  height: '100%'
                 }}
                 {...handleVideoEvents(idx, filename)}
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
               
-              {/* Progress bar - moved to very bottom */}
-              <div
-                className="video-progress-container"
-                onClick={e => handleSeek(idx, e, false)}
-                onTouchStart={e => handleSeek(idx, e, true)}
-                style={{
-                  position: 'absolute',
-                  bottom: '60px', // Adjusted to be above the info section
-                  left: 0,
-                  right: 0
-                }}
-              >
-                <div
-                  className="video-progress-bar"
-                  style={{ width: `${Math.min(prog * 100, 100)}%` }}
-                />
-              </div>
-              
               {/* Right action buttons */}
               <div className="reel-actions">
-                {/* Like */}
                 <div className="action-button">
                   <button onClick={() => handleLike(idx, filename)} className="action-icon">
                     <HeartIcon filled={liked} />
@@ -233,7 +216,6 @@ export default function Feed() {
                   <span className="action-count">{v.likes || 0}</span>
                 </div>
                 
-                {/* Comment */}
                 <div className="action-button">
                   <button onClick={() => setShowComments(cur => ({ ...cur, [filename]: true }))} className="action-icon">
                     <CommentIcon />
@@ -241,7 +223,6 @@ export default function Feed() {
                   <span className="action-count">{(v.comments && v.comments.length) || 0}</span>
                 </div>
                 
-                {/* Share */}
                 <div className="action-button">
                   <button 
                     onClick={() => {
@@ -261,8 +242,16 @@ export default function Feed() {
                 </div>
               </div>
               
-              {/* Bottom info section */}
-              <div className="reel-info">
+              {/* Bottom info section - now above progress bar */}
+              <div className="reel-info" style={{
+                position: 'absolute',
+                bottom: '70px',
+                left: 0,
+                right: 0,
+                padding: '12px 16px',
+                background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+                zIndex: 2
+              }}>
                 <div className="author-info">
                   <div className="author-avatar">
                     <img 
@@ -286,7 +275,33 @@ export default function Feed() {
                 </div>
               </div>
               
-              {/* COMMENTS MODAL - adjusted for mobile */}
+              {/* Progress bar - now at absolute bottom */}
+              <div
+                className="video-progress-container"
+                onClick={e => handleSeek(idx, e, false)}
+                onTouchStart={e => handleSeek(idx, e, true)}
+                style={{
+                  position: 'absolute',
+                  bottom: '60px',
+                  left: 0,
+                  right: 0,
+                  height: '2px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                  zIndex: 10
+                }}
+              >
+                <div
+                  className="video-progress-bar"
+                  style={{ 
+                    width: `${Math.min(prog * 100, 100)}%`,
+                    height: '100%',
+                    backgroundColor: '#fff',
+                    transition: 'width 0.1s linear'
+                  }}
+                />
+              </div>
+              
+              {/* COMMENTS MODAL */}
               {showComments[filename] && (
                 <div 
                   className="comments-modal-overlay"
