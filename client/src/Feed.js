@@ -3,12 +3,51 @@ import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// ICONS as before...
-function HeartIcon({ filled }) { /* ...[same as given above]... */ }
-function CommentIcon() { /* ...[same as given above]... */ }
-function ShareIcon() { /* ...[same as given above]... */ }
+// ICONS
+function HeartIcon({ filled }) {
+  return filled ? (
+    <svg viewBox="0 0 24 24" width={36} height={36}>
+      <path
+        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5
+        10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5
+        0 5-7.5 11.5-7.5 11.5Z"
+        fill="#e11d48"
+        stroke="#e11d48"
+        strokeWidth="2"
+        style={{ filter: "drop-shadow(0 0 16px #e11d4890)" }}
+      />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" width={36} height={36} fill="none">
+      <path
+        d="M12 21C12 21 4.5 14.5 4.5 9.5
+         4.5 6.5 7 5 9 5
+         10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5
+         c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
+        stroke="#fff"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+function CommentIcon() {
+  return (
+    <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="#fff">
+      <rect x="3" y="5" width="18" height="12" rx="4" strokeWidth="2"/>
+      <path d="M8 21l2-4h4l2 4" strokeWidth="2"/>
+    </svg>
+  );
+}
+function ShareIcon() {
+  return (
+    <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="#fff">
+      <path d="M13 5l7 7-7 7" strokeWidth="2"/>
+      <path d="M5 12h15" strokeWidth="2"/>
+    </svg>
+  );
+}
 
-// One-like-per-browser helpers
+// Like helpers
 function isLiked(filename) {
   return localStorage.getItem("like_" + filename) === "1";
 }
@@ -31,7 +70,7 @@ export default function Feed() {
     axios.get(HOST + "/shorts").then((res) => setShorts(res.data));
   }, []);
 
-  // Play only the video in view
+  // Play only reel in view
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       (entries) => {
@@ -58,7 +97,6 @@ export default function Feed() {
     });
   }, [currentIdx]);
 
-  // Like logic is toggle: double tap likes/unlikes
   function handleLike(idx, filename) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
@@ -85,13 +123,13 @@ export default function Feed() {
     }
   }
 
+  // Double-tap toggles like/unlike. No zoom ever.
   function handleVideoDoubleTap(idx, filename) {
     const now = Date.now();
-    // Double tap in 350ms toggles like/unlike:
     if (now - lastTapTime < 350) {
       handleLike(idx, filename);
     } else {
-      // Single tap: play/pause
+      // Single tap = play/pause
       const vid = videoRefs.current[idx];
       if (vid) {
         if (vid.paused) vid.play();
@@ -129,7 +167,7 @@ export default function Feed() {
         background: "#000",
         margin: 0,
         padding: 0,
-        overflow: "hidden",
+        overflow: "hidden"
       }}
     >
       <div
@@ -176,6 +214,7 @@ export default function Feed() {
                 justifyContent: "center",
                 margin: 0,
                 padding: 0,
+                overflow: "hidden",
               }}
             >
               <video
@@ -193,29 +232,28 @@ export default function Feed() {
                   margin: 0,
                   padding: 0,
                   border: "none",
-                  // Prevent browser zoom on double tap/pinch
-                  touchAction: "manipulation"
+                  touchAction: "manipulation" // Prevents browser zoom on double tap
                 }}
                 onClick={() => handleVideoDoubleTap(idx, filename)}
                 onTouchEnd={() => handleVideoDoubleTap(idx, filename)}
-                // You may add onDoubleClick if needed on desktop (but onClick covers both)
               />
 
-              {/* Right: Like, comment, share stack ... [as in code above, omit 3-dots] */}
+              {/* --- Button stack always visible on right (never hidden/cutoff) --- */}
               <div
                 style={{
                   position: "absolute",
-                  right: 18,
-                  bottom: 120,
+                  top: "50%",
+                  right: 10,
+                  transform: "translateY(-50%)",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: 24,
+                  gap: 28,
                   zIndex: 10,
                   userSelect: "none",
+                  pointerEvents: "auto",
                 }}
               >
-                {/* Like */}
                 <button
                   style={{
                     background: "none",
@@ -243,8 +281,6 @@ export default function Feed() {
                     {v.likes || 0}
                   </div>
                 </button>
-                {/* ... (Comment and share, as before) ... */}
-                {/* Copy rest of the stack from the previous answer */}
                 <button
                   style={{
                     background: "none",
@@ -300,8 +336,154 @@ export default function Feed() {
                 </button>
               </div>
 
-              {/* ... Caption/etc. at bottom, comment modal ... leave as in previous code ... */}
-              {/* [Copy these sections from your working UI, everything else remains unchanged] */}
+              {/* Bottom: user/caption/comments preview */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: "linear-gradient(0deg,#000e 88%,transparent 100%)",
+                  color: "#fff",
+                  padding: "20px 18px 34px 18px",
+                  zIndex: 6,
+                  display: "flex",
+                  flexDirection: "column",
+                  userSelect: "none",
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: 17 }}>
+                  @{v.author || "anonymous"}
+                </div>
+                <div style={{ fontSize: 17, margin: "5px 0 8px 0" }}>
+                  {v.caption}
+                </div>
+                {v.comments && v.comments.length > 0 && (
+                  <div style={{ fontSize: 15, color: "#bae6fd" }}>
+                    <b>{v.comments[0].name}:</b> {v.comments[0].text}
+                  </div>
+                )}
+                <div
+                  style={{
+                    color: "#b2bec3",
+                    fontSize: 15,
+                    marginTop: 1,
+                    cursor: "pointer",
+                  }}
+                  onClick={() =>
+                    setShowComments((cur) => ({
+                      ...cur,
+                      [filename]: true,
+                    }))
+                  }
+                >
+                  View all {v.comments ? v.comments.length : 0} comments
+                </div>
+              </div>
+
+              {/* Comments modal */}
+              {showComments[filename] && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    zIndex: 100,
+                    background: "#000c",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "flex-end",
+                  }}
+                  onClick={() =>
+                    setShowComments((cur) => ({
+                      ...cur,
+                      [filename]: false,
+                    }))
+                  }
+                >
+                  <div
+                    style={{
+                      background: "#202030",
+                      borderTopLeftRadius: 16,
+                      borderTopRightRadius: 16,
+                      maxHeight: "55%",
+                      overflowY: "auto",
+                      boxShadow: "0 -4px 24px #000a",
+                      padding: "22px 14px 10px 18px",
+                    }}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 19,
+                        marginBottom: 12,
+                        color: "#aee0ff",
+                      }}
+                    >
+                      Comments
+                    </div>
+                    {(v.comments || []).length === 0 && (
+                      <div style={{ color: "#ccc", fontSize: 15 }}>
+                        No comments yet.
+                      </div>
+                    )}
+                    {(v.comments || []).map((c, ci) => (
+                      <div key={ci} style={{ margin: "7px 0", fontSize: 16 }}>
+                        <b style={{ color: "#9fd1ff" }}>{c.name}</b>{" "}
+                        <span style={{ color: "#fff" }}>{c.text}</span>
+                      </div>
+                    ))}
+                    <div
+                      style={{
+                        marginTop: 15,
+                        display: "flex",
+                        gap: 4,
+                        background: "none",
+                      }}
+                    >
+                      <input
+                        value={commentInputs[filename] || ""}
+                        onChange={(e) =>
+                          setCommentInputs((prev) => ({
+                            ...prev,
+                            [filename]: e.target.value,
+                          }))
+                        }
+                        placeholder="Add a comment..."
+                        style={{
+                          flex: 1,
+                          borderRadius: 7,
+                          border: "1px solid #333",
+                          fontSize: 15,
+                          color: "#fff",
+                          background: "#14151b",
+                          padding: "5px 11px",
+                          outline: "none",
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter")
+                            handleAddComment(idx, filename);
+                        }}
+                      />
+                      <button
+                        style={{
+                          background: "#47a3f3",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 7,
+                          padding: "7px 16px",
+                          fontWeight: 600,
+                          fontSize: 15,
+                          cursor: "pointer",
+                        }}
+                        onClick={() => handleAddComment(idx, filename)}
+                      >
+                        Send
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
