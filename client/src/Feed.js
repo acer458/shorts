@@ -3,7 +3,7 @@ import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// IG heart SVG
+// IG-style heart SVG, filled or outline
 function HeartSVG({ filled }) {
   return (
     <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
@@ -17,7 +17,7 @@ function HeartSVG({ filled }) {
   );
 }
 
-// Pause Icon SVG (bigger, IG-style)
+// Pause overlay icon (SVG)
 function PauseIcon() {
   return (
     <svg width={82} height={82} viewBox="0 0 82 82">
@@ -28,7 +28,7 @@ function PauseIcon() {
   );
 }
 
-// Heart pulse SVG (center big heart)
+// Pulse heart (big anim):
 function PulseHeart({ visible }) {
   return (
     <div
@@ -52,9 +52,9 @@ function PulseHeart({ visible }) {
         {`
         @keyframes heartPulseAnim {
           0% { opacity: 0; transform: translate(-50%,-50%) scale(0);}
-          10% { opacity: 0.92; transform: translate(-50%,-50%) scale(1.22);}
-          18% { opacity: 1; transform: translate(-50%,-50%) scale(0.95);}
-          40%, 82% { opacity: 0.92; transform: translate(-50%,-50%) scale(1);}
+          14% { opacity: 0.92; transform: translate(-50%,-50%) scale(1.22);}
+          27% { opacity: 1; transform: translate(-50%,-50%) scale(0.89);}
+          44%, 82% { opacity: 0.92; transform: translate(-50%,-50%) scale(1);}
           100% { opacity: 0; transform: translate(-50%,-50%) scale(0);}
         }
         `}
@@ -69,15 +69,14 @@ export default function Feed() {
   const wrapperRefs = useRef([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [likePending, setLikePending] = useState({});
-  const [showComments, setShowComments] = useState(null); // filename or null
+  const [showComments, setShowComments] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
-  // Animation state:
+  // Animation state
   const [showPause, setShowPause] = useState(false);
   const [showPulseHeart, setShowPulseHeart] = useState(false);
 
   useEffect(() => { axios.get(HOST + "/shorts").then(res => setShorts(res.data)); }, []);
-
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
@@ -93,7 +92,6 @@ export default function Feed() {
     setShowPause(false);
     setShowPulseHeart(false);
   }, [currentIdx]);
-
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       entries => {
@@ -112,13 +110,12 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length]);
 
-  // Likes
   function isLiked(filename) { return localStorage.getItem("like_" + filename) === "1"; }
   function setLiked(filename, yes) {
     if (yes) localStorage.setItem("like_" + filename, "1");
     else localStorage.removeItem("like_" + filename);
   }
-  function handleLike(idx, filename, pulse = true) {
+  function handleLike(idx, filename, wantPulse = false) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
     setLikePending(l => ({ ...l, [filename]: true }));
@@ -128,6 +125,10 @@ export default function Feed() {
         setLiked(filename, true);
         setLikePending(l => ({ ...l, [filename]: false }));
       });
+      if (wantPulse) {
+        setShowPulseHeart(true);
+        setTimeout(() => setShowPulseHeart(false), 720);
+      }
     } else {
       setShorts(prev => prev.map((v, i) =>
         i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v
@@ -135,11 +136,8 @@ export default function Feed() {
       setLiked(filename, false);
       setLikePending(l => ({ ...l, [filename]: false }));
     }
-    if (pulse) { // pulse heart center if double tap
-      setShowPulseHeart(true);
-      setTimeout(() => setShowPulseHeart(false), 720);
-    }
   }
+
   function handleShare(filename) {
     const url = window.location.origin + "/?v=" + filename;
     if (navigator.share) {
@@ -150,7 +148,6 @@ export default function Feed() {
     }
   }
 
-  // --- Tap logic (with pause & pulse) ---
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -165,24 +162,32 @@ export default function Feed() {
           } else {
             vid.pause();
             setShowPause(true);
-            // Hide the pause after .7s only if video is not resumed
-            setTimeout(() => {
-              if (vid.paused) setShowPause(false);
-            }, 750);
+            // PAUSE overlay remains until replay, doesn't disappear instantly!
+            // Do not auto-hide
           }
         }, 240);
       },
       onDoubleClick: () => {
         if (tapTimeout) { clearTimeout(tapTimeout); tapTimeout = null; }
-        handleLike(idx, filename, true); // Like and pulse
-        setShowPulseHeart(true);
+        if (!isLiked(filename)) {
+          handleLike(idx, filename, true); // Like + pulse
+        }
+        else {
+          // already liked; do not show pulse
+          handleLike(idx, filename, false);
+        }
+        setShowPulseHeart(true); // pulse briefly always
         setTimeout(() => setShowPulseHeart(false), 700);
       },
       onTouchEnd: e => {
         if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
         if (tapTimeout) {
           clearTimeout(tapTimeout); tapTimeout = null;
-          handleLike(idx, filename, true);
+          if (!isLiked(filename)) {
+            handleLike(idx, filename, true);
+          } else {
+            handleLike(idx, filename, false);
+          }
           setShowPulseHeart(true);
           setTimeout(() => setShowPulseHeart(false), 700);
         } else {
@@ -195,9 +200,7 @@ export default function Feed() {
               } else {
                 vid.pause();
                 setShowPause(true);
-                setTimeout(() => {
-                  if (vid.paused) setShowPause(false);
-                }, 750);
+                // Remain overlay until play
               }
             }
             tapTimeout = null;
@@ -312,7 +315,7 @@ export default function Feed() {
                 width: "100vw", height: "100dvh", scrollSnapAlign: "start",
                 position: "relative", background: "#000",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                overflow: "hidden"
+                overflow: 'hidden'
               }}
             >
               {/* Video */}
@@ -329,7 +332,7 @@ export default function Feed() {
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
 
-              {/* Pause Overlay Animation */}
+              {/* Pause Overlay Animation (persistent while paused) */}
               {isCurrent && showPause && (
                 <div style={{
                   position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -341,12 +344,12 @@ export default function Feed() {
                   <style>
                     {`
                     @keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }
-                  `}
+                    `}
                   </style>
                 </div>
               )}
 
-              {/* Heart Pulse Animation */}
+              {/* Heart Pulse Animation (center, only like) */}
               {isCurrent && <PulseHeart visible={showPulseHeart} />}
 
               {/* DP, Like, Comment, Share */}
@@ -369,7 +372,14 @@ export default function Feed() {
                 {/* Like */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button
-                    onClick={e => { e.stopPropagation(); handleLike(idx, filename, false); }}
+                    onClick={e => {
+                      e.stopPropagation();
+                      if (!liked) {
+                        handleLike(idx, filename, true); // Play pulse
+                      } else {
+                        handleLike(idx, filename, false); // No pulse when unlike
+                      }
+                    }}
                     style={{
                       background: 'none', border: 'none',
                       padding: 0, cursor: 'pointer'
@@ -448,8 +458,7 @@ export default function Feed() {
                   onClick={() => setShowComments(filename)}
                 >View all {v.comments ? v.comments.length : 0} comments</div>
               </div>
-
-              {/* -- COMMENTS MODAL unchanged... */}
+              {/* Comments modal unchanged */}
               {showComments === filename &&
                 <div
                   style={{
@@ -577,7 +586,6 @@ export default function Feed() {
                   </div>
                 </div>
               }
-
             </div>
           );
         })}
