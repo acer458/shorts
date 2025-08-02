@@ -3,12 +3,14 @@ import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// --- ICONS (like/heart, comment, share) ---
+// --- ICONS ---
 function HeartIcon({ filled }) {
   return filled ? (
     <svg viewBox="0 0 24 24" width={36} height={36}>
       <path
-        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5 10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
+        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5
+        10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5
+        0 5-7.5 11.5-7.5 11.5Z"
         fill="#e11d48"
         stroke="#e11d48"
         strokeWidth="2"
@@ -28,23 +30,26 @@ function HeartIcon({ filled }) {
     </svg>
   );
 }
+
 function CommentIcon() {
   return (
     <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="#fff">
-      <rect x="3" y="5" width="18" height="12" rx="4" strokeWidth="2"/>
-      <path d="M8 21l2-4h4l2 4" strokeWidth="2"/>
-    </svg>
-  );
-}
-function ShareIcon() {
-  return (
-    <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="#fff">
-      <path d="M13 5l7 7-7 7" strokeWidth="2"/>
-      <path d="M5 12h15" strokeWidth="2"/>
+      <rect x="3" y="5" width="18" height="12" rx="4" strokeWidth="2" />
+      <path d="M8 21l2-4h4l2 4" strokeWidth="2" />
     </svg>
   );
 }
 
+function ShareIcon() {
+  return (
+    <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="#fff">
+      <path d="M13 5l7 7-7 7" strokeWidth="2" />
+      <path d="M5 12h15" strokeWidth="2" />
+    </svg>
+  );
+}
+
+// LIKE HELPERS
 function isLiked(filename) {
   return localStorage.getItem("like_" + filename) === "1";
 }
@@ -82,11 +87,12 @@ export default function Feed() {
     });
   }, [currentIdx]);
 
-  // Use intersection observer for scroll snap
+  // Snap-to-fullscreen detection for "current" video
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       (entries) => {
-        let maxRatio = 0, visibleIdx = 0;
+        let maxRatio = 0,
+          visibleIdx = 0;
         entries.forEach((entry) => {
           if (entry.intersectionRatio > maxRatio) {
             maxRatio = entry.intersectionRatio;
@@ -101,6 +107,7 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length]);
 
+  // Like logic
   function handleLike(idx, filename) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
@@ -127,6 +134,7 @@ export default function Feed() {
     }
   }
 
+  // Touch/click events for like and play
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -160,6 +168,25 @@ export default function Feed() {
     };
   }
 
+  // Seek handling (for progress bar)
+  function handleSeek(idx, e, isTouch = false) {
+    let clientX;
+    if (isTouch) {
+      if (!e.touches || e.touches.length !== 1) return;
+      clientX = e.touches[0].clientX;
+    } else {
+      clientX = e.clientX;
+    }
+    const target = e.currentTarget;
+    const rect = target.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const percent = x / rect.width;
+    const vid = videoRefs.current[idx];
+    if (vid && vid.duration && isFinite(vid.duration)) {
+      vid.currentTime = Math.max(0, Math.min(percent, 1)) * vid.duration;
+    }
+  }
+
   function handleTimeUpdate(idx, filename) {
     const vid = videoRefs.current[idx];
     setVideoProgress((prev) => ({
@@ -183,7 +210,10 @@ export default function Feed() {
         setShorts((prev) =>
           prev.map((v, i) =>
             i === idx
-              ? { ...v, comments: [...(v.comments || []), { name: "Anonymous", text }] }
+              ? {
+                  ...v,
+                  comments: [...(v.comments || []), { name: "Anonymous", text }],
+                }
               : v
           )
         );
@@ -199,7 +229,7 @@ export default function Feed() {
         background: "#000",
         margin: 0,
         padding: 0,
-        overflow: "hidden"
+        overflow: "hidden",
       }}
     >
       <div
@@ -236,7 +266,7 @@ export default function Feed() {
             <div
               key={idx}
               data-idx={idx}
-              ref={el => wrapperRefs.current[idx] = el}
+              ref={(el) => (wrapperRefs.current[idx] = el)}
               style={{
                 width: "100vw",
                 height: "100dvh",
@@ -252,7 +282,7 @@ export default function Feed() {
               }}
             >
               <video
-                ref={el => videoRefs.current[idx] = el}
+                ref={(el) => (videoRefs.current[idx] = el)}
                 src={HOST + v.url}
                 loop
                 playsInline
@@ -272,7 +302,7 @@ export default function Feed() {
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
 
-              {/* Progress bar */}
+              {/* --- Seekable progress bar --- */}
               <div
                 style={{
                   position: "absolute",
@@ -283,8 +313,12 @@ export default function Feed() {
                   background: "rgba(255,255,255,0.18)",
                   zIndex: 32,
                   borderRadius: 2,
-                  overflow: 'hidden'
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  touchAction: "none"
                 }}
+                onClick={e => handleSeek(idx, e, false)}
+                onTouchStart={e => handleSeek(idx, e, true)}
               >
                 <div
                   style={{
@@ -292,6 +326,7 @@ export default function Feed() {
                     height: "100%",
                     background: "rgb(42, 131, 254)",
                     transition: "width 0.22s cubic-bezier(.4,1,.5,1)",
+                    pointerEvents: "none",
                   }}
                 />
               </div>
@@ -397,7 +432,7 @@ export default function Feed() {
                 </button>
               </div>
 
-              {/* Bottom author/caption/comments preview */}
+              {/* Bottom overlay with caption/author/comments preview */}
               <div
                 style={{
                   position: "absolute",
