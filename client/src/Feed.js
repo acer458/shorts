@@ -3,7 +3,7 @@ import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// --- ICONS ---
+// ICONS
 function HeartIcon({ filled }) {
   return filled ? (
     <svg viewBox="0 0 24 24" width={36} height={36}>
@@ -47,7 +47,7 @@ function ShareIcon() {
   );
 }
 
-// LIKE HELPERS
+// Like helpers
 function isLiked(filename) {
   return localStorage.getItem("like_" + filename) === "1";
 }
@@ -70,7 +70,7 @@ export default function Feed() {
     axios.get(HOST + "/shorts").then((res) => setShorts(res.data));
   }, []);
 
-  // Play/unmute current, pause/mute others
+  // Only play/unmute current, pause/mute others
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
@@ -85,12 +85,11 @@ export default function Feed() {
     });
   }, [currentIdx]);
 
-  // Snap-to-fullscreen detection for "current" video
+  // Scroll-snap autoselect
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       (entries) => {
-        let maxRatio = 0,
-          visibleIdx = 0;
+        let maxRatio = 0, visibleIdx = 0;
         entries.forEach((entry) => {
           if (entry.intersectionRatio > maxRatio) {
             maxRatio = entry.intersectionRatio;
@@ -105,7 +104,6 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length]);
 
-  // Like logic
   function handleLike(idx, filename) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
@@ -132,7 +130,7 @@ export default function Feed() {
     }
   }
 
-  // Touch/click events for like and play
+  // Video tap/click logic
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -166,7 +164,7 @@ export default function Feed() {
     };
   }
 
-  // Seek handling (for progress bar)
+  // Seekable progress bar
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -208,10 +206,7 @@ export default function Feed() {
         setShorts((prev) =>
           prev.map((v, i) =>
             i === idx
-              ? {
-                  ...v,
-                  comments: [...(v.comments || []), { name: "Anonymous", text }],
-                }
+              ? { ...v, comments: [...(v.comments || []), { name: "Anonymous", text }] }
               : v
           )
         );
@@ -227,7 +222,7 @@ export default function Feed() {
         background: "#000",
         margin: 0,
         padding: 0,
-        overflow: "hidden",
+        overflow: "hidden"
       }}
     >
       <div
@@ -300,7 +295,7 @@ export default function Feed() {
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
 
-              {/* --- Seekable progress bar --- */}
+              {/* Seekable progress bar */}
               <div
                 style={{
                   position: "absolute",
@@ -475,7 +470,7 @@ export default function Feed() {
                 </div>
               </div>
 
-              {/* Modern pull-up style comment bar at bottom of modal */}
+              {/* Modern floating pull-up comment input bar at bottom of modal */}
               {showComments[filename] && (
                 <div
                   style={{
@@ -502,37 +497,43 @@ export default function Feed() {
                       maxHeight: "55%",
                       overflowY: "auto",
                       boxShadow: "0 -4px 24px #000a",
-                      padding: "22px 14px 4px 18px",
-                      position: 'relative'
+                      padding: "20px 0 0 0",
+                      position: "relative",
+                      display: "flex",
+                      flexDirection: "column"
                     }}
                     onClick={e => e.stopPropagation()}
                   >
+
                     <div
                       style={{
                         fontWeight: 600,
                         fontSize: 19,
                         marginBottom: 12,
                         color: "#aee0ff",
+                        paddingLeft: 18,
+                        paddingRight: 18
                       }}
                     >
                       Comments
                     </div>
-                    {(v.comments || []).length === 0 && (
-                      <div style={{ color: "#ccc", fontSize: 15 }}>
-                        No comments yet.
-                      </div>
-                    )}
-                    {(v.comments || []).map((c, ci) => (
-                      <div key={ci} style={{ margin: "7px 0", fontSize: 16 }}>
-                        <b style={{ color: "#9fd1ff" }}>{c.name}</b>{" "}
-                        <span style={{ color: "#fff" }}>{c.text}</span>
-                      </div>
-                    ))}
-
-                    {/* --- Comment Input Pull-up Bar --- */}
+                    <div style={{paddingLeft: 18, paddingRight: 18}}>
+                      {(v.comments || []).length === 0 && (
+                        <div style={{ color: "#ccc", fontSize: 15 }}>
+                          No comments yet.
+                        </div>
+                      )}
+                      {(v.comments || []).map((c, ci) => (
+                        <div key={ci} style={{ margin: "7px 0", fontSize: 16 }}>
+                          <b style={{ color: "#9fd1ff" }}>{c.name}</b>{" "}
+                          <span style={{ color: "#fff" }}>{c.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* --- Modern comment bar --- */}
                     <div
                       style={{
-                        position: "sticky", // stays at the bottom of modal sheet
+                        position: "sticky",
                         bottom: 0,
                         left: 0,
                         right: 0,
@@ -540,15 +541,17 @@ export default function Feed() {
                         background: "#23243f",
                         display: "flex",
                         alignItems: "center",
-                        padding: "12px 12px 14px 12px",
+                        padding: "13px 12px 14px 12px",
                         borderTop: "1.5px solid #343456",
                         gap: 8,
-                        marginTop: 18,
-                        borderRadius: 14,
-                        boxShadow: "0 2px 24px #0006",
-                        minHeight: 46,
-                        marginLeft: -8,
-                        marginRight: -8
+                        marginTop: 16,
+                        borderRadius: 16,
+                        boxShadow: "0 2px 24px #0008",
+                        minHeight: 50,
+                        width: "100%",
+                        maxWidth: 520,
+                        marginLeft: "auto",
+                        marginRight: "auto",
                       }}
                     >
                       <input
@@ -565,7 +568,7 @@ export default function Feed() {
                           border: "none",
                           borderRadius: 22,
                           fontSize: 17,
-                          padding: "11px 18px",
+                          padding: "13px 18px",
                           outline: "none",
                           background: "#10101a",
                           color: "#fff",
@@ -575,6 +578,9 @@ export default function Feed() {
                           if (e.key === "Enter")
                             handleAddComment(idx, filename);
                         }}
+                        inputMode="text"
+                        autoComplete="off"
+                        autoCorrect="on"
                       />
                       <button
                         style={{
@@ -584,14 +590,14 @@ export default function Feed() {
                           color: "#fff",
                           border: "none",
                           borderRadius: 22,
-                          padding: "7px 21px",
+                          padding: "10px 22px",
                           fontWeight: 700,
                           fontSize: 17,
                           cursor: commentInputs[filename]?.trim()
                             ? "pointer"
                             : "not-allowed",
                           boxShadow: commentInputs[filename]?.trim()
-                            ? "0 1px 5px #2983fe44"
+                            ? "0 1px 6px #2983fe33"
                             : "none",
                           transition: "background .15s"
                         }}
@@ -604,6 +610,7 @@ export default function Feed() {
                   </div>
                 </div>
               )}
+
             </div>
           );
         })}
