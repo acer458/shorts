@@ -47,7 +47,7 @@ function ShareIcon() {
   );
 }
 
-// Like helpers
+// Like per browser
 function isLiked(filename) {
   return localStorage.getItem("like_" + filename) === "1";
 }
@@ -64,13 +64,14 @@ export default function Feed() {
   const [likePending, setLikePending] = useState({});
   const [showComments, setShowComments] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
-  const [lastTapTime, setLastTapTime] = useState(0);
+  // For video progress
+  const [videoProgress, setVideoProgress] = useState({});
 
   useEffect(() => {
     axios.get(HOST + "/shorts").then((res) => setShorts(res.data));
   }, []);
 
-  // Play only reel in view
+  // Only play video in view
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       (entries) => {
@@ -97,6 +98,7 @@ export default function Feed() {
     });
   }, [currentIdx]);
 
+  // Handle like
   function handleLike(idx, filename) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
@@ -123,20 +125,61 @@ export default function Feed() {
     }
   }
 
-  // Double-tap toggles like/unlike. No zoom ever.
-  function handleVideoDoubleTap(idx, filename) {
-    const now = Date.now();
-    if (now - lastTapTime < 350) {
-      handleLike(idx, filename);
-    } else {
-      // Single tap = play/pause
-      const vid = videoRefs.current[idx];
-      if (vid) {
-        if (vid.paused) vid.play();
-        else vid.pause();
+  // TOUCH/CLICK HANDLING LOGIC
+  function handleVideoEvents(idx, filename) {
+    // Returns an object with appropriate handlers for <video />
+    // Touch: only double tap likes, single tap play/pause (with timer)
+    // Desktop: single click = play/pause, double click = like/unlike
+    let tapTimeout = null;
+    return {
+      onClick: e => {
+        if (e.detail === 1) {
+          // On desktop, wait to see if a double click comes in
+          setTimeout(() => {
+            if (e.detail === 1) {
+              const vid = videoRefs.current[idx];
+              if (vid) vid.paused ? vid.play() : vid.pause();
+            }
+          }, 275);
+        }
+      },
+      onDoubleClick: e => {
+        handleLike(idx, filename);
+      },
+      onTouchEnd: e => {
+        let now = Date.now();
+        let vid = videoRefs.current[idx];
+        if (!vid) return;
+        let last = vid.__lastTapTime || 0;
+        vid.__lastTapTime = now;
+        if (now - last < 350) {
+          // Detected double tap
+          clearTimeout(tapTimeout);
+          handleLike(idx, filename);
+        } else {
+          tapTimeout = setTimeout(() => {
+            if (Date.now() - vid.__lastTapTime >= 350) {
+              // Single tap after a delay (means not double tap)
+              if (vid.paused) vid.play();
+              else vid.pause();
+            }
+          }, 360);
+        }
       }
-    }
-    setLastTapTime(now);
+    };
+  }
+
+  // Handle video progress
+  function handleTimeUpdate(idx, filename, e) {
+    const vid = videoRefs.current[idx];
+    if (!vid) return;
+    setVideoProgress((prev) => ({
+      ...prev,
+      [filename]:
+        vid.duration && !isNaN(vid.duration) && isFinite(vid.duration)
+          ? vid.currentTime / vid.duration
+          : 0,
+    }));
   }
 
   function handleAddComment(idx, filename) {
@@ -167,7 +210,7 @@ export default function Feed() {
         background: "#000",
         margin: 0,
         padding: 0,
-        overflow: "hidden"
+        overflow: "hidden",
       }}
     >
       <div
@@ -175,6 +218,7 @@ export default function Feed() {
           width: "100vw",
           height: "100vh",
           overflowY: "scroll",
+          overflowX: "hidden",      // Hides horizontal scrollbar for good
           scrollSnapType: "y mandatory",
           margin: 0,
           padding: 0,
@@ -197,6 +241,7 @@ export default function Feed() {
         {shorts.map((v, idx) => {
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
+          const prog = videoProgress[filename] || 0;
 
           return (
             <div
@@ -232,13 +277,39 @@ export default function Feed() {
                   margin: 0,
                   padding: 0,
                   border: "none",
-                  touchAction: "manipulation" // Prevents browser zoom on double tap
+                  touchAction: "manipulation"
                 }}
-                onClick={() => handleVideoDoubleTap(idx, filename)}
-                onTouchEnd={() => handleVideoDoubleTap(idx, filename)}
+                {...handleVideoEvents(idx, filename)}
+                onTimeUpdate={e => handleTimeUpdate(idx, filename, e)}
               />
 
-              {/* --- Button stack always visible on right (never hidden/cutoff) --- */}
+              {/* --- Video progress bar at bottom --- */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: 4,
+                  background: "rgba(255,255,255,0.22)",
+                  zIndex: 32,
+                  borderRadius: 2,
+                  overflow: 'hidden'
+                }}
+              >
+                <div
+                  style={{
+                    width: `${Math.min(prog * 100, 100)}%`,
+                    height: "100%",
+                    background: prog === 1
+                      ? "#0bb259"
+                      : "linear-gradient(90deg,#47a3f3,#e11d48 90%)",
+                    transition: "width 0.22s cubic-bezier(.4,1,.5,1)",
+                  }}
+                />
+              </div>
+
+              {/* --- Like, comment, share (right, NEVER hidden) --- */}
               <div
                 style={{
                   position: "absolute",
@@ -267,6 +338,7 @@ export default function Feed() {
                     alignItems: "center",
                   }}
                   onClick={() => handleLike(idx, filename)}
+                  tabIndex={-1}
                 >
                   <HeartIcon filled={liked} />
                   <div
@@ -300,6 +372,7 @@ export default function Feed() {
                       [filename]: !cur[filename],
                     }))
                   }
+                  tabIndex={-1}
                 >
                   <CommentIcon />
                   <span style={{ fontSize: 15, marginTop: 1 }}>
@@ -331,12 +404,13 @@ export default function Feed() {
                       alert("Link copied to clipboard!");
                     }
                   }}
+                  tabIndex={-1}
                 >
                   <ShareIcon />
                 </button>
               </div>
 
-              {/* Bottom: user/caption/comments preview */}
+              {/* --- Bottom author/caption/comments preview --- */}
               <div
                 style={{
                   position: "absolute",
@@ -345,7 +419,7 @@ export default function Feed() {
                   bottom: 0,
                   background: "linear-gradient(0deg,#000e 88%,transparent 100%)",
                   color: "#fff",
-                  padding: "20px 18px 34px 18px",
+                  padding: "20px 18px 28px 18px",
                   zIndex: 6,
                   display: "flex",
                   flexDirection: "column",
@@ -381,7 +455,7 @@ export default function Feed() {
                 </div>
               </div>
 
-              {/* Comments modal */}
+              {/* --- Comments modal --- */}
               {showComments[filename] && (
                 <div
                   style={{
