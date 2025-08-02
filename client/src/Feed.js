@@ -3,32 +3,28 @@ import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// Instagram exact icons
+// Clean Instagram-style icons (no shadows)
 const Icons = {
   Heart: ({ filled }) => (
-    <svg aria-label="Like" fill={filled ? "#ed4956" : "#fff"} height="24" viewBox="0 0 24 24" width="24">
+    <svg fill={filled ? "#ed4956" : "#fff"} height="24" viewBox="0 0 24 24" width="24">
       {filled ? (
-        <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218z"></path>
+        <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218z"/>
       ) : (
-        <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218z"></path>
+        <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218z"/>
       )}
     </svg>
   ),
   Comment: () => (
-    <svg aria-label="Comment" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
-      <path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2"></path>
+    <svg fill="#fff" height="24" viewBox="0 0 24 24" width="24">
+      <path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22z" stroke="#fff" strokeWidth="2"/>
     </svg>
   ),
   Share: () => (
-    <svg aria-label="Share Post" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
-      <line fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="3" y2="10.083"></line>
-      <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="#fff" strokeLinejoin="round" strokeWidth="2"></polygon>
-    </svg>
-  ),
-  Close: () => (
-    <svg aria-label="Close" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
-      <polyline fill="none" points="20.643 3.357 12 12 3.353 20.647" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"></polyline>
-      <polyline fill="none" points="20.649 20.649 12 12 3.354 3.354" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"></polyline>
+    <svg fill="#fff" height="24" viewBox="0 0 24 24" width="24">
+      <path d="M22 3L9 10m13-7l-13 7" stroke="#fff" strokeWidth="2"/>
+      <circle cx="5" cy="12" r="2" stroke="#fff" strokeWidth="2"/>
+      <circle cx="19" cy="4" r="2" stroke="#fff" strokeWidth="2"/>
+      <circle cx="19" cy="20" r="2" stroke="#fff" strokeWidth="2"/>
     </svg>
   )
 };
@@ -37,16 +33,13 @@ export default function Feed() {
   const [shorts, setShorts] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [showComments, setShowComments] = useState(null);
-  const [commentText, setCommentText] = useState("");
   const videoRefs = useRef([]);
   const containerRef = useRef(null);
 
-  // Fetch shorts
   useEffect(() => {
     axios.get(`${HOST}/shorts`).then(res => setShorts(res.data));
   }, []);
 
-  // Handle video play/pause
   useEffect(() => {
     videoRefs.current.forEach((video, idx) => {
       if (!video) return;
@@ -60,7 +53,6 @@ export default function Feed() {
     });
   }, [currentIdx]);
 
-  // Intersection observer for scrolling
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -82,16 +74,6 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts]);
 
-  const handleLike = async (shortId) => {
-    // Implement like logic
-  };
-
-  const handleCommentSubmit = async (shortId) => {
-    if (!commentText.trim()) return;
-    // Implement comment submission
-    setCommentText("");
-  };
-
   return (
     <div style={{
       position: 'fixed',
@@ -100,8 +82,7 @@ export default function Feed() {
       right: 0,
       bottom: 0,
       backgroundColor: '#000',
-      overflow: 'hidden',
-      touchAction: 'pan-y'
+      overflow: 'hidden'
     }}>
       {/* Main Reels Feed */}
       <div 
@@ -110,8 +91,7 @@ export default function Feed() {
           width: '100%',
           height: '100%',
           overflowY: 'scroll',
-          scrollSnapType: 'y mandatory',
-          WebkitOverflowScrolling: 'touch'
+          scrollSnapType: 'y mandatory'
         }}
       >
         {shorts.map((short, idx) => (
@@ -122,8 +102,7 @@ export default function Feed() {
               position: 'relative',
               width: '100vw',
               height: '100vh',
-              scrollSnapAlign: 'start',
-              overflow: 'hidden'
+              scrollSnapAlign: 'start'
             }}
           >
             {/* Video */}
@@ -138,6 +117,12 @@ export default function Feed() {
                 objectFit: 'cover',
                 backgroundColor: '#000'
               }}
+              onTimeUpdate={(e) => {
+                // Force progress bar to show immediately
+                if (e.target.currentTime === 0) {
+                  e.target.currentTime = 0.001;
+                }
+              }}
             />
 
             {/* Right Action Buttons */}
@@ -151,12 +136,7 @@ export default function Feed() {
               gap: '24px'
             }}>
               <div style={{ textAlign: 'center' }}>
-                <button 
-                  onClick={() => handleLike(short.id)}
-                  style={{ background: 'none', border: 'none', padding: 0 }}
-                >
-                  <Icons.Heart filled={false} />
-                </button>
+                <Icons.Heart filled={false} />
                 <div style={{ color: '#fff', fontSize: '12px', marginTop: '4px' }}>
                   {short.likes || 0}
                 </div>
@@ -175,19 +155,14 @@ export default function Feed() {
               </div>
 
               <div style={{ textAlign: 'center' }}>
-                <button 
-                  onClick={() => {/* Share logic */}}
-                  style={{ background: 'none', border: 'none', padding: 0 }}
-                >
-                  <Icons.Share />
-                </button>
+                <Icons.Share />
                 <div style={{ color: '#fff', fontSize: '12px', marginTop: '4px' }}>
                   Share
                 </div>
               </div>
             </div>
 
-            {/* Bottom Info Section */}
+            {/* Bottom Info Section - NO SHADOW */}
             <div style={{
               position: 'absolute',
               bottom: '80px',
@@ -195,7 +170,7 @@ export default function Feed() {
               right: '12px',
               padding: '12px',
               zIndex: 2,
-              background: 'linear-gradient(transparent, rgba(0,0,0,0.5) 30%)'
+              background: 'rgba(0,0,0,0.5)' // Solid background instead of gradient
             }}>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                 <div style={{
@@ -222,15 +197,14 @@ export default function Feed() {
                   border: 'none',
                   color: 'rgba(255,255,255,0.7)',
                   padding: 0,
-                  fontSize: '14px',
-                  cursor: 'pointer'
+                  fontSize: '14px'
                 }}
               >
                 View all {short.comments?.length || 0} comments
               </button>
             </div>
 
-            {/* Progress Bar */}
+            {/* Progress Bar - Always Visible */}
             <div style={{
               position: 'absolute',
               bottom: '60px',
@@ -258,115 +232,10 @@ export default function Feed() {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.8)',
-          zIndex: 100,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-end'
+          backgroundColor: 'rgba(0,0,0,0.9)',
+          zIndex: 100
         }}>
-          <div style={{
-            backgroundColor: '#262626',
-            borderTopLeftRadius: '16px',
-            borderTopRightRadius: '16px',
-            maxHeight: '80vh',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: '16px',
-              borderBottom: '1px solid #363636',
-              position: 'relative'
-            }}>
-              <span style={{ color: '#fff', fontWeight: '600' }}>Comments</span>
-              <button 
-                onClick={() => setShowComments(null)}
-                style={{
-                  position: 'absolute',
-                  right: '16px',
-                  background: 'none',
-                  border: 'none',
-                  padding: 0
-                }}
-              >
-                <Icons.Close />
-              </button>
-            </div>
-
-            <div style={{
-              maxHeight: '60vh',
-              overflowY: 'auto',
-              padding: '16px'
-            }}>
-              {shorts.find(s => s.id === showComments)?.comments?.length ? (
-                shorts.find(s => s.id === showComments).comments.map((comment, i) => (
-                  <div key={i} style={{ display: 'flex', marginBottom: '16px' }}>
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      overflow: 'hidden',
-                      marginRight: '12px',
-                      flexShrink: 0,
-                      background: '#333'
-                    }}>
-                      <img 
-                        src={`https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(comment.name || "user")}`}
-                        alt="Profile"
-                        style={{ width: '100%', height: '100%' }}
-                      />
-                    </div>
-                    <div>
-                      <div style={{ color: '#fff', fontWeight: '600' }}>{comment.name}</div>
-                      <div style={{ color: '#fff' }}>{comment.text}</div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div style={{ color: 'rgba(255,255,255,0.5)', textAlign: 'center', padding: '20px 0' }}>
-                  No comments yet
-                </div>
-              )}
-            </div>
-
-            <div style={{
-              padding: '16px',
-              borderTop: '1px solid #363636',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              <input
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Add a comment..."
-                style={{
-                  flex: 1,
-                  background: 'none',
-                  border: 'none',
-                  color: '#fff',
-                  padding: '12px',
-                  fontSize: '14px'
-                }}
-                onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(showComments)}
-              />
-              <button
-                onClick={() => handleCommentSubmit(showComments)}
-                disabled={!commentText.trim()}
-                style={{
-                  color: commentText.trim() ? '#0095f6' : '#8e8e8e',
-                  fontWeight: '600',
-                  background: 'none',
-                  border: 'none',
-                  padding: '0 8px',
-                  fontSize: '14px',
-                  cursor: commentText.trim() ? 'pointer' : 'default'
-                }}
-              >
-                Post
-              </button>
-            </div>
-          </div>
+          {/* Modal content here */}
         </div>
       )}
     </div>
