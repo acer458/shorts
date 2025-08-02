@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { supabase } from "./supabaseClient"; // <-- make sure this file exists!
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// Icons
+// Icons (same as before)
 function HeartIcon({ filled }) {
   return filled ? (
     <svg viewBox="0 0 24 24" width={36} height={36}>
@@ -45,7 +46,6 @@ function ShareIcon() {
   );
 }
 
-// Like helpers
 function isLiked(filename) {
   return localStorage.getItem("like_" + filename) === "1";
 }
@@ -133,7 +133,6 @@ export default function Feed() {
     let tapTimeout = null;
     return {
       onClick: e => {
-        // Single click = play/pause (not like)
         setTimeout(() => {
           if (e.detail === 1) {
             const vid = videoRefs.current[idx];
@@ -205,6 +204,31 @@ export default function Feed() {
         overflow: "hidden"
       }}
     >
+      {/* --- Supabase Logout Button, always visible in top right --- */}
+      <button
+        style={{
+          position: "fixed",
+          top: 12,
+          right: 18,
+          zIndex: 10001,
+          background: "#202030",
+          color: "#fff",
+          borderRadius: 22,
+          border: "none",
+          fontWeight: 600,
+          fontSize: 16,
+          padding: "8px 22px",
+          boxShadow: "0 3px 12px #0003",
+          cursor: "pointer"
+        }}
+        onClick={async () => {
+          await supabase.auth.signOut();
+          window.location.reload();
+        }}
+      >
+        Logout
+      </button>
+
       <div
         style={{
           width: "100vw",
@@ -275,7 +299,7 @@ export default function Feed() {
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
 
-              {/* Progress bar */}
+              {/* Progress bar, rgb(42, 131, 254) */}
               <div
                 style={{
                   position: "absolute",
@@ -299,7 +323,7 @@ export default function Feed() {
                 />
               </div>
 
-              {/* Right: Like, comment, share stack */}
+              {/* Like/Comment/Share stack */}
               <div
                 style={{
                   position: "absolute",
