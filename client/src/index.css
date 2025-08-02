@@ -35,4 +35,4 @@ button:focus, input:focus {
 
 /* Hide ALL scrollbars */
 ::-webkit-scrollbar { display: none; }
-body { scrollbar-width: none; -webkit-tap-highlight-color: transparent; }
+body { scrollbar-width: none; }
