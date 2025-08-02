@@ -174,10 +174,27 @@ export default function Feed() {
   }
 
   return (
-    <div className="instagram-reels-container">
-      <div className="reels-feed">
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: '#000',
+      overflow: 'hidden'
+    }}>
+      <div style={{
+        width: '100%',
+        height: '100%',
+        overflowY: 'scroll',
+        scrollSnapType: 'y mandatory'
+      }}>
         {shorts.length === 0 && (
-          <div className="no-shorts-message">No shorts uploaded yet.</div>
+          <div style={{
+            color: '#fff',
+            textAlign: 'center',
+            paddingTop: '50vh'
+          }}>No shorts uploaded yet.</div>
         )}
         {shorts.map((v, idx) => {
           const filename = v.url.split("/").pop();
@@ -189,41 +206,60 @@ export default function Feed() {
               key={idx}
               data-idx={idx}
               ref={el => (wrapperRefs.current[idx] = el)}
-              className="reel-container"
+              style={{
+                position: 'relative',
+                width: '100vw',
+                height: '100vh',
+                scrollSnapAlign: 'start',
+                overflow: 'hidden'
+              }}
             >
               <video
                 ref={el => (videoRefs.current[idx] = el)}
                 src={HOST + v.url}
                 loop
                 playsInline
-                className="reel-video"
                 style={{
-                  objectFit: 'contain',
-                  backgroundColor: '#000',
                   width: '100%',
-                  height: '100%'
+                  height: '100%',
+                  objectFit: 'cover',
+                  backgroundColor: '#000'
                 }}
                 {...handleVideoEvents(idx, filename)}
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
-              
+
               {/* Right action buttons */}
-              <div className="reel-actions">
-                <div className="action-button">
-                  <button onClick={() => handleLike(idx, filename)} className="action-icon">
+              <div style={{
+                position: 'absolute',
+                right: '12px',
+                bottom: '120px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '24px'
+              }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <button 
+                    onClick={() => handleLike(idx, filename)}
+                    style={{ background: 'none', border: 'none', padding: 0 }}
+                  >
                     <HeartIcon filled={liked} />
                   </button>
-                  <span className="action-count">{v.likes || 0}</span>
+                  <span style={{ color: '#fff', fontSize: '12px', marginTop: '4px' }}>{v.likes || 0}</span>
                 </div>
                 
-                <div className="action-button">
-                  <button onClick={() => setShowComments(cur => ({ ...cur, [filename]: true }))} className="action-icon">
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <button 
+                    onClick={() => setShowComments(cur => ({ ...cur, [filename]: true }))}
+                    style={{ background: 'none', border: 'none', padding: 0 }}
+                  >
                     <CommentIcon />
                   </button>
-                  <span className="action-count">{(v.comments && v.comments.length) || 0}</span>
+                  <span style={{ color: '#fff', fontSize: '12px', marginTop: '4px' }}>{(v.comments && v.comments.length) || 0}</span>
                 </div>
                 
-                <div className="action-button">
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button 
                     onClick={() => {
                       const url = window.location.origin + "/?v=" + filename;
@@ -233,66 +269,71 @@ export default function Feed() {
                         navigator.clipboard.writeText(url);
                         alert("Link copied to clipboard!");
                       }
-                    }} 
-                    className="action-icon"
+                    }}
+                    style={{ background: 'none', border: 'none', padding: 0 }}
                   >
                     <ShareIcon />
                   </button>
-                  <span className="action-count">Share</span>
+                  <span style={{ color: '#fff', fontSize: '12px', marginTop: '4px' }}>Share</span>
                 </div>
               </div>
-              
-              {/* Bottom info section - now above progress bar */}
-              <div className="reel-info" style={{
+
+              {/* Bottom info section */}
+              <div style={{
                 position: 'absolute',
-                bottom: '70px',
-                left: 0,
-                right: 0,
-                padding: '12px 16px',
-                background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)',
+                bottom: '80px',
+                left: '12px',
+                right: '12px',
+                padding: '8px',
+                background: 'linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%)',
                 zIndex: 2
               }}>
-                <div className="author-info">
-                  <div className="author-avatar">
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    marginRight: '8px'
+                  }}>
                     <img 
                       src={`https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author || "anon")}`} 
                       alt="avatar"
+                      style={{ width: '100%', height: '100%' }}
                     />
                   </div>
-                  <span className="author-username">@{v.author || "anonymous"}</span>
+                  <span style={{ color: '#fff', fontWeight: '600' }}>@{v.author || "anonymous"}</span>
                 </div>
-                <div className="reel-caption">{v.caption}</div>
+                <div style={{ color: '#fff', marginBottom: '8px' }}>{v.caption}</div>
                 {v.comments && v.comments.length > 0 && (
-                  <div className="comment-preview">
-                    <span className="comment-username">{v.comments[0].name}:</span> {v.comments[0].text}
+                  <div style={{ color: '#fff', marginBottom: '8px' }}>
+                    <span style={{ fontWeight: '600' }}>{v.comments[0].name}:</span> {v.comments[0].text}
                   </div>
                 )}
                 <div 
-                  className="view-comments"
+                  style={{ color: 'rgba(255,255,255,0.7)', fontSize: '14px' }}
                   onClick={() => setShowComments(cur => ({ ...cur, [filename]: true }))}
                 >
                   View all {v.comments ? v.comments.length : 0} comments
                 </div>
               </div>
-              
-              {/* Progress bar - now at absolute bottom */}
+
+              {/* Progress bar */}
               <div
-                className="video-progress-container"
-                onClick={e => handleSeek(idx, e, false)}
-                onTouchStart={e => handleSeek(idx, e, true)}
                 style={{
                   position: 'absolute',
                   bottom: '60px',
                   left: 0,
                   right: 0,
                   height: '2px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                  zIndex: 10
+                  backgroundColor: 'rgba(255,255,255,0.3)',
+                  zIndex: 3
                 }}
+                onClick={e => handleSeek(idx, e, false)}
+                onTouchStart={e => handleSeek(idx, e, true)}
               >
                 <div
-                  className="video-progress-bar"
-                  style={{ 
+                  style={{
                     width: `${Math.min(prog * 100, 100)}%`,
                     height: '100%',
                     backgroundColor: '#fff',
@@ -300,70 +341,106 @@ export default function Feed() {
                   }}
                 />
               </div>
-              
-              {/* COMMENTS MODAL */}
+
+              {/* Comments modal */}
               {showComments[filename] && (
                 <div 
-                  className="comments-modal-overlay"
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    zIndex: 100,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end'
+                  }}
                   onClick={() => setShowComments(cur => ({ ...cur, [filename]: false }))}
                 >
                   <div 
-                    className="comments-modal"
-                    onClick={e => e.stopPropagation()}
                     style={{
-                      maxHeight: '80vh',
-                      width: '100%',
+                      backgroundColor: '#121212',
                       borderTopLeftRadius: '16px',
-                      borderTopRightRadius: '16px'
+                      borderTopRightRadius: '16px',
+                      maxHeight: '70vh',
+                      padding: '16px',
+                      overflow: 'hidden'
                     }}
+                    onClick={e => e.stopPropagation()}
                   >
-                    <div className="comments-header">
-                      <span>Comments</span>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '16px'
+                    }}>
+                      <div style={{ fontWeight: '600', color: '#fff' }}>Comments</div>
                       <button 
                         onClick={() => setShowComments(cur => ({ ...cur, [filename]: false }))}
-                        className="close-button"
+                        style={{ background: 'none', border: 'none', color: '#fff' }}
                       >
-                        <svg aria-label="Close" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24">
-                          <polyline fill="none" points="20.643 3.357 12 12 3.353 20.647" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"></polyline>
-                          <polyline fill="none" points="20.649 20.649 12 12 3.354 3.354" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3"></polyline>
-                        </svg>
+                        ×
                       </button>
                     </div>
                     
-                    <div className="comments-list">
-                      {(v.comments || []).length === 0 && (
-                        <div className="no-comments">No comments yet.</div>
-                      )}
-                      {(v.comments || []).map((comment, ci) => (
-                        <div key={ci} className="comment-item">
-                          <div className="comment-avatar">
-                            <img 
-                              src={`https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(comment.name || "anon")}`} 
-                              alt="avatar"
-                            />
-                          </div>
-                          <div className="comment-content">
-                            <span className="comment-username">{comment.name}</span>
-                            <span className="comment-text">{comment.text}</span>
-                          </div>
+                    <div style={{ maxHeight: '50vh', overflowY: 'auto', marginBottom: '16px' }}>
+                      {(v.comments || []).length === 0 ? (
+                        <div style={{ color: 'rgba(255,255,255,0.5)', textAlign: 'center', padding: '20px' }}>
+                          No comments yet
                         </div>
-                      ))}
+                      ) : (
+                        (v.comments || []).map((comment, ci) => (
+                          <div key={ci} style={{ display: 'flex', marginBottom: '16px' }}>
+                            <div style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '50%',
+                              overflow: 'hidden',
+                              marginRight: '12px',
+                              flexShrink: 0
+                            }}>
+                              <img 
+                                src={`https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(comment.name || "anon")}`} 
+                                alt="avatar"
+                                style={{ width: '100%', height: '100%' }}
+                              />
+                            </div>
+                            <div>
+                              <div style={{ color: '#fff', fontWeight: '600' }}>{comment.name}</div>
+                              <div style={{ color: '#fff' }}>{comment.text}</div>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                     
-                    <div className="comment-input-container">
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
                       <input
                         value={commentInputs[filename] || ""}
-                        onChange={e =>
-                          setCommentInputs(prev => ({ ...prev, [filename]: e.target.value }))
-                        }
+                        onChange={e => setCommentInputs(prev => ({ ...prev, [filename]: e.target.value }))}
                         placeholder="Add a comment..."
-                        className="comment-input"
+                        style={{
+                          flex: 1,
+                          backgroundColor: '#262626',
+                          border: 'none',
+                          borderRadius: '20px',
+                          padding: '12px 16px',
+                          color: '#fff',
+                          marginRight: '8px'
+                        }}
                         onKeyDown={e => { if (e.key === "Enter") handleAddComment(idx, filename); }}
                       />
                       <button
-                        className={`post-comment ${commentInputs[filename]?.trim() ? "active" : ""}`}
-                        disabled={!commentInputs[filename]?.trim()}
                         onClick={() => handleAddComment(idx, filename)}
+                        disabled={!commentInputs[filename]?.trim()}
+                        style={{
+                          color: commentInputs[filename]?.trim() ? '#0095f6' : '#a8a8a8',
+                          fontWeight: '600',
+                          background: 'none',
+                          border: 'none'
+                        }}
                       >
                         Post
                       </button>
