@@ -16,18 +16,19 @@ export default function AdminDashboard() {
   const [video, setVideo] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState("");
-  // Caption editing state
   const [editState, setEditState] = useState({}); // { filename: {caption, loading, saved, error} }
 
-  // Fetch all videos
-  useEffect(() => {
+  // Fetch all videos on mount and on every upload/caption change
+  const refreshShorts = () => {
     axios
       .get(HOST + "/shorts")
       .then((res) => setShorts(res.data))
       .catch(() => setStatus("Could not fetch shorts."));
-  }, []);
+  };
 
-  // UPLOAD logic as in your existing code
+  useEffect(refreshShorts, []);
+
+  // UPLOAD logic
   const handleUpload = (e) => {
     e.preventDefault();
     if (!video) return;
@@ -42,10 +43,10 @@ export default function AdminDashboard() {
           "x-admin-key": ADMIN_KEY,
         },
       })
-      .then((res) => {
-        axios.get(HOST + "/shorts").then((r) => setShorts(r.data));
+      .then(() => {
         setVideo(null);
         setStatus("Upload Successful!");
+        refreshShorts();
       })
       .catch((err) => {
         setUploading(false);
@@ -61,7 +62,7 @@ export default function AdminDashboard() {
       .finally(() => setUploading(false));
   };
 
-  // Delete logic as in your code
+  // Deleting video
   const handleDelete = (filename) => {
     if (!window.confirm("Delete this video permanently?")) return;
     axios
@@ -76,12 +77,7 @@ export default function AdminDashboard() {
   const handleCaptionChange = (filename, value) => {
     setEditState((prev) => ({
       ...prev,
-      [filename]: {
-        ...prev[filename],
-        caption: value,
-        saved: false,
-        error: null,
-      },
+      [filename]: { ...prev[filename], caption: value, saved: false, error: null },
     }));
   };
 
@@ -105,27 +101,17 @@ export default function AdminDashboard() {
         );
         setEditState((prev) => ({
           ...prev,
-          [filename]: {
-            ...prev[filename],
-            loading: false,
-            saved: true,
-            error: null,
-          },
+          [filename]: { ...prev[filename], loading: false, saved: true, error: null },
         }));
       })
       .catch(() => {
         setEditState((prev) => ({
           ...prev,
-          [filename]: {
-            ...prev[filename],
-            loading: false,
-            error: "Failed to save",
-          },
+          [filename]: { ...prev[filename], loading: false, error: "Failed to save" },
         }));
       });
   };
 
-  // File size stats
   const totalSize = shorts.reduce(
     (sum, v) => sum + (v.size ? Number(v.size) : 0),
     0
@@ -141,7 +127,6 @@ export default function AdminDashboard() {
         fontFamily: "Inter, sans-serif",
       }}
     >
-
       {/* -------- LEFT: Upload area / meta stats / file list -------- */}
       <div
         style={{
@@ -154,11 +139,7 @@ export default function AdminDashboard() {
           gap: 28,
         }}
       >
-        {/* Upload Button */}
-        <form
-          onSubmit={handleUpload}
-          style={{ display: "flex", flexDirection: "column", gap: 8 }}
-        >
+        <form onSubmit={handleUpload} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <label
             htmlFor="upload"
             style={{
@@ -218,8 +199,7 @@ export default function AdminDashboard() {
         {/* Video statistics */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ fontWeight: "bold" }}>
-            No. of videos:{" "}
-            <span style={{ color: "#22d3ee" }}>{shorts.length}</span>
+            No. of videos: <span style={{ color: "#22d3ee" }}>{shorts.length}</span>
           </div>
           <div>
             File size:{" "}
@@ -243,12 +223,11 @@ export default function AdminDashboard() {
           <div style={{ fontWeight: 600, marginBottom: 6, color: "#fff" }}>
             Uploaded Files
           </div>
-          {shorts.length === 0 && (
+          {shorts.length === 0 ? (
             <div style={{ color: "#aaa", textAlign: "center", fontSize: 14 }}>
               No videos uploaded yet.
             </div>
-          )}
-          {shorts.map((s, i) => {
+          ) : shorts.map((s, i) => {
             const filename = s.url.split("/").pop();
             return (
               <div
@@ -258,8 +237,7 @@ export default function AdminDashboard() {
                   alignItems: "center",
                   justifyContent: "space-between",
                   padding: "5px 0",
-                  borderBottom:
-                    i === shorts.length - 1 ? "none" : "1px solid #23223c",
+                  borderBottom: i === shorts.length - 1 ? "none" : "1px solid #23223c",
                 }}
               >
                 <span
@@ -274,13 +252,11 @@ export default function AdminDashboard() {
                 >
                   {filename}
                 </span>
-                <span
-                  style={{
-                    fontSize: 13,
-                    color: "#fff9",
-                    margin: "0 8px",
-                  }}
-                >
+                <span style={{
+                  fontSize: 13,
+                  color: "#fff9",
+                  margin: "0 8px",
+                }}>
                   {s.size ? bytesToSize(Number(s.size)) : ""}
                 </span>
                 <button
@@ -305,7 +281,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* --------- RIGHT: SCROLLABLE VIDEOS with Caption Editor --------- */}
+      {/* --------- RIGHT: Scrollable videos, caption editor --------- */}
       <div
         style={{
           flex: 1,
