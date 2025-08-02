@@ -3,241 +3,333 @@ import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// Clean Instagram-style icons (no shadows)
-const Icons = {
-  Heart: ({ filled }) => (
-    <svg fill={filled ? "#ed4956" : "#fff"} height="24" viewBox="0 0 24 24" width="24">
-      {filled ? (
-        <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218z"/>
-      ) : (
-        <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938m0-2a6.04 6.04 0 0 0-4.797 2.127 6.052 6.052 0 0 0-4.787-2.127A6.985 6.985 0 0 0 .5 9.122c0 3.61 2.55 5.827 5.015 7.97.283.246.569.494.853.747l1.027.918a44.998 44.998 0 0 0 3.518 3.018 2 2 0 0 0 2.174 0 45.263 45.263 0 0 0 3.626-3.115l.922-.824c.293-.26.59-.519.885-.774 2.334-2.025 4.98-4.32 4.98-7.94a6.985 6.985 0 0 0-6.708-7.218z"/>
-      )}
+// --- ICONS ---
+function HeartIcon({ filled }) {
+  return filled ? (
+    <svg viewBox="0 0 24 24" width={36} height={36}>
+      <path
+        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5
+        10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5
+        0 5-7.5 11.5-7.5 11.5Z"
+        fill="#e11d48"
+        stroke="#e11d48"
+        strokeWidth="2"
+      />
     </svg>
-  ),
-  Comment: () => (
-    <svg fill="#fff" height="24" viewBox="0 0 24 24" width="24">
-      <path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22z" stroke="#fff" strokeWidth="2"/>
+  ) : (
+    <svg viewBox="0 0 24 24" width={36} height={36} fill="none">
+      <path
+        d="M12 21C12 21 4.5 14.5 4.5 9.5
+          4.5 6.5 7 5 9 5
+          10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5
+          c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
+        stroke="#fff"
+        strokeWidth="2"
+      />
     </svg>
-  ),
-  Share: () => (
-    <svg fill="#fff" height="24" viewBox="0 0 24 24" width="24">
-      <path d="M22 3L9 10m13-7l-13 7" stroke="#fff" strokeWidth="2"/>
-      <circle cx="5" cy="12" r="2" stroke="#fff" strokeWidth="2"/>
-      <circle cx="19" cy="4" r="2" stroke="#fff" strokeWidth="2"/>
-      <circle cx="19" cy="20" r="2" stroke="#fff" strokeWidth="2"/>
+  );
+}
+
+function CommentIcon() {
+  return (
+    <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="#fff">
+      <rect x="3" y="5" width="18" height="12" rx="4" strokeWidth="2" />
+      <path d="M8 21l2-4h4l2 4" strokeWidth="2" />
     </svg>
-  )
-};
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="#fff">
+      <path d="M13 5l7 7-7 7" strokeWidth="2" />
+      <path d="M5 12h15" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function isLiked(filename) {
+  return localStorage.getItem("like_" + filename) === "1";
+}
+
+function setLiked(filename, yes) {
+  if (yes) localStorage.setItem("like_" + filename, "1");
+  else localStorage.removeItem("like_" + filename);
+}
 
 export default function Feed() {
   const [shorts, setShorts] = useState([]);
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [showComments, setShowComments] = useState(null);
   const videoRefs = useRef([]);
-  const containerRef = useRef(null);
+  const wrapperRefs = useRef([]);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [likePending, setLikePending] = useState({});
+  const [showComments, setShowComments] = useState({});
+  const [commentInputs, setCommentInputs] = useState({});
+  const [videoProgress, setVideoProgress] = useState({});
 
+  useEffect(() => { axios.get(HOST + "/shorts").then(res => setShorts(res.data)); }, []);
+  
   useEffect(() => {
-    axios.get(`${HOST}/shorts`).then(res => setShorts(res.data));
-  }, []);
-
-  useEffect(() => {
-    videoRefs.current.forEach((video, idx) => {
-      if (!video) return;
-      if (idx === currentIdx) {
-        video.play().catch(() => {});
-        video.muted = false;
-      } else {
-        video.pause();
-        video.muted = true;
+    videoRefs.current.forEach((vid, idx) => {
+      if (!vid) return;
+      if (idx === currentIdx) { 
+        vid.muted = false; 
+        vid.play().catch(()=>{}); 
+        // Force progress bar to show immediately
+        if (vid.currentTime === 0) vid.currentTime = 0.001;
       }
+      else { vid.pause(); vid.currentTime = 0; vid.muted = true; }
     });
   }, [currentIdx]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
+    const observer = new window.IntersectionObserver(
       (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            setCurrentIdx(Number(entry.target.dataset.idx));
+        let maxRatio = 0, visibleIdx = 0;
+        entries.forEach((entry) => {
+          if (entry.intersectionRatio > maxRatio) {
+            maxRatio = entry.intersectionRatio;
+            visibleIdx = Number(entry.target.dataset.idx);
           }
         });
-      },
-      { threshold: 0.8 }
+        if (maxRatio > 0.7) setCurrentIdx(visibleIdx);
+      }, { threshold: [0, 0.5, 0.7, 1] }
     );
-
-    if (containerRef.current) {
-      Array.from(containerRef.current.children).forEach(child => {
-        observer.observe(child);
-      });
-    }
-
+    wrapperRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
-  }, [shorts]);
+  }, [shorts.length]);
+
+  function handleLike(idx, filename) {
+    if (likePending[filename]) return;
+    const liked = isLiked(filename);
+    setLikePending(l => ({ ...l, [filename]: true }));
+    if (!liked) {
+      axios.post(`${HOST}/shorts/${filename}/like`).then(() => {
+        setShorts(prev => prev.map((v, i) => i === idx ? { ...v, likes: (v.likes || 0) + 1 } : v));
+        setLiked(filename, true);
+        setLikePending(l => ({ ...l, [filename]: false }));
+      });
+    } else {
+      setShorts(prev => prev.map((v, i) =>
+        i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v
+      ));
+      setLiked(filename, false);
+      setLikePending(l => ({ ...l, [filename]: false }));
+    }
+  }
+
+  // ... [keep all other functions exactly the same] ...
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: '#000',
-      overflow: 'hidden'
-    }}>
-      {/* Main Reels Feed */}
-      <div 
-        ref={containerRef}
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "#000",
+        overflow: "hidden",
+        touchAction: 'none' // Prevent dragging
+      }}
+    >
+      <div
         style={{
-          width: '100%',
-          height: '100%',
-          overflowY: 'scroll',
-          scrollSnapType: 'y mandatory'
+          width: "100vw",
+          height: "100dvh",
+          overflowY: "scroll",
+          overflowX: "hidden",
+          scrollSnapType: "y mandatory",
+          background: "#000",
         }}
       >
-        {shorts.map((short, idx) => (
-          <div
-            key={short.id}
-            data-idx={idx}
-            style={{
-              position: 'relative',
-              width: '100vw',
-              height: '100vh',
-              scrollSnapAlign: 'start'
-            }}
-          >
-            {/* Video */}
-            <video
-              ref={el => videoRefs.current[idx] = el}
-              src={`${HOST}${short.url}`}
-              loop
-              playsInline
+        {shorts.length === 0 && (
+          <div style={{
+            color: "#bbb",
+            textAlign: "center",
+            marginTop: 120,
+            fontSize: 20
+          }}>No shorts uploaded yet.</div>
+        )}
+        {shorts.map((v, idx) => {
+          const filename = v.url.split("/").pop();
+          const liked = isLiked(filename);
+          const prog = videoProgress[filename] || 0;
+
+          return (
+            <div
+              key={idx}
+              data-idx={idx}
+              ref={el => (wrapperRefs.current[idx] = el)}
               style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                backgroundColor: '#000'
+                width: "100vw",
+                height: "100dvh",
+                scrollSnapAlign: "start",
+                position: "relative",
+                background: "#000",
+                overflow: "hidden"
               }}
-              onTimeUpdate={(e) => {
-                // Force progress bar to show immediately
-                if (e.target.currentTime === 0) {
-                  e.target.currentTime = 0.001;
-                }
-              }}
-            />
+            >
+              <video
+                ref={el => (videoRefs.current[idx] = el)}
+                src={HOST + v.url}
+                loop
+                playsInline
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  background: "#000",
+                }}
+                {...handleVideoEvents(idx, filename)}
+                onTimeUpdate={() => handleTimeUpdate(idx, filename)}
+              />
 
-            {/* Right Action Buttons */}
-            <div style={{
-              position: 'absolute',
-              right: '12px',
-              bottom: '120px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '24px'
-            }}>
-              <div style={{ textAlign: 'center' }}>
-                <Icons.Heart filled={false} />
-                <div style={{ color: '#fff', fontSize: '12px', marginTop: '4px' }}>
-                  {short.likes || 0}
-                </div>
+              {/* Progress bar - now always visible */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 60,
+                  height: 2,
+                  background: "rgba(255,255,255,0.3)",
+                  zIndex: 10
+                }}
+              >
+                <div
+                  style={{
+                    width: `${Math.min(prog * 100, 100)}%`,
+                    height: "100%",
+                    background: "#fff",
+                    transition: "width 0.1s linear"
+                  }}
+                />
               </div>
 
-              <div style={{ textAlign: 'center' }}>
-                <button 
-                  onClick={() => setShowComments(short.id)}
-                  style={{ background: 'none', border: 'none', padding: 0 }}
+              {/* Right action buttons */}
+              <div
+                style={{
+                  position: "absolute",
+                  right: 16,
+                  bottom: 120,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 24,
+                  zIndex: 10
+                }}
+              >
+                {/* Like button */}
+                <button
+                  onClick={() => handleLike(idx, filename)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0
+                  }}
                 >
-                  <Icons.Comment />
+                  <HeartIcon filled={liked} />
                 </button>
-                <div style={{ color: '#fff', fontSize: '12px', marginTop: '4px' }}>
-                  {short.comments?.length || 0}
+                <div style={{
+                  color: liked ? "#e11d48" : "#fff",
+                  fontSize: 12,
+                  marginTop: 4
+                }}>
+                  {v.likes || 0}
                 </div>
-              </div>
 
-              <div style={{ textAlign: 'center' }}>
-                <Icons.Share />
-                <div style={{ color: '#fff', fontSize: '12px', marginTop: '4px' }}>
+                {/* Comment button */}
+                <button
+                  onClick={() => setShowComments(cur => ({ ...cur, [filename]: true }))}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0
+                  }}
+                >
+                  <CommentIcon />
+                </button>
+                <div style={{
+                  color: "#fff",
+                  fontSize: 12,
+                  marginTop: 4
+                }}>
+                  {(v.comments && v.comments.length) || 0}
+                </div>
+
+                {/* Share button */}
+                <button
+                  onClick={() => {
+                    const url = window.location.origin + "/?v=" + filename;
+                    if (navigator.share) {
+                      navigator.share({ url, title: "Watch this short!" });
+                    } else {
+                      navigator.clipboard.writeText(url);
+                      alert("Link copied to clipboard!");
+                    }
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0
+                  }}
+                >
+                  <ShareIcon />
+                </button>
+                <div style={{
+                  color: "#fff",
+                  fontSize: 12,
+                  marginTop: 4
+                }}>
                   Share
                 </div>
               </div>
-            </div>
 
-            {/* Bottom Info Section - NO SHADOW */}
-            <div style={{
-              position: 'absolute',
-              bottom: '80px',
-              left: '12px',
-              right: '12px',
-              padding: '12px',
-              zIndex: 2,
-              background: 'rgba(0,0,0,0.5)' // Solid background instead of gradient
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  overflow: 'hidden',
-                  marginRight: '8px',
-                  background: '#333'
-                }}>
-                  <img 
-                    src={`https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(short.author || "user")}`}
-                    alt="Profile"
-                    style={{ width: '100%', height: '100%' }}
-                  />
-                </div>
-                <span style={{ color: '#fff', fontWeight: '600' }}>@{short.author || "user"}</span>
-              </div>
-              <div style={{ color: '#fff', marginBottom: '8px' }}>{short.caption}</div>
-              <button 
-                onClick={() => setShowComments(short.id)}
+              {/* Bottom info section - no shadow */}
+              <div
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(255,255,255,0.7)',
-                  padding: 0,
-                  fontSize: '14px'
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 60,
+                  padding: "12px 16px",
+                  background: "rgba(0,0,0,0.5)",
+                  zIndex: 5
                 }}
               >
-                View all {short.comments?.length || 0} comments
-              </button>
-            </div>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>
+                  @{v.author || "anonymous"}
+                </div>
+                <div style={{ fontSize: 14, margin: "4px 0" }}>
+                  {v.caption}
+                </div>
+                {v.comments && v.comments.length > 0 && (
+                  <div style={{ fontSize: 14 }}>
+                    <b>{v.comments[0].name}:</b> {v.comments[0].text}
+                  </div>
+                )}
+                <div
+                  style={{
+                    color: "rgba(255,255,255,0.7)",
+                    fontSize: 14,
+                    marginTop: 4,
+                    cursor: "pointer"
+                  }}
+                  onClick={() => setShowComments(cur => ({ ...cur, [filename]: true }))}
+                >
+                  View all {v.comments ? v.comments.length : 0} comments
+                </div>
+              </div>
 
-            {/* Progress Bar - Always Visible */}
-            <div style={{
-              position: 'absolute',
-              bottom: '60px',
-              left: 0,
-              right: 0,
-              height: '2px',
-              backgroundColor: 'rgba(255,255,255,0.3)',
-              zIndex: 3
-            }}>
-              <div style={{
-                width: '50%',
-                height: '100%',
-                backgroundColor: '#fff'
-              }}/>
+              {/* Comments modal - keep your existing modal code */}
+              {showComments[filename] && (
+                // ... [keep your existing comments modal code] ...
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-
-      {/* Comments Modal */}
-      {showComments && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.9)',
-          zIndex: 100
-        }}>
-          {/* Modal content here */}
-        </div>
-      )}
     </div>
   );
 }
