@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com"; // Your backend URL
-const ADMIN_KEY = "Hindi@1234"; // Replace with your real secret
+const ADMIN_KEY = "Hindi@1234"; // Replace with your real admin key
 
 function bytesToSize(bytes) {
   if (bytes === 0) return "0 B";
@@ -17,7 +17,6 @@ export default function AdminDashboard() {
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState("");
 
-  // Fetch all shorts, including filenames and sizes (if backend provides size)
   useEffect(() => {
     axios
       .get(HOST + "/shorts")
@@ -25,7 +24,7 @@ export default function AdminDashboard() {
       .catch(() => setStatus("Could not fetch shorts."));
   }, []);
 
-  // Upload handler
+  // ---->>>> This is the only part that needs fixing <<<<----
   const handleUpload = (e) => {
     e.preventDefault();
     if (!video) return;
@@ -37,27 +36,30 @@ export default function AdminDashboard() {
     axios
       .post(HOST + "/upload", formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          // Do NOT set Content-Type for multipart/form-data here!
           "x-admin-key": ADMIN_KEY,
         },
       })
       .then((res) => {
-        // Refetch, or just add new video manually?
         axios.get(HOST + "/shorts").then((r) => setShorts(r.data));
         setVideo(null);
         setStatus("Upload Successful!");
       })
       .catch((err) => {
+        setUploading(false);
         if (err.response && err.response.status === 401) {
           setStatus("Upload Failed: Unauthorized (Check admin key)");
+        } else if (err.response && err.response.status === 413) {
+          setStatus("Upload Failed: File too large.");
         } else {
-          setStatus("Upload Failed.");
+          setStatus("Upload Failed: " + (err.message || ""));
         }
+        // Debug
+        console.error("Upload error:", err);
       })
       .finally(() => setUploading(false));
   };
 
-  // Delete handler
   const handleDelete = (filename) => {
     if (!window.confirm("Delete this video permanently?")) return;
     axios
@@ -68,7 +70,6 @@ export default function AdminDashboard() {
       .catch(() => alert("Delete failed!"));
   };
 
-  // Calculate total size (optional; backend must provide "size" property per item or you'll see 'undefined')
   const totalSize = shorts.reduce(
     (sum, v) => sum + (v.size ? Number(v.size) : 0),
     0
@@ -97,7 +98,10 @@ export default function AdminDashboard() {
         }}
       >
         {/* Upload Button */}
-        <form onSubmit={handleUpload} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <form
+          onSubmit={handleUpload}
+          style={{ display: "flex", flexDirection: "column", gap: 8 }}
+        >
           <label
             htmlFor="upload"
             style={{
@@ -158,7 +162,8 @@ export default function AdminDashboard() {
         {/* Video statistics */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ fontWeight: "bold" }}>
-            No. of videos: <span style={{ color: "#22d3ee" }}>{shorts.length}</span>
+            No. of videos:{" "}
+            <span style={{ color: "#22d3ee" }}>{shorts.length}</span>
           </div>
           <div>
             File size:{" "}
@@ -214,7 +219,13 @@ export default function AdminDashboard() {
                 >
                   {filename}
                 </span>
-                <span style={{ fontSize: 13, color: "#fff9", margin: "0 8px" }}>
+                <span
+                  style={{
+                    fontSize: 13,
+                    color: "#fff9",
+                    margin: "0 8px",
+                  }}
+                >
                   {s.size ? bytesToSize(Number(s.size)) : ""}
                 </span>
                 <button
@@ -272,7 +283,13 @@ export default function AdminDashboard() {
           }}
         >
           {shorts.length === 0 && (
-            <div style={{ color: "#888", textAlign: "center", marginTop: 100 }}>
+            <div
+              style={{
+                color: "#888",
+                textAlign: "center",
+                marginTop: 100,
+              }}
+            >
               No videos uploaded yet.
             </div>
           )}
@@ -289,7 +306,13 @@ export default function AdminDashboard() {
                 gap: 8,
               }}
             >
-              <span style={{ color: "#68d", fontWeight: "bold", fontSize: 14 }}>
+              <span
+                style={{
+                  color: "#68d",
+                  fontWeight: "bold",
+                  fontSize: 14,
+                }}
+              >
                 VIDEO-{i + 1}
               </span>
               <video
