@@ -1,15 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
+// Backend host
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// --- ICONS ---
+// ICONS
 function HeartIcon({ filled }) {
   return filled ? (
     <svg viewBox="0 0 24 24" width={36} height={36}>
       <path
-        d="M12 21C12 21 4.5 14.5 4.5 9.5 4.5 6.5 7 5 9 5
-        10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5c2 0 4.5 1.5 4.5 4.5
+        d="M12 21C12 21 4.5 14.5 4.5 9.5
+        4.5 6.5 7 5 9 5
+        10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5
+        c2 0 4.5 1.5 4.5 4.5
         0 5-7.5 11.5-7.5 11.5Z"
         fill="#e11d48"
         stroke="#e11d48"
@@ -21,9 +24,10 @@ function HeartIcon({ filled }) {
     <svg viewBox="0 0 24 24" width={36} height={36} fill="none">
       <path
         d="M12 21C12 21 4.5 14.5 4.5 9.5
-          4.5 6.5 7 5 9 5
-          10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5
-          c2 0 4.5 1.5 4.5 4.5 0 5-7.5 11.5-7.5 11.5Z"
+        4.5 6.5 7 5 9 5
+        10.28 5 12 6.5 12 6.5s1.72-1.5 3-1.5
+        c2 0 4.5 1.5 4.5 4.5
+        0 5-7.5 11.5-7.5 11.5Z"
         stroke="#fff"
         strokeWidth="2"
       />
@@ -46,6 +50,8 @@ function ShareIcon() {
     </svg>
   );
 }
+
+// LIKE HELPERS
 function isLiked(filename) {
   return localStorage.getItem("like_" + filename) === "1";
 }
@@ -54,6 +60,7 @@ function setLiked(filename, yes) {
   else localStorage.removeItem("like_" + filename);
 }
 
+// FEED COMPONENT
 export default function Feed() {
   const [shorts, setShorts] = useState([]);
   const videoRefs = useRef([]);
@@ -64,14 +71,26 @@ export default function Feed() {
   const [commentInputs, setCommentInputs] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
 
-  useEffect(() => { axios.get(HOST + "/shorts").then(res => setShorts(res.data)); }, []);
+  useEffect(() => {
+    axios.get(HOST + "/shorts").then(res => setShorts(res.data));
+  }, []);
+
+  // Only play/unmute current, pause/mute others
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
-      if (idx === currentIdx) { vid.muted = false; vid.play().catch(()=>{}); }
-      else { vid.pause(); vid.currentTime = 0; vid.muted = true; }
+      if (idx === currentIdx) {
+        vid.muted = false;
+        vid.play().catch(()=>{});
+      } else {
+        vid.pause();
+        vid.currentTime = 0;
+        vid.muted = true;
+      }
     });
   }, [currentIdx]);
+
+  // Scroll snap detection
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       (entries) => {
@@ -89,6 +108,7 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length]);
 
+  // Like logic
   function handleLike(idx, filename) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
@@ -100,43 +120,47 @@ export default function Feed() {
         setLikePending(l => ({ ...l, [filename]: false }));
       });
     } else {
-      setShorts(prev => prev.map((v, i) =>
-        i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v
-      ));
+      setShorts(prev => prev.map((v, i) => i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v));
       setLiked(filename, false);
       setLikePending(l => ({ ...l, [filename]: false }));
     }
   }
+
+  // Tap logic: single = play/pause, double = like (mobile+mouse)
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
-      onClick: e => { setTimeout(() => {
-        if (e.detail === 1) {
+      onClick: e => {
+        if (tapTimeout) clearTimeout(tapTimeout);
+        tapTimeout = setTimeout(() => {
           const vid = videoRefs.current[idx];
-          if (vid) vid.paused ? vid.play() : vid.pause();
-        }
-      }, 275); },
-      onDoubleClick: () => handleLike(idx, filename),
-      onTouchEnd: () => {
-        let now = Date.now();
-        let vid = videoRefs.current[idx];
-        if (!vid) return;
-        let last = vid.__lastTapTime || 0;
-        vid.__lastTapTime = now;
-        if (now - last < 350) {
-          clearTimeout(tapTimeout);
-          handleLike(idx, filename);
-        } else {
+          if (!vid) return;
+          if (vid.paused) vid.play();
+          else vid.pause();
+        }, 240);
+      },
+      onDoubleClick: () => {
+        if (tapTimeout) { clearTimeout(tapTimeout); tapTimeout = null; }
+        handleLike(idx, filename);
+      },
+      onTouchEnd: e => {
+        if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
+        if (tapTimeout) { clearTimeout(tapTimeout); tapTimeout = null; handleLike(idx, filename); }
+        else {
           tapTimeout = setTimeout(() => {
-            if (Date.now() - vid.__lastTapTime >= 350) {
+            const vid = videoRefs.current[idx];
+            if (vid) {
               if (vid.paused) vid.play();
               else vid.pause();
             }
-          }, 360);
+            tapTimeout = null;
+          }, 240);
         }
       }
     };
   }
+
+  // Seek/progress bar logic
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -180,6 +204,15 @@ export default function Feed() {
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
       });
   }
+
+  // Utility to get a profile pic (either from the video OR from author name)
+  function getProfilePic(v) {
+    // If your object has v.avatar or v.profilePic, use here; fallback to dicebear/any default
+    if (v.avatar || v.profilePic) return v.avatar || v.profilePic;
+    // Dicebear seeded by author or anonymous
+    return `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author || "anonymous")}`;
+  }
+
   return (
     <div
       style={{
@@ -230,7 +263,9 @@ export default function Feed() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                margin: 0, padding: 0, overflow: "hidden"
+                margin: 0,
+                padding: 0,
+                overflow: "hidden"
               }}
             >
               <video
@@ -281,7 +316,7 @@ export default function Feed() {
                   }}
                 />
               </div>
-              {/* --- LIKE/COMMENT/SHARE STACK --- */}
+              {/* --- Like/Comment/Share stack + DP --- */}
               <div
                 style={{
                   position: "absolute",
@@ -290,12 +325,35 @@ export default function Feed() {
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: 32,
+                  gap: 24,
                   zIndex: 10,
                   userSelect: "none",
                   pointerEvents: "auto",
                 }}
               >
+                {/* DP/PROFILE PIC AT TOP */}
+                <div
+                  style={{
+                    marginBottom: 3,
+                    borderRadius: "50%",
+                    width: 50,
+                    height: 50,
+                    overflow: "hidden",
+                    border: "2.5px solid #2983fe",
+                    background: "#081329"
+                  }}
+                >
+                  <img
+                    src={getProfilePic(v)}
+                    alt="dp"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "50%",
+                      objectFit: "cover"
+                    }}
+                  />
+                </div>
                 {/* Like */}
                 <button
                   style={{
@@ -435,7 +493,7 @@ export default function Feed() {
                   onClick={() => setShowComments(cur => ({ ...cur, [filename]: true }))}
                 >View all {v.comments ? v.comments.length : 0} comments</div>
               </div>
-              {/* COMMENTS MODAL */}
+              {/* --- COMMENTS MODAL SHEET --- */}
               {showComments[filename] && (
                 <div
                   style={{
@@ -470,7 +528,6 @@ export default function Feed() {
                     }}
                     onClick={e => e.stopPropagation()}
                   >
-                    {/* Header */}
                     <div style={{
                       display: "flex",
                       alignItems: "center",
@@ -502,7 +559,6 @@ export default function Feed() {
                         }}
                       >×</button>
                     </div>
-                    {/* All comments, IG-style */}
                     <div style={{
                       overflowY: "auto",
                       maxHeight: "33vh",
