@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const HOST = "https://shorts-t2dk.onrender.com"; // Your backend URL
-const ADMIN_KEY = "Hindi@1234"; // Replace with your real admin key
+const HOST = "https://shorts-t2dk.onrender.com";
+const ADMIN_KEY = "Hindi@1234"; // Your admin password/key
 
 function bytesToSize(bytes) {
   if (bytes === 0) return "0 B";
   const sizes = ["B", "KB", "MB", "GB"];
   const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10);
-  return Math.round(bytes / Math.pow(1024, i) * 10) / 10 + " " + sizes[i];
+  return Math.round((bytes / Math.pow(1024, i)) * 10) / 10 + " " + sizes[i];
 }
 
 export default function AdminDashboard() {
@@ -16,7 +16,10 @@ export default function AdminDashboard() {
   const [video, setVideo] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState("");
+  // Caption editing state
+  const [editState, setEditState] = useState({}); // { filename: {caption, loading, saved, error} }
 
+  // Fetch all videos
   useEffect(() => {
     axios
       .get(HOST + "/shorts")
@@ -24,7 +27,7 @@ export default function AdminDashboard() {
       .catch(() => setStatus("Could not fetch shorts."));
   }, []);
 
-  // ---->>>> This is the only part that needs fixing <<<<----
+  // UPLOAD logic as in your existing code
   const handleUpload = (e) => {
     e.preventDefault();
     if (!video) return;
@@ -36,7 +39,6 @@ export default function AdminDashboard() {
     axios
       .post(HOST + "/upload", formData, {
         headers: {
-          // Do NOT set Content-Type for multipart/form-data here!
           "x-admin-key": ADMIN_KEY,
         },
       })
@@ -54,12 +56,12 @@ export default function AdminDashboard() {
         } else {
           setStatus("Upload Failed: " + (err.message || ""));
         }
-        // Debug
         console.error("Upload error:", err);
       })
       .finally(() => setUploading(false));
   };
 
+  // Delete logic as in your code
   const handleDelete = (filename) => {
     if (!window.confirm("Delete this video permanently?")) return;
     axios
@@ -70,6 +72,60 @@ export default function AdminDashboard() {
       .catch(() => alert("Delete failed!"));
   };
 
+  // Caption handlers
+  const handleCaptionChange = (filename, value) => {
+    setEditState((prev) => ({
+      ...prev,
+      [filename]: {
+        ...prev[filename],
+        caption: value,
+        saved: false,
+        error: null,
+      },
+    }));
+  };
+
+  const saveCaption = (filename, origCaption) => {
+    const caption = (editState[filename]?.caption || "").trim();
+    if (caption === (origCaption || "")) return;
+    setEditState((prev) => ({
+      ...prev,
+      [filename]: { ...prev[filename], loading: true, error: null },
+    }));
+
+    axios
+      .post(`${HOST}/shorts/${filename}/update_caption`, { caption })
+      .then(() => {
+        setShorts((current) =>
+          current.map((video) =>
+            video.url.endsWith(filename)
+              ? { ...video, caption }
+              : video
+          )
+        );
+        setEditState((prev) => ({
+          ...prev,
+          [filename]: {
+            ...prev[filename],
+            loading: false,
+            saved: true,
+            error: null,
+          },
+        }));
+      })
+      .catch(() => {
+        setEditState((prev) => ({
+          ...prev,
+          [filename]: {
+            ...prev[filename],
+            loading: false,
+            error: "Failed to save",
+          },
+        }));
+      });
+  };
+
+  // File size stats
   const totalSize = shorts.reduce(
     (sum, v) => sum + (v.size ? Number(v.size) : 0),
     0
@@ -85,7 +141,8 @@ export default function AdminDashboard() {
         fontFamily: "Inter, sans-serif",
       }}
     >
-      {/* LEFT: Upload button + Sidebar */}
+
+      {/* -------- LEFT: Upload area / meta stats / file list -------- */}
       <div
         style={{
           flex: "0 0 340px",
@@ -158,7 +215,6 @@ export default function AdminDashboard() {
             </div>
           )}
         </form>
-
         {/* Video statistics */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ fontWeight: "bold" }}>
@@ -172,8 +228,7 @@ export default function AdminDashboard() {
             </span>
           </div>
         </div>
-
-        {/* File List (Table-like) */}
+        {/* File List */}
         <div
           style={{
             background: "#111116",
@@ -250,7 +305,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* RIGHT: Scrollable Videos */}
+      {/* --------- RIGHT: SCROLLABLE VIDEOS with Caption Editor --------- */}
       <div
         style={{
           flex: 1,
@@ -293,49 +348,130 @@ export default function AdminDashboard() {
               No videos uploaded yet.
             </div>
           )}
-          {shorts.map((s, i) => (
-            <div
-              key={i}
-              style={{
-                background: "#1a1529",
-                borderRadius: 12,
-                padding: 15,
-                boxShadow: "0 1px 10px #0002",
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-              }}
-            >
-              <span
+          {shorts.map((s, i) => {
+            const filename = s.url.split("/").pop();
+            const state = editState[filename] || {};
+            const origCaption = s.caption ?? "";
+            const caption = state.caption !== undefined ? state.caption : origCaption;
+
+            return (
+              <div
+                key={i}
                 style={{
-                  color: "#68d",
-                  fontWeight: "bold",
-                  fontSize: 14,
+                  background: "#1a1529",
+                  borderRadius: 12,
+                  padding: 15,
+                  boxShadow: "0 1px 10px #0002",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
                 }}
               >
-                VIDEO-{i + 1}
-              </span>
-              <video
-                src={HOST + s.url}
-                controls
-                loop
-                style={{
-                  width: "100%",
-                  maxHeight: "280px",
-                  background: "#000",
-                  borderRadius: 10,
-                  objectFit: "cover",
-                }}
-              />
-              <small
-                style={{
-                  color: "#aaa",
-                }}
-              >
-                {s.url.split("/").pop()}
-              </small>
-            </div>
-          ))}
+                <span style={{ color: "#68d", fontWeight: "bold", fontSize: 14 }}>
+                  VIDEO-{i + 1}
+                </span>
+                <video
+                  src={HOST + s.url}
+                  controls
+                  loop
+                  style={{
+                    width: "100%",
+                    maxHeight: "260px",
+                    background: "#000",
+                    borderRadius: 10,
+                    objectFit: "cover",
+                    marginBottom: 7,
+                  }}
+                />
+                <small style={{ color: "#aaa" }}>{filename}</small>
+                <div style={{ margin: "12px 0 3px 0" }}>
+                  <label
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 600,
+                      color: "#33b6ff",
+                      marginBottom: 4,
+                      display: "block",
+                    }}
+                  >
+                    Caption / Title (shows to users):
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={caption}
+                    maxLength={250}
+                    placeholder="Enter a clean caption for this video (up to 250 chars)..."
+                    onChange={(e) => handleCaptionChange(filename, e.target.value)}
+                    style={{
+                      width: "100%",
+                      borderRadius: 9,
+                      border: "1.5px solid #22283c",
+                      padding: "8px 13px",
+                      fontSize: 15,
+                      background: state.error ? "#fee6e6" : "#110b23",
+                      color: "#eee",
+                      resize: "vertical",
+                      outline: "none",
+                      marginBottom: 4,
+                      fontWeight: 400,
+                    }}
+                  />
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: 12,
+                      color: "#888",
+                      alignItems: "center"
+                    }}
+                  >
+                    <span>
+                      {caption.length}/250
+                    </span>
+                    {state.error && (
+                      <span style={{ color: "#e11d48", marginLeft: 12 }}>
+                        {state.error}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => saveCaption(filename, origCaption)}
+                    disabled={state.loading || caption === origCaption}
+                    style={{
+                      background: "#2596ff",
+                      color: "#fff",
+                      fontWeight: 700,
+                      fontSize: 15,
+                      border: "none",
+                      borderRadius: 7,
+                      padding: "7px 20px",
+                      cursor:
+                        caption &&
+                        caption !== origCaption &&
+                        !state.loading
+                          ? "pointer"
+                          : "not-allowed",
+                      opacity:
+                        caption &&
+                        caption !== origCaption &&
+                        !state.loading
+                          ? 1
+                          : 0.57,
+                      marginTop: 8,
+                      transition: "all .13s",
+                      minWidth: 85
+                    }}
+                  >
+                    {state.loading
+                      ? "Saving..."
+                      : state.saved
+                      ? "Saved ✓"
+                      : "Save"}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
