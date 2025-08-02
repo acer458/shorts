@@ -27,7 +27,6 @@ button, input, textarea, select, svg, video {
   border: none;
 }
 
-/* Optionally, fully remove focus rings unless custom (for accessibility) */
 button:focus, input:focus {
   outline: none;
   box-shadow: none;
