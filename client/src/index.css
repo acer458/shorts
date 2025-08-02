@@ -19,7 +19,6 @@ html, body, #root {
   outline: none;
 }
 
-/* Remove blue on tap & visual artifacts for interactive elements */
 button, input, textarea, select, svg, video {
   -webkit-tap-highlight-color: transparent !important;
   background: none;
