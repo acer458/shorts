@@ -30,7 +30,6 @@ function HeartIcon({ filled }) {
     </svg>
   );
 }
-
 function CommentIcon() {
   return (
     <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="#fff">
@@ -39,7 +38,6 @@ function CommentIcon() {
     </svg>
   );
 }
-
 function ShareIcon() {
   return (
     <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="#fff">
@@ -477,7 +475,7 @@ export default function Feed() {
                 </div>
               </div>
 
-              {/* Comments modal */}
+              {/* Modern pull-up style comment bar at bottom of modal */}
               {showComments[filename] && (
                 <div
                   style={{
@@ -504,7 +502,8 @@ export default function Feed() {
                       maxHeight: "55%",
                       overflowY: "auto",
                       boxShadow: "0 -4px 24px #000a",
-                      padding: "22px 14px 10px 18px",
+                      padding: "22px 14px 4px 18px",
+                      position: 'relative'
                     }}
                     onClick={e => e.stopPropagation()}
                   >
@@ -529,49 +528,74 @@ export default function Feed() {
                         <span style={{ color: "#fff" }}>{c.text}</span>
                       </div>
                     ))}
+
+                    {/* --- Comment Input Pull-up Bar --- */}
                     <div
                       style={{
-                        marginTop: 15,
+                        position: "sticky", // stays at the bottom of modal sheet
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        zIndex: 200,
+                        background: "#23243f",
                         display: "flex",
-                        gap: 4,
-                        background: "none",
+                        alignItems: "center",
+                        padding: "12px 12px 14px 12px",
+                        borderTop: "1.5px solid #343456",
+                        gap: 8,
+                        marginTop: 18,
+                        borderRadius: 14,
+                        boxShadow: "0 2px 24px #0006",
+                        minHeight: 46,
+                        marginLeft: -8,
+                        marginRight: -8
                       }}
                     >
                       <input
                         value={commentInputs[filename] || ""}
-                        onChange={(e) =>
-                          setCommentInputs((prev) => ({
+                        onChange={e =>
+                          setCommentInputs(prev => ({
                             ...prev,
-                            [filename]: e.target.value,
+                            [filename]: e.target.value
                           }))
                         }
-                        placeholder="Add a comment..."
+                        placeholder="Add a comment…"
                         style={{
                           flex: 1,
-                          borderRadius: 7,
-                          border: "1px solid #333",
-                          fontSize: 15,
-                          color: "#fff",
-                          background: "#14151b",
-                          padding: "5px 11px",
+                          border: "none",
+                          borderRadius: 22,
+                          fontSize: 17,
+                          padding: "11px 18px",
                           outline: "none",
+                          background: "#10101a",
+                          color: "#fff",
+                          boxShadow: "0 1px 2px #0002",
                         }}
-                        onKeyDown={(e) => {
+                        onKeyDown={e => {
                           if (e.key === "Enter")
                             handleAddComment(idx, filename);
                         }}
                       />
                       <button
                         style={{
-                          background: "#47a3f3",
+                          background: commentInputs[filename]?.trim()
+                            ? "#2983fe"
+                            : "#7daefc",
                           color: "#fff",
                           border: "none",
-                          borderRadius: 7,
-                          padding: "7px 16px",
-                          fontWeight: 600,
-                          fontSize: 15,
-                          cursor: "pointer",
+                          borderRadius: 22,
+                          padding: "7px 21px",
+                          fontWeight: 700,
+                          fontSize: 17,
+                          cursor: commentInputs[filename]?.trim()
+                            ? "pointer"
+                            : "not-allowed",
+                          boxShadow: commentInputs[filename]?.trim()
+                            ? "0 1px 5px #2983fe44"
+                            : "none",
+                          transition: "background .15s"
                         }}
+                        disabled={!commentInputs[filename]?.trim()}
                         onClick={() => handleAddComment(idx, filename)}
                       >
                         Send
