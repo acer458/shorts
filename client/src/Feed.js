@@ -197,15 +197,25 @@ export default function Feed() {
                 loop
                 playsInline
                 className="reel-video"
+                style={{
+                  objectFit: 'contain', // Changed from 'cover' to 'contain' to prevent zooming
+                  backgroundColor: '#000'
+                }}
                 {...handleVideoEvents(idx, filename)}
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
               
-              {/* Progress bar */}
+              {/* Progress bar - moved to very bottom */}
               <div
                 className="video-progress-container"
                 onClick={e => handleSeek(idx, e, false)}
                 onTouchStart={e => handleSeek(idx, e, true)}
+                style={{
+                  position: 'absolute',
+                  bottom: '60px', // Adjusted to be above the info section
+                  left: 0,
+                  right: 0
+                }}
               >
                 <div
                   className="video-progress-bar"
@@ -276,7 +286,7 @@ export default function Feed() {
                 </div>
               </div>
               
-              {/* COMMENTS MODAL */}
+              {/* COMMENTS MODAL - adjusted for mobile */}
               {showComments[filename] && (
                 <div 
                   className="comments-modal-overlay"
@@ -285,6 +295,12 @@ export default function Feed() {
                   <div 
                     className="comments-modal"
                     onClick={e => e.stopPropagation()}
+                    style={{
+                      maxHeight: '80vh',
+                      width: '100%',
+                      borderTopLeftRadius: '16px',
+                      borderTopRightRadius: '16px'
+                    }}
                   >
                     <div className="comments-header">
                       <span>Comments</span>
