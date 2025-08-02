@@ -3,7 +3,7 @@ import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// IG-style filled/outlined heart using SVG
+// Insta style heart SVG
 function HeartSVG({ filled }) {
   return (
     <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
@@ -26,11 +26,13 @@ export default function Feed() {
   const [showComments, setShowComments] = useState(null); // filename or null
   const [commentInputs, setCommentInputs] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
+  const [commentsDraft, setCommentsDraft] = useState({}); // local post/like simulation
 
   useEffect(() => {
     axios.get(HOST + "/shorts").then(res => setShorts(res.data));
   }, []);
 
+  // Play/mute logic
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
@@ -45,6 +47,7 @@ export default function Feed() {
     });
   }, [currentIdx]);
 
+  // Snap
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       entries => {
@@ -63,14 +66,12 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length]);
 
-  function isLiked(filename) {
-    return localStorage.getItem("like_" + filename) === "1";
-  }
+  // Like helpers
+  function isLiked(filename) { return localStorage.getItem("like_" + filename) === "1"; }
   function setLiked(filename, yes) {
     if (yes) localStorage.setItem("like_" + filename, "1");
     else localStorage.removeItem("like_" + filename);
   }
-
   function handleLike(idx, filename) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
@@ -100,7 +101,6 @@ export default function Feed() {
     }
   }
 
-  // Play/pause tap/double tap
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -165,22 +165,42 @@ export default function Feed() {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
     axios
-      .post(`${HOST}/shorts/${filename}/comment`, { name: "Anonymous", text })
+      .post(`${HOST}/shorts/${filename}/comment`, { name: "You", text })
       .then(() => {
         setShorts(prev =>
           prev.map((v, i) =>
             i === idx
-              ? { ...v, comments: [...(v.comments || []), { name: "Anonymous", text }] }
+              ? { ...v, comments: [...(v.comments || []), { name: "You", text }] }
               : v
           )
         );
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
       });
+    // Optionally, simulate "Just now"
+    setCommentsDraft(draft => ({
+      ...draft, [filename]: { time: "Just now" }
+    }));
   }
 
   function getProfilePic(v) {
     return v.avatar || v.profilePic ||
       `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author || "anonymous")}`;
+  }
+
+  // Returns a time string for the demo (using random for sample comments)
+  function fakeTime(i) {
+    return ["2h ago","1h ago","45m ago","30m ago","15m ago","Just now"][i%6]||"Just now";
+  }
+  // Returns a random avatar for demo comments (matches your HTML)
+  function fakeAvatar(i) {
+    const urls = [
+      "https://randomuser.me/api/portraits/men/32.jpg",
+      "https://randomuser.me/api/portraits/women/63.jpg",
+      "https://randomuser.me/api/portraits/men/75.jpg",
+      "https://randomuser.me/api/portraits/women/22.jpg",
+      "https://randomuser.me/api/portraits/men/18.jpg"
+    ];
+    return urls[i % urls.length];
   }
 
   return (
@@ -209,6 +229,12 @@ export default function Feed() {
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
           const prog = videoProgress[filename] || 0;
+          // Compose comments: "add" new as demo or use real if you have v.comments[i].avatar/time
+          const allComments = (v.comments || []).map((c, i) => ({
+            ...c,
+            avatar: fakeAvatar(i),
+            time: fakeTime(i)
+          }));
 
           return (
             <div
@@ -233,7 +259,6 @@ export default function Feed() {
                 {...handleVideoEvents(idx, filename)}
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
-
               {/* Progress seeker */}
               <div
                 style={{
@@ -255,7 +280,7 @@ export default function Feed() {
                 />
               </div>
 
-              {/* --- DP, Like, Comment, Share (no borders/shadows, matching Instagram) --- */}
+              {/* --- DP, Like, Comment, Share stack --- */}
               <div style={{
                 position: 'absolute',
                 right: '12px',
@@ -268,7 +293,7 @@ export default function Feed() {
               }}>
                 {/* Profile Picture / DP */}
                 <div style={{
-                  marginBottom: '6px',
+                  marginBottom: 6,
                   width: 48, height: 48,
                   borderRadius: "50%",
                   overflow: "hidden"
@@ -282,7 +307,7 @@ export default function Feed() {
                       objectFit: "cover"
                     }}/>
                 </div>
-                {/* Like BUTTON/Count */}
+                {/* Like */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button
                     onClick={() => handleLike(idx, filename)}
@@ -303,7 +328,7 @@ export default function Feed() {
                     {v.likes || 0}
                   </span>
                 </div>
-                {/* Comment BUTTON/Count */}
+                {/* Comment */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button
                     onClick={() => setShowComments(filename)}
@@ -323,7 +348,7 @@ export default function Feed() {
                     {v.comments?.length || 0}
                   </span>
                 </div>
-                {/* Share BUTTON */}
+                {/* Share */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button
                     onClick={() => handleShare(filename)}
@@ -344,7 +369,7 @@ export default function Feed() {
                 </div>
               </div>
 
-              {/* ------ Caption/comments preview bar ------ */}
+              {/* -- Caption/comments preview bar -- */}
               <div
                 style={{
                   position: "absolute",
@@ -363,7 +388,7 @@ export default function Feed() {
                 <div style={{
                   fontWeight: 600, fontSize: 16, marginBottom: 6
                 }}>
-                  @{v.author || "anonymous"}
+                  @{v.author || "anonymous"}{" "}
                   <span style={{ fontWeight: 400, marginLeft: 9, color: "#fff" }}>
                     {v.caption}
                   </span>
@@ -384,132 +409,142 @@ export default function Feed() {
                 >View all {v.comments ? v.comments.length : 0} comments</div>
               </div>
 
-              {/* ---- COMMENTS MODAL (with INSTAGRAM caption/comments UI) ---- */}
+              {/* ---- COMMENTS MODAL: Insta "black" style --- */}
               {showComments === filename &&
                 <div
                   style={{
                     position: "fixed",
                     inset: 0,
                     zIndex: 500,
-                    background: "#000b",
+                    background: "rgba(0,0,0,0.91)",
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "flex-end",
-                    overscrollBehavior: "contain"
+                    justifyContent: "flex-end"
                   }}
                   onClick={() => setShowComments(null)}
                 >
                   <div
+                    className="comments-modal-insta"
                     style={{
-                      background: "#fff",
-                      borderTopLeftRadius: 17,
-                      borderTopRightRadius: 17,
+                      backgroundColor: "#000",
+                      borderTopLeftRadius: 15,
+                      borderTopRightRadius: 15,
+                      padding: 15,
+                      minHeight: '36vh',
+                      height: '70vh',
+                      display: 'flex',
+                      flexDirection: 'column',
                       maxWidth: 500,
-                      margin: "auto",
-                      minHeight: 390,
-                      maxHeight: "90vh",
                       width: "97vw",
-                      boxShadow: "0 -4px 25px #0002, 0 2px 8px #ccc1",
-                      display: "flex",
-                      flexDirection: "column",
-                      position: 'relative',
-                      overflow: 'hidden'
+                      margin: "0 auto",
+                      border: '1px solid #262626'
                     }}
                     onClick={e => e.stopPropagation()}
                   >
-                    {/* Caption (IG-style) */}
-                    <div style={{
-                      borderBottom: "1px solid #efefef",
-                      fontSize: 14, lineHeight: 1.45,
-                      padding: "14px 18px", color: "#222"
+                    {/* Header */}
+                    <div className="comments-header" style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingBottom: 15,
+                      borderBottom: '1px solid #262626'
                     }}>
-                      <span style={{
-                        fontWeight: 600, color: "#151b3a", marginRight: 6
-                      }}>
-                        {v.author || "anonymous"}
-                      </span>
-                      {v.caption}
+                      <h2 style={{ fontSize: 16, fontWeight: 600 }}>Comments</h2>
+                      <span
+                        className="fas fa-times"
+                        style={{ fontSize: 22, color: "#fff", cursor: "pointer" }}
+                        onClick={() => setShowComments(null)}
+                      >×</span>
                     </div>
-                    {/* Comments - list all as in your code */}
-                    <div style={{ flex: 1, overflowY: "auto" }}>
-                      {(v.comments || []).map((c, ci) => (
-                        <div key={ci} style={{
-                          display: "flex", padding: "12px 16px", borderBottom: "1px solid #efefef"
-                        }}>
-                          {/* No avatars as per your HTML. Add if needed */}
-                          <div style={{ flex: 1 }}>
-                            <span style={{
-                              fontWeight: 600, fontSize: 14, marginRight: 5, color: "#151b3a"
-                            }}>
-                              {c.name}
-                            </span>
-                            <span style={{
-                              fontSize: 14, color: "#242526"
-                            }}>
-                              {c.text}
-                            </span>
-                            {/* IG comment time/Reply/Like row */}
-                            <div style={{
-                              color: "#8e8e8e", fontSize: 12, marginTop: 5,
-                              display: "flex", alignItems: "center", gap: 18
-                            }}>
-                              <span>2h ago</span>
-                              <span style={{ cursor: 'pointer' }}>Reply</span>
-                              <span style={{ cursor: 'pointer' }}>Like</span>
+                    {/* All Comments */}
+                    <div className="comments-list" style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}>
+                      {allComments.length === 0 ? (
+                        <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>
+                          No comments yet.
+                        </div>
+                      ) : (
+                        allComments.map((c, i) => (
+                          <div className="comment" style={{
+                            display: 'flex',
+                            marginBottom: 15
+                          }} key={i}>
+                            <img
+                              src={c.avatar}
+                              className="comment-avatar"
+                              alt="avatar"
+                              style={{
+                                width: 30, height: 30, borderRadius: "50%", marginRight: 10
+                              }}
+                            />
+                            <div className="comment-content" style={{ flex: 1 }}>
+                              <div>
+                                <span className="comment-username" style={{
+                                  fontWeight: 600, fontSize: 14, marginRight: 5
+                                }}>{c.name}</span>
+                                <span className="comment-text" style={{ fontSize: 14 }}>{c.text}</span>
+                              </div>
+                              <div className="comment-time" style={{
+                                fontSize: 12, color: "#a8a8a8", marginTop: 2
+                              }}>{c.time}</div>
+                              <div className="comment-actions" style={{
+                                display: 'flex', marginTop: 5
+                              }}>
+                                <span style={{
+                                  fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer"
+                                }}>Reply</span>
+                                <span style={{
+                                  fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer"
+                                }}>Like</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
-                    {/* Add Comment bar (Instagram style) */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '16px',
-                      borderTop: '1px solid #efefef',
-                      background: '#fff'
+                    {/* Add Comment */}
+                    <div className="comment-input-container" style={{
+                      display: 'flex', alignItems: 'center', paddingTop: 10, borderTop: '1px solid #262626'
                     }}>
                       <input
                         type="text"
+                        className="comment-input"
                         placeholder="Add a comment..."
-                        value={commentInputs[filename] || ""}
                         style={{
                           flex: 1,
+                          backgroundColor: "#262626",
                           border: "none",
-                          outline: "none",
-                          fontSize: 14,
-                          padding: "9px 0",
-                          marginRight: 6
+                          borderRadius: 20,
+                          padding: "10px 15px",
+                          color: "white",
+                          fontSize: 14
                         }}
+                        value={commentInputs[filename] || ""}
                         onChange={e => setCommentInputs(prev => ({
                           ...prev, [filename]: e.target.value
                         }))}
-                        onKeyDown={e => {
-                          if (e.key === "Enter" && (commentInputs[filename] || "").trim() !== "") {
-                            handleAddComment(idx, filename);
-                          }
-                        }}
+                        onKeyDown={e =>
+                          e.key === "Enter" && (commentInputs[filename] || "").trim() !== "" && handleAddComment(idx, filename)
+                        }
                       />
                       <button
-                        className={`post-button${(commentInputs[filename] || "").trim() ? " active" : ""}`}
+                        className="post-button"
                         style={{
                           color: "#0095f6",
                           fontWeight: 600,
+                          marginLeft: 10,
                           fontSize: 14,
                           background: "none",
                           border: "none",
-                          cursor: (commentInputs[filename] || "").trim() ? "pointer" : "not-allowed",
-                          opacity: (commentInputs[filename] || "").trim() ? 1 : 0.3,
-                          transition: "opacity .14s"
+                          cursor: (commentInputs[filename] || "").trim() !== "" ? "pointer" : "default",
+                          opacity: (commentInputs[filename] || "").trim() !== "" ? 1 : 0.5
                         }}
-                        disabled={!(commentInputs[filename] || "").trim()}
+                        disabled={(commentInputs[filename] || "").trim() === ""}
                         onClick={() => handleAddComment(idx, filename)}
                       >Post</button>
                     </div>
                   </div>
                 </div>
               }
-
             </div>
           );
         })}
