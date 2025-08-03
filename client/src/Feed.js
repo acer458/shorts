@@ -59,7 +59,20 @@ function PulseHeart({ visible }) {
     </div>
   );
 }
-
+function MuteMicIcon({ muted }) {
+  return muted ? (
+    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff2" stroke="#fff"/>
+      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff"/>
+      <line x1="4.8" y1="4.8" x2="19.2" y2="19.2" stroke="#fff" strokeWidth="2.6"/>
+    </svg>
+  ) : (
+    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff1" stroke="#fff"/>
+      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff"/>
+    </svg>
+  );
+}
 // --------- CAPTION TRUNCATE
 function truncateString(str, maxLen = 90) {
   if (!str) return '';
@@ -69,46 +82,130 @@ function truncateString(str, maxLen = 90) {
   return str.substring(0, nextSpace) + '…';
 }
 
-// --------- RANDOMIZE
-function shuffleArray(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+// -------- SKELETON COMPONENT -----------
+function SkeletonShort() {
+  // Respects your grid/layout and button stack
+  return (
+    <div
+      style={{
+        width: "100vw", height: "100dvh",
+        scrollSnapAlign: "start",
+        position: "relative",
+        background: "#111",
+        display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
+      }}
+    >
+      {/* Video skeleton */}
+      <div style={{
+        width: "100vw",
+        height: "100dvh",
+        background: "linear-gradient(90deg,#16181f 0%,#212332 50%,#181924 100%)",
+        animation: "skelAnim 1.3s infinite linear",
+        position: "absolute",
+        top: 0, left: 0,
+        zIndex: 1
+      }} />
+      <style>
+        {`
+        @keyframes skelAnim { 
+          0% { filter:brightness(1); }
+          55% { filter: brightness(1.07); }
+          100% { filter:brightness(1);}
+        }
+        `}
+      </style>
+
+      {/* Skeleton Mute button */}
+      <div
+        style={{
+          position: "absolute", top: 20, right: 20, zIndex: 20,
+          background: "rgba(28,29,34,0.65)",
+          borderRadius: 16, width: 39, height: 39,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        <div style={{
+          width: 24, height: 24,
+          background: "linear-gradient(90deg,#222 30%,#333 60%,#222 100%)",
+          borderRadius: "50%"
+        }} />
+      </div>
+
+      {/* Side action skeletons */}
+      <div
+        style={{
+          position: 'absolute', right: '12px', bottom: '100px', zIndex: 10,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '25px'
+        }}
+      >
+        {Array.from({length:3}).map((_,i) => (
+          <div key={i} style={{
+            width: 46, height: 49, marginBottom: i===0?6:0,
+            borderRadius: 16,
+            background: "linear-gradient(90deg,#20212c 30%,#292a37 60%,#20212c 100%)"
+          }} />
+        ))}
+      </div>
+      {/* Bottom caption */}
+      <div style={{
+        position: "absolute",
+        left: 0, right: 0, bottom: 0,
+        background: "linear-gradient(0deg,#151721 88%,transparent 100%)",
+        color: "#fff", padding: "22px 18px 33px 18px", zIndex: 6,
+        display: "flex", flexDirection: "column", userSelect: "none"
+      }}>
+        <div style={{
+          width: 110, height: 17, marginBottom: 10, borderRadius: 7,
+          background: "linear-gradient(90deg,#21243a 30%,#393b56 60%,#21243a 100%)",
+          marginLeft: 2
+        }} />
+        <div style={{
+          height: 15, width: "70%", borderRadius: 5,
+          background: "linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"
+        }}/>
+        <div style={{marginTop:8, width:76, height:14, borderRadius:6, background:"linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"}}/>
+      </div>
+    </div>
+  );
 }
 
 export default function Feed() {
   const [shorts, setShorts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const videoRefs = useRef([]);
   const wrapperRefs = useRef([]);
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [muted, setMuted] = useState(true);
+  const [mutePulse, setMutePulse] = useState(false);
   const [likePending, setLikePending] = useState({});
   const [showComments, setShowComments] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
-  // Animations
   const [showPause, setShowPause] = useState(false);
   const [showPulseHeart, setShowPulseHeart] = useState(false);
-  // Caption expand/collapse
   const [expandedCaptions, setExpandedCaptions] = useState({});
+  // Modal drag-to-close states
+  const [modalDragY, setModalDragY] = useState(0);
+  const [isDraggingModal, setIsDraggingModal] = useState(false);
+  const dragStartY = useRef(0);
 
-  // ---- FETCH shorts and RANDOMIZE ----
   useEffect(() => {
-    axios.get(HOST + "/shorts").then(res => {
-      setShorts(shuffleArray(res.data)); // RANDOMIZE ORDER
-    });
+    setLoading(true);
+    axios.get(HOST + "/shorts")
+      .then(res => setShorts(res.data))
+      .finally(() => setLoading(false));
   }, []);
-
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
-      if (idx === currentIdx) { vid.muted = false; vid.play().catch(()=>{}); }
+      if (idx === currentIdx) {
+        vid.muted = muted;
+        vid.play().catch(()=>{});
+      }
       else { vid.pause(); vid.currentTime = 0; vid.muted = true; }
     });
     setShowPause(false); setShowPulseHeart(false);
-  }, [currentIdx]);
+  }, [currentIdx, muted]);
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       entries => {
@@ -127,7 +224,6 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length]);
 
-  // ---- Video/Like/Share logic unchanged ----
   function isLiked(filename) { return localStorage.getItem("like_" + filename) === "1"; }
   function setLiked(filename, yes) {
     if (yes) localStorage.setItem("like_" + filename, "1");
@@ -165,7 +261,6 @@ export default function Feed() {
     }
   }
 
-  // --- Modern tap/animation logic
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -205,7 +300,6 @@ export default function Feed() {
     };
   }
 
-  // --- Progress/Comment inputs unchanged
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -250,7 +344,6 @@ export default function Feed() {
     return v.avatar || v.profilePic ||
       `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author || "anonymous")}`;
   }
-  // For placeholder avatars/times
   function fakeAvatar(i) { const urls = [
     "https://randomuser.me/api/portraits/men/32.jpg",
     "https://randomuser.me/api/portraits/women/63.jpg",
@@ -261,7 +354,6 @@ export default function Feed() {
   function fakeTime(i) {
     return ["2h ago", "1h ago", "45m ago", "30m ago", "15m ago", "Just now"][i % 6] || "Just now";
   }
-  // Caption expand button
   const handleCaptionExpand = (filename) => {
     setExpandedCaptions(prev => ({
       ...prev,
@@ -269,6 +361,26 @@ export default function Feed() {
     }));
   };
 
+  // -------- MODAL - Drag down handlers
+  function handleModalTouchStart(e) {
+    if (!e.touches || e.touches.length !== 1) return;
+    dragStartY.current = e.touches[0].clientY;
+    setIsDraggingModal(true);
+  }
+  function handleModalTouchMove(e) {
+    if (!isDraggingModal || !e.touches || e.touches.length !== 1) return;
+    const dy = e.touches[0].clientY - dragStartY.current;
+    if (dy > 0) setModalDragY(dy);
+  }
+  function handleModalTouchEnd() {
+    setIsDraggingModal(false);
+    if (modalDragY > 65) { // Threshold for closing
+      setShowComments(null);
+    }
+    setModalDragY(0);
+  }
+
+  // ---- MAIN RENDER -----
   return (
     <div style={{ minHeight: "100dvh", width: "100vw", background: "#000", margin: 0, padding: 0, overflow: "hidden" }}>
       <div style={{
@@ -279,9 +391,17 @@ export default function Feed() {
         scrollSnapType: "y mandatory",
         background: "#000"
       }}>
-        {shorts.length === 0 && (
+        {/* ---- SKELETONS ---- */}
+        {loading && (
+          <>
+            {Array.from({length: 2}).map((_, idx) => <SkeletonShort key={idx} />)}
+          </>
+        )}
+        {/* ---- EMPTY STATE ---- */}
+        {!loading && shorts.length === 0 && (
           <div style={{ color: "#bbb", textAlign: "center", marginTop: 120, fontSize: 20 }}>No shorts uploaded yet.</div>
         )}
+        {/* ---- REAL CONTENT ---- */}
         {shorts.map((v, idx) => {
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
@@ -311,6 +431,55 @@ export default function Feed() {
                 {...handleVideoEvents(idx, filename)}
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
+
+              {/* Mute/Unmute Button */}
+              {isCurrent && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    setMuted(m => !m);
+                    setMutePulse(true);
+                    setTimeout(() => setMutePulse(false), 350);
+                  }}
+                  aria-label={muted ? "Unmute" : "Mute"}
+                  style={{
+                    position: "absolute",
+                    top: 20,
+                    right: 20,
+                    zIndex: 60,
+                    background: "rgba(28,29,34,0.65)",
+                    border: "none",
+                    borderRadius: 16,
+                    width: 39,
+                    height: 39,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    boxShadow: "0 2px 6px #0002",
+                    outline: "none",
+                    transition: "box-shadow .22s,ease",
+                    ...(mutePulse
+                      ? {
+                          animation: "mutepulseanim 0.38s cubic-bezier(.3,1.5,.65,1.05)",
+                          boxShadow: "0 0 0 9px #33b6ff27"
+                        }
+                      : {})
+                  }}
+                >
+                  <MuteMicIcon muted={muted} />
+                  <style>
+                    {`
+                      @keyframes mutepulseanim {
+                        0% { box-shadow: 0 0 0 0 #33b6ff88; transform: scale(1.09);}
+                        75%{ box-shadow:0 0 0 13px #33b6ff22; transform: scale(1.13);}
+                        100% { box-shadow: 0 0 0 0 #33b6ff00; transform: scale(1);}
+                      }
+                    `}
+                  </style>
+                </button>
+              )}
+
               {/* Pause Anim */}
               {isCurrent && showPause && (
                 <div style={{
@@ -464,7 +633,7 @@ export default function Feed() {
                 >View all {v.comments ? v.comments.length : 0} comments</div>
               </div>
 
-              {/* ------------- COMMENTS MODAL unchanged ------------- */}
+              {/* ------------- COMMENTS MODAL ------------- */}
               {showComments === filename &&
                 <div
                   style={{
@@ -488,8 +657,16 @@ export default function Feed() {
                       minHeight: '36vh', height: '70vh',
                       display: 'flex', flexDirection: 'column',
                       maxWidth: 500, width: "97vw", margin: "0 auto",
-                      border: '1px solid #262626'
+                      border: '1px solid #262626',
+                      touchAction: "none",
+                      transition: isDraggingModal ? "none" : "transform 0.22s cubic-bezier(.43,1.5,.48,1.16)",
+                      transform: modalDragY
+                        ? `translateY(${Math.min(modalDragY, 144)}px)`
+                        : "translateY(0)"
                     }}
+                    onTouchStart={handleModalTouchStart}
+                    onTouchMove={handleModalTouchMove}
+                    onTouchEnd={handleModalTouchEnd}
                     onClick={e => e.stopPropagation()}
                   >
                     {/* Header */}
