@@ -1,12 +1,17 @@
 [
   {
     "url": "/uploads/video1.mp4",
-    "caption": "This is a test video.",
-    "size": 1532800
+    "caption": "Testing video 1",
+    "size": 1024098
   },
   {
-    "url": "/uploads/video2.mp4",
+    "url": "/uploads/Video2.MP4",
+    "caption": "Testing video 2",
+    "size": 921430
+  },
+  {
+    "url": "/uploads/myFunShort.mov",
     "caption": "",
-    "size": 987654
+    "size": 889900
   }
 ]
