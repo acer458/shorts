@@ -1,0 +1,12 @@
+[
+  {
+    "url": "/uploads/video1.mp4",
+    "caption": "This is a test video.",
+    "size": 1532800
+  },
+  {
+    "url": "/uploads/video2.mp4",
+    "caption": "",
+    "size": 987654
+  }
+]
