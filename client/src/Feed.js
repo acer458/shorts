@@ -164,9 +164,9 @@ export default function Feed() {
   }
   function handleShare(filename) {
     const url = window.location.origin + "/?v=" + filename;
-    // Share bubble feedback
+    // Show share bubble (only for 1s)
     setShowShareBubble(prev => ({ ...prev, [filename]: true }));
-    setTimeout(() => setShowShareBubble(prev => ({ ...prev, [filename]: false })), 1060);
+    setTimeout(() => setShowShareBubble(prev => ({ ...prev, [filename]: false })), 1000);
 
     if (navigator.share) {
       navigator.share({ url, title: "Watch this short!" });
@@ -457,29 +457,30 @@ export default function Feed() {
                     </svg>
                   </button>
                   <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
-                  {/* Share "copied!" bubble */}
-                  <div
-                    className={showShareBubble[filename] ? "fade-bubble" : "fade-bubble out"}
-                    style={{
-                      position: "absolute", right: "110%", top: -8,
-                      background: "#fff",
-                      color: "#1e2b3c",
-                      borderRadius: 8,
-                      fontWeight: 700,
-                      fontSize: 15,
-                      padding: "6px 16px",
-                      boxShadow: "0 6px 20px #20223c28",
-                      opacity: showShareBubble[filename] ? 0.97 : 0,
-                      pointerEvents: "none",
-                      marginLeft: 18,
-                      zIndex: 190,
-                      transition: "opacity .22s, transform .33s"
-                  }}>
-                    Copied!
-                  </div>
+                  {/* Show "Copied!" only for 1 second after sharing */}
+                  {showShareBubble[filename] && (
+                    <div
+                      className="fade-bubble"
+                      style={{
+                        position: "absolute", right: "110%", top: -8,
+                        background: "#fff",
+                        color: "#1e2b3c",
+                        borderRadius: 8,
+                        fontWeight: 700,
+                        fontSize: 15,
+                        padding: "6px 16px",
+                        boxShadow: "0 6px 20px #20223c28",
+                        opacity: 0.97,
+                        pointerEvents: "none",
+                        marginLeft: 18,
+                        zIndex: 190,
+                        transition: "opacity .22s, transform .33s"
+                    }}>
+                      Copied!
+                    </div>
+                  )}
                 </div>
               </div>
-
               {/* ----- Caption/comments IG bottom bar ----- */}
               <div style={{
                 position: "absolute",
@@ -491,7 +492,6 @@ export default function Feed() {
                 <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
                   @{v.author || "anonymous"}
                 </div>
-                {/* Modern Caption with ...more */}
                 {caption && (
                   <div style={{
                     display: "flex", alignItems: "flex-end", minHeight: "26px", maxWidth: 500
@@ -550,8 +550,7 @@ export default function Feed() {
                   onClick={() => setShowComments(filename)}
                 >View all {v.comments ? v.comments.length : 0} comments</div>
               </div>
-
-              {/* ------------- COMMENTS MODAL WITH MODERN ANIMATION ------------- */}
+              {/* -------- COMMENTS MODAL (UNCHANGED) --------- */}
               {showComments === filename &&
                 <div
                   style={{
