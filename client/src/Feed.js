@@ -69,6 +69,16 @@ function truncateString(str, maxLen = 90) {
   return str.substring(0, nextSpace) + '…';
 }
 
+// --------- RANDOMIZE
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export default function Feed() {
   const [shorts, setShorts] = useState([]);
   const videoRefs = useRef([]);
@@ -84,7 +94,13 @@ export default function Feed() {
   // Caption expand/collapse
   const [expandedCaptions, setExpandedCaptions] = useState({});
 
-  useEffect(() => { axios.get(HOST + "/shorts").then(res => setShorts(res.data)); }, []);
+  // ---- FETCH shorts and RANDOMIZE ----
+  useEffect(() => {
+    axios.get(HOST + "/shorts").then(res => {
+      setShorts(shuffleArray(res.data)); // RANDOMIZE ORDER
+    });
+  }, []);
+
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
