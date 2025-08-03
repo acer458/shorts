@@ -90,13 +90,15 @@ export default function AdminDashboard() {
     }));
 
     axios
-      .post(`${HOST}/shorts/${filename}/update_caption`, { caption })
+      .post(
+        `${HOST}/shorts/${filename}/update_caption`,
+        { caption },
+        { headers: { "x-admin-key": ADMIN_KEY } }
+      )
       .then(() => {
         setShorts((current) =>
           current.map((video) =>
-            video.url.endsWith(filename)
-              ? { ...video, caption }
-              : video
+            video.url.endsWith(filename) ? { ...video, caption } : video
           )
         );
         setEditState((prev) => ({
@@ -360,6 +362,7 @@ export default function AdminDashboard() {
                   }}
                 />
                 <small style={{ color: "#aaa" }}>{filename}</small>
+                {/* ----- Caption Editing Section ----- */}
                 <div style={{ margin: "12px 0 3px 0" }}>
                   <label
                     style={{
@@ -453,3 +456,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+j,
