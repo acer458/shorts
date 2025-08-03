@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
+// ----- DEEP LINK PATCH: import at the top
+import { useParams, useNavigate } from "react-router-dom";
+
 // --------- CONFIG
 const HOST = "https://shorts-t2dk.onrender.com";
 
@@ -198,12 +201,40 @@ export default function Feed() {
   const [isDraggingModal, setIsDraggingModal] = useState(false);
   const dragStartY = useRef(0);
 
+  // ----- DEEP LINK PATCH: get URL param & navigation function
+  const { filename } = useParams();
+  const navigate = useNavigate();
+
+  // ----- PATCH: data load useEffect (deep link aware)
   useEffect(() => {
     setLoading(true);
     axios.get(HOST + "/shorts")
-      .then(res => setShorts(shuffleArray(res.data)))
+      .then(res => {
+        const arr = shuffleArray(res.data);
+        setShorts(arr);
+
+        if (filename) {
+          const idx = arr.findIndex(v => v.url.split("/").pop() === filename);
+          setCurrentIdx(idx !== -1 ? idx : 0);
+        } else {
+          setCurrentIdx(0);
+        }
+      })
       .finally(() => setLoading(false));
-  }, []);
+    // eslint-disable-next-line
+  }, [filename]);
+
+  // ----- PATCH: useEffect to sync browser URL on feed scroll
+  useEffect(() => {
+    if (shorts.length > 0) {
+      const fname = shorts[currentIdx]?.url.split("/").pop();
+      if (fname && fname !== filename) {
+        navigate(`/shorts/${fname}`, { replace: true });
+      }
+    }
+    // eslint-disable-next-line
+  }, [currentIdx, shorts]);
+
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
@@ -260,8 +291,9 @@ export default function Feed() {
       setLikePending(l => ({ ...l, [filename]: false }));
     }
   }
+  // PATCH: PATCHED share logic to use /shorts/:filename as link
   function handleShare(filename) {
-    const url = window.location.origin + "/?v=" + filename;
+    const url = window.location.origin + "/shorts/" + filename;
     if (navigator.share) {
       navigator.share({ url, title: "Watch this short!" });
     } else {
