@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
-const ADMIN_KEY = "Hindi@1234"; // Your admin password/key
+const ADMIN_KEY = "Hindi@1234";
 
 function bytesToSize(bytes) {
   if (bytes === 0) return "0 B";
@@ -18,7 +18,7 @@ export default function AdminDashboard() {
   const [status, setStatus] = useState("");
   const [editState, setEditState] = useState({}); // { filename: {caption, loading, saved, error} }
 
-  // Fetch all videos on mount and on every upload/caption change
+  // Fetch all videos on mount and after changes
   const refreshShorts = () => {
     axios
       .get(HOST + "/shorts")
@@ -28,7 +28,7 @@ export default function AdminDashboard() {
 
   useEffect(refreshShorts, []);
 
-  // UPLOAD logic
+  // UPLOAD
   const handleUpload = (e) => {
     e.preventDefault();
     if (!video) return;
@@ -40,7 +40,7 @@ export default function AdminDashboard() {
     axios
       .post(HOST + "/upload", formData, {
         headers: {
-          "x-admin-key": "Hindi@1234",
+          "x-admin-key": ADMIN_KEY,
         },
       })
       .then(() => {
@@ -62,18 +62,20 @@ export default function AdminDashboard() {
       .finally(() => setUploading(false));
   };
 
-  // Deleting video
+  // DELETE
   const handleDelete = (filename) => {
     if (!window.confirm("Delete this video permanently?")) return;
     axios
       .delete(`${HOST}/delete/${filename}`, {
         headers: { "x-admin-key": ADMIN_KEY },
       })
-      .then(() => setShorts((prev) => prev.filter((s) => !s.url.endsWith(filename))))
+      .then(() =>
+        setShorts((prev) => prev.filter((s) => s.filename !== filename))
+      )
       .catch(() => alert("Delete failed!"));
   };
 
-  // Caption handlers
+  // Caption EDIT
   const handleCaptionChange = (filename, value) => {
     setEditState((prev) => ({
       ...prev,
@@ -90,15 +92,11 @@ export default function AdminDashboard() {
     }));
 
     axios
-      .post(
-        `${HOST}/shorts/${filename}/update_caption`,
-        { caption },
-        { headers: { "x-admin-key": ADMIN_KEY } }
-      )
+      .post(`${HOST}/shorts/${filename}/update_caption`, { caption })
       .then(() => {
         setShorts((current) =>
           current.map((video) =>
-            video.url.endsWith(filename) ? { ...video, caption } : video
+            video.filename === filename ? { ...video, caption } : video
           )
         );
         setEditState((prev) => ({
@@ -129,7 +127,7 @@ export default function AdminDashboard() {
         fontFamily: "Inter, sans-serif",
       }}
     >
-      {/* -------- LEFT: Upload area / meta stats / file list -------- */}
+      {/* LEFT: Upload area / meta stats / file list */}
       <div
         style={{
           flex: "0 0 340px",
@@ -230,10 +228,10 @@ export default function AdminDashboard() {
               No videos uploaded yet.
             </div>
           ) : shorts.map((s, i) => {
-            const filename = s.url.split("/").pop();
+            const filename = s.filename;
             return (
               <div
-                key={i}
+                key={filename}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -283,7 +281,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* --------- RIGHT: Scrollable videos, caption editor --------- */}
+      {/* RIGHT: Scrollable videos, caption editor */}
       <div
         style={{
           flex: 1,
@@ -327,14 +325,14 @@ export default function AdminDashboard() {
             </div>
           )}
           {shorts.map((s, i) => {
-            const filename = s.url.split("/").pop();
+            const filename = s.filename;
             const state = editState[filename] || {};
             const origCaption = s.caption ?? "";
             const caption = state.caption !== undefined ? state.caption : origCaption;
 
             return (
               <div
-                key={i}
+                key={filename}
                 style={{
                   background: "#1a1529",
                   borderRadius: 12,
@@ -362,7 +360,6 @@ export default function AdminDashboard() {
                   }}
                 />
                 <small style={{ color: "#aaa" }}>{filename}</small>
-                {/* ----- Caption Editing Section ----- */}
                 <div style={{ margin: "12px 0 3px 0" }}>
                   <label
                     style={{
@@ -456,4 +453,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-j,
