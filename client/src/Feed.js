@@ -630,7 +630,11 @@ export default function Feed() {
                 )}
                 {v.comments && v.comments.length > 0 && (
                   <div style={{ fontSize: 14, color: "#bae6fd" }}>
-                    <b>{v.comments[0].name}:</b> {v.comments[0].text}
+                    {v.comments[0].name === "You" ? (
+                      <>{v.comments[0].text}</>
+                    ) : (
+                      <><b>{v.comments[0].name}:</b> {v.comments[0].text}</>
+                    )}
                   </div>
                 )}
                 <div
