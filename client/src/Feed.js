@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
 
 // --------- CONFIG
 const HOST = "https://shorts-t2dk.onrender.com";
@@ -21,8 +22,8 @@ function PauseIcon() {
   return (
     <svg width={82} height={82} viewBox="0 0 82 82">
       <circle cx="41" cy="41" r="40" fill="#000A" />
-      <rect x="26" y="20" width="10" height="42" rx="3" fill="#fff"/>
-      <rect x="46" y="20" width="10" height="42" rx="3" fill="#fff"/>
+      <rect x="26" y="20" width="10" height="42" rx="3" fill="#fff" />
+      <rect x="46" y="20" width="10" height="42" rx="3" fill="#fff" />
     </svg>
   );
 }
@@ -30,11 +31,16 @@ function PulseHeart({ visible }) {
   return (
     <div
       style={{
-        position: "absolute", left: "50%", top: "50%", zIndex: 106,
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        zIndex: 106,
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
         opacity: visible ? 1 : 0,
-        animation: visible ? "heartPulseAnim .75s cubic-bezier(.1,1.6,.6,1)" : "none"
+        animation: visible
+          ? "heartPulseAnim .75s cubic-bezier(.1,1.6,.6,1)"
+          : "none",
       }}
     >
       <svg viewBox="0 0 96 96" width={90} height={90} style={{ display: "block" }}>
@@ -62,18 +68,19 @@ function PulseHeart({ visible }) {
 function MuteMicIcon({ muted }) {
   return muted ? (
     <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff2" stroke="#fff"/>
-      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff"/>
-      <line x1="4.8" y1="4.8" x2="19.2" y2="19.2" stroke="#fff" strokeWidth="2.6"/>
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff2" stroke="#fff" />
+      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff" />
+      <line x1="4.8" y1="4.8" x2="19.2" y2="19.2" stroke="#fff" strokeWidth="2.6" />
     </svg>
   ) : (
     <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff1" stroke="#fff"/>
-      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff"/>
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff1" stroke="#fff" />
+      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff" />
     </svg>
   );
 }
-// --------- CAPTION TRUNCATE
+
+// --------- Util
 function truncateString(str, maxLen = 90) {
   if (!str) return '';
   if (str.length <= maxLen) return str;
@@ -81,94 +88,6 @@ function truncateString(str, maxLen = 90) {
   if (nextSpace === -1) nextSpace = str.length;
   return str.substring(0, nextSpace) + '…';
 }
-
-// -------- SKELETON COMPONENT -----------
-function SkeletonShort() {
-  return (
-    <div
-      style={{
-        width: "100vw", height: "100dvh",
-        scrollSnapAlign: "start",
-        position: "relative",
-        background: "#111",
-        display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
-      }}
-    >
-      {/* Video skeleton */}
-      <div style={{
-        width: "100vw",
-        height: "100dvh",
-        background: "linear-gradient(90deg,#16181f 0%,#212332 50%,#181924 100%)",
-        animation: "skelAnim 1.3s infinite linear",
-        position: "absolute",
-        top: 0, left: 0,
-        zIndex: 1
-      }} />
-      <style>
-        {`
-        @keyframes skelAnim { 
-          0% { filter:brightness(1); }
-          55% { filter: brightness(1.07); }
-          100% { filter:brightness(1);}
-        }
-        `}
-      </style>
-
-      {/* Skeleton Mute button */}
-      <div
-        style={{
-          position: "absolute", top: 20, right: 20, zIndex: 20,
-          background: "rgba(28,29,34,0.65)",
-          borderRadius: 16, width: 39, height: 39,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}
-      >
-        <div style={{
-          width: 24, height: 24,
-          background: "linear-gradient(90deg,#222 30%,#333 60%,#222 100%)",
-          borderRadius: "50%"
-        }} />
-      </div>
-
-      {/* Side action skeletons */}
-      <div
-        style={{
-          position: 'absolute', right: '12px', bottom: '100px', zIndex: 10,
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '25px'
-        }}
-      >
-        {Array.from({length:3}).map((_,i) => (
-          <div key={i} style={{
-            width: 46, height: 49, marginBottom: i===0?6:0,
-            borderRadius: 16,
-            background: "linear-gradient(90deg,#20212c 30%,#292a37 60%,#20212c 100%)"
-          }} />
-        ))}
-      </div>
-      {/* Bottom caption */}
-      <div style={{
-        position: "absolute",
-        left: 0, right: 0, bottom: 0,
-        background: "linear-gradient(0deg,#151721 88%,transparent 100%)",
-        color: "#fff", padding: "22px 18px 33px 18px", zIndex: 6,
-        display: "flex", flexDirection: "column", userSelect: "none"
-      }}>
-        <div style={{
-          width: 110, height: 17, marginBottom: 10, borderRadius: 7,
-          background: "linear-gradient(90deg,#21243a 30%,#393b56 60%,#21243a 100%)",
-          marginLeft: 2
-        }} />
-        <div style={{
-          height: 15, width: "70%", borderRadius: 5,
-          background: "linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"
-        }}/>
-        <div style={{marginTop:8, width:76, height:14, borderRadius:6, background:"linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"}}/>
-      </div>
-    </div>
-  );
-}
-
-// -------- Fisher-Yates SHUFFLE ---------
 function shuffleArray(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -178,7 +97,144 @@ function shuffleArray(arr) {
   return a;
 }
 
+// -------- SKELETON
+function SkeletonShort() {
+  return (
+    <div
+      style={{
+        width: "100vw",
+        height: "100dvh",
+        scrollSnapAlign: "start",
+        position: "relative",
+        background: "#111",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          width: "100vw",
+          height: "100dvh",
+          background: "linear-gradient(90deg,#16181f 0%,#212332 50%,#181924 100%)",
+          animation: "skelAnim 1.3s infinite linear",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          zIndex: 1,
+        }}
+      />
+      <style>
+        {`
+        @keyframes skelAnim { 
+          0% { filter:brightness(1); }
+          55% { filter: brightness(1.07); }
+          100% { filter:brightness(1);}
+        }
+        `}
+      </style>
+      <div
+        style={{
+          position: "absolute",
+          top: 20,
+          right: 20,
+          zIndex: 20,
+          background: "rgba(28,29,34,0.65)",
+          borderRadius: 16,
+          width: 39,
+          height: 39,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: 24,
+            height: 24,
+            background: "linear-gradient(90deg,#222 30%,#333 60%,#222 100%)",
+            borderRadius: "50%",
+          }}
+        />
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          right: "12px",
+          bottom: "100px",
+          zIndex: 10,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "25px",
+        }}
+      >
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            style={{
+              width: 46,
+              height: 49,
+              marginBottom: i === 0 ? 6 : 0,
+              borderRadius: 16,
+              background: "linear-gradient(90deg,#20212c 30%,#292a37 60%,#20212c 100%)",
+            }}
+          />
+        ))}
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "linear-gradient(0deg,#151721 88%,transparent 100%)",
+          color: "#fff",
+          padding: "22px 18px 33px 18px",
+          zIndex: 6,
+          display: "flex",
+          flexDirection: "column",
+          userSelect: "none",
+        }}
+      >
+        <div
+          style={{
+            width: 110,
+            height: 17,
+            marginBottom: 10,
+            borderRadius: 7,
+            background:
+              "linear-gradient(90deg,#21243a 30%,#393b56 60%,#21243a 100%)",
+            marginLeft: 2,
+          }}
+        />
+        <div
+          style={{
+            height: 15,
+            width: "70%",
+            borderRadius: 5,
+            background:
+              "linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)",
+          }}
+        />
+        <div
+          style={{
+            marginTop: 8,
+            width: 76,
+            height: 14,
+            borderRadius: 6,
+            background:
+              "linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function Feed() {
+  // --- state ---
   const [shorts, setShorts] = useState([]);
   const [loading, setLoading] = useState(true);
   const videoRefs = useRef([]);
@@ -193,32 +249,67 @@ export default function Feed() {
   const [showPause, setShowPause] = useState(false);
   const [showPulseHeart, setShowPulseHeart] = useState(false);
   const [expandedCaptions, setExpandedCaptions] = useState({});
-  // Modal drag-to-close states
   const [modalDragY, setModalDragY] = useState(0);
   const [isDraggingModal, setIsDraggingModal] = useState(false);
   const dragStartY = useRef(0);
 
+  // router
+  const { filename } = useParams();
+  const navigate = useNavigate();
+  const [notFound, setNotFound] = useState(false);
+
+  // --- Load and deep link
   useEffect(() => {
     setLoading(true);
-    axios.get(HOST + "/shorts")
-      .then(res => setShorts(shuffleArray(res.data)))
-      .finally(() => setLoading(false));
-  }, []);
+    setNotFound(false);
+    axios.get(HOST + "/shorts").then(res => {
+      const arr = shuffleArray(res.data);
+      setShorts(arr);
+      if (filename) {
+        const idx = arr.findIndex(v => v.url.split("/").pop() === filename);
+        if (idx !== -1) {
+          setCurrentIdx(idx);
+          setNotFound(false);
+        } else {
+          setCurrentIdx(-1);
+          setNotFound(true);
+        }
+      } else {
+        setCurrentIdx(0);
+        setNotFound(false);
+      }
+    }).finally(() => setLoading(false));
+  // eslint-disable-next-line
+  }, [filename]);
+
+  // --- update bar on scroll/deep link
+  useEffect(() => {
+    if (!loading && shorts.length > 0 && !notFound && currentIdx >= 0 && currentIdx < shorts.length) {
+      const fname = shorts[currentIdx]?.url.split("/").pop();
+      if (fname && fname !== filename) {
+        navigate(`/shorts/${fname}`, { replace: true });
+      }
+    }
+    // eslint-disable-next-line
+  }, [currentIdx, shorts, notFound]);
+
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
       if (idx === currentIdx) {
         vid.muted = muted;
-        vid.play().catch(()=>{});
-      }
-      else { vid.pause(); vid.currentTime = 0; vid.muted = true; }
+        vid.play().catch(() => { });
+      } else { vid.pause(); vid.currentTime = 0; vid.muted = true; }
     });
     setShowPause(false); setShowPulseHeart(false);
   }, [currentIdx, muted]);
+
   useEffect(() => {
+    if (notFound) return;
     const observer = new window.IntersectionObserver(
       entries => {
-        let maxRatio = 0, visibleIdx = 0;
+        let maxRatio = 0,
+          visibleIdx = 0;
         entries.forEach(entry => {
           if (entry.intersectionRatio > maxRatio) {
             maxRatio = entry.intersectionRatio;
@@ -229,9 +320,9 @@ export default function Feed() {
       },
       { threshold: [0, 0.5, 0.7, 1] }
     );
-    wrapperRefs.current.forEach((el) => el && observer.observe(el));
+    wrapperRefs.current.forEach(el => el && observer.observe(el));
     return () => observer.disconnect();
-  }, [shorts.length]);
+  }, [shorts.length, notFound]);
 
   function isLiked(filename) { return localStorage.getItem("like_" + filename) === "1"; }
   function setLiked(filename, yes) {
@@ -261,7 +352,7 @@ export default function Feed() {
     }
   }
   function handleShare(filename) {
-    const url = window.location.origin + "/?v=" + filename;
+    const url = window.location.origin + "/shorts/" + filename;
     if (navigator.share) {
       navigator.share({ url, title: "Watch this short!" });
     } else {
@@ -269,7 +360,6 @@ export default function Feed() {
       alert("Link copied to clipboard!");
     }
   }
-
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -308,7 +398,6 @@ export default function Feed() {
       }
     };
   }
-
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -369,8 +458,6 @@ export default function Feed() {
       [filename]: !prev[filename]
     }));
   };
-
-  // -------- MODAL - Drag down handlers
   function handleModalTouchStart(e) {
     if (!e.touches || e.touches.length !== 1) return;
     dragStartY.current = e.touches[0].clientY;
@@ -383,13 +470,10 @@ export default function Feed() {
   }
   function handleModalTouchEnd() {
     setIsDraggingModal(false);
-    if (modalDragY > 65) { // Threshold for closing
-      setShowComments(null);
-    }
+    if (modalDragY > 65) setShowComments(null);
     setModalDragY(0);
   }
 
-  // ---- MAIN RENDER -----
   return (
     <div style={{ minHeight: "100dvh", width: "100vw", background: "#000", margin: 0, padding: 0, overflow: "hidden" }}>
       <div style={{
@@ -400,18 +484,22 @@ export default function Feed() {
         scrollSnapType: "y mandatory",
         background: "#000"
       }}>
-        {/* ---- SKELETONS ---- */}
-        {loading && (
-          <>
-            {Array.from({length: 2}).map((_, idx) => <SkeletonShort key={idx} />)}
-          </>
+        {loading && Array.from({ length: 2 }).map((_, idx) => <SkeletonShort key={idx} />)}
+        {!loading && notFound && (
+          <div style={{ width: "100vw", height: "100dvh", background: "#111", display: "flex", flexDirection:"column", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ color: "#f33", fontSize: 30, fontWeight: 700, marginBottom: 10 }}>404</div>
+            <div style={{ color: "#eee", fontSize: 22, marginBottom:16 }}>Video not found</div>
+            <button style={{
+              fontSize: 18, borderRadius: 7, border: "none", background: "#3bdcff", color: "#111", fontWeight: 700,
+              padding: "12px 38px", cursor: "pointer"
+            }}
+              onClick={() => navigate("/")}>
+              Go to Feed
+            </button>
+          </div>
         )}
-        {/* ---- EMPTY STATE ---- */}
-        {!loading && shorts.length === 0 && (
-          <div style={{ color: "#bbb", textAlign: "center", marginTop: 120, fontSize: 20 }}>No shorts uploaded yet.</div>
-        )}
-        {/* ---- REAL CONTENT ---- */}
-        {shorts.map((v, idx) => {
+
+        {!notFound && shorts.map((v, idx) => {
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
           const prog = videoProgress[filename] || 0;
@@ -432,7 +520,6 @@ export default function Feed() {
                 position: "relative", background: "#000",
                 display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
               }}>
-              {/* ---- VIDEO ---- */}
               <video ref={el => (videoRefs.current[idx] = el)}
                 src={HOST + v.url}
                 loop playsInline
@@ -441,15 +528,9 @@ export default function Feed() {
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
               />
 
-              {/* Mute/Unmute Button */}
               {isCurrent && (
                 <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    setMuted(m => !m);
-                    setMutePulse(true);
-                    setTimeout(() => setMutePulse(false), 350);
-                  }}
+                  onClick={e => { e.stopPropagation(); setMuted(m => !m); setMutePulse(true); setTimeout(() => setMutePulse(false), 350); }}
                   aria-label={muted ? "Unmute" : "Mute"}
                   style={{
                     position: "absolute",
@@ -468,12 +549,10 @@ export default function Feed() {
                     boxShadow: "0 2px 6px #0002",
                     outline: "none",
                     transition: "box-shadow .22s,ease",
-                    ...(mutePulse
-                      ? {
-                          animation: "mutepulseanim 0.38s cubic-bezier(.3,1.5,.65,1.05)",
-                          boxShadow: "0 0 0 9px #33b6ff27"
-                        }
-                      : {})
+                    ...(mutePulse ? {
+                      animation: "mutepulseanim 0.38s cubic-bezier(.3,1.5,.65,1.05)",
+                      boxShadow: "0 0 0 9px #33b6ff27"
+                    } : {})
                   }}
                 >
                   <MuteMicIcon muted={muted} />
@@ -488,8 +567,6 @@ export default function Feed() {
                   </style>
                 </button>
               )}
-
-              {/* Pause Anim */}
               {isCurrent && showPause && (
                 <div style={{
                   position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -501,10 +578,8 @@ export default function Feed() {
                   <style>{`@keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }`}</style>
                 </div>
               )}
-              {/* Heart Pulse */}
               {isCurrent && <PulseHeart visible={showPulseHeart} />}
 
-              {/* Progress Bar */}
               <div style={{
                 position: "absolute", left: 0, right: 0, bottom: 0,
                 height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32,
@@ -521,7 +596,6 @@ export default function Feed() {
                 }} />
               </div>
 
-              {/* ---- ACTION STACK (DP, Like, Comment, Share) ---- */}
               <div style={{
                 position: 'absolute', right: '12px', bottom: '100px',
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -538,7 +612,6 @@ export default function Feed() {
                       borderRadius: "50%", objectFit: "cover"
                     }} />
                 </div>
-                {/* Like */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button onClick={e => { e.stopPropagation(); if (!liked) handleLike(idx, filename, true); else handleLike(idx, filename, false); }}
                     style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
@@ -546,31 +619,28 @@ export default function Feed() {
                   </button>
                   <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px' }}>{v.likes || 0}</span>
                 </div>
-                {/* Comment */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button onClick={e => { e.stopPropagation(); setShowComments(filename); }}
                     style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                     <svg aria-label="Comment" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
-                      <path d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z" fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
+                      <path d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z" fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" />
                     </svg>
                   </button>
                   <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>{v.comments?.length || 0}</span>
                 </div>
-                {/* Share */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button
                     onClick={() => handleShare(filename)}
                     style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                     <svg aria-label="Share Post" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
-                      <line fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="3" y2="10.083"/>
-                      <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
+                      <line fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="3" y2="10.083" />
+                      <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="#fff" strokeLinejoin="round" strokeWidth="2" />
                     </svg>
                   </button>
                   <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
                 </div>
               </div>
 
-              {/* ----- Caption/comments IG bottom bar ----- */}
               <div style={{
                 position: "absolute",
                 left: 0, right: 0, bottom: 0,
@@ -578,7 +648,6 @@ export default function Feed() {
                 color: "#fff", padding: "20px 18px 28px 18px", zIndex: 6,
                 display: "flex", flexDirection: "column", userSelect: "none"
               }}>
-                {/* Username */}
                 <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
                   @{v.author || "anonymous"}
                 </div>
@@ -675,7 +744,6 @@ export default function Feed() {
                     onTouchEnd={handleModalTouchEnd}
                     onClick={e => e.stopPropagation()}
                   >
-                    {/* Header */}
                     <div
                       style={{
                         display: 'flex',
@@ -708,9 +776,9 @@ export default function Feed() {
                             <div className="comment-content" style={{ flex: 1 }}>
                               <div>
                                 <span className="comment-username" style={{
-                                  fontWeight: 600, fontSize: 14, marginRight: 5, color:"#fff"
+                                  fontWeight: 600, fontSize: 14, marginRight: 5, color: "#fff"
                                 }}>{c.name}</span>
-                                <span className="comment-text" style={{ fontSize: 14, color:"#fff" }}>{c.text}</span>
+                                <span className="comment-text" style={{ fontSize: 14, color: "#fff" }}>{c.text}</span>
                               </div>
                               <div className="comment-time" style={{
                                 fontSize: 12, color: "#a8a8a8", marginTop: 2
@@ -726,7 +794,6 @@ export default function Feed() {
                         ))
                       )}
                     </div>
-                    {/* Add Comment */}
                     <div style={{
                       display: 'flex', alignItems: 'center',
                       paddingTop: 10, borderTop: '1px solid #262626'
