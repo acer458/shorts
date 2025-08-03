@@ -40,7 +40,7 @@ export default function AdminDashboard() {
     axios
       .post(HOST + "/upload", formData, {
         headers: {
-          "x-admin-key": ADMIN_KEY,
+          "x-admin-key": "Hindi@1234",
         },
       })
       .then(() => {
