@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
-// --------- CONFIG
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// --------- UI SVGs
+// --- SVGs ---
 function HeartSVG({ filled }) {
   return (
-    <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
+    <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48" style={{display:"block"}}>
       <path
         fill={filled ? "#ed4956" : "none"}
         stroke={filled ? "#ed4956" : "#fff"}
@@ -34,7 +33,8 @@ function PulseHeart({ visible }) {
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
         opacity: visible ? 1 : 0,
-        animation: visible ? "heartPulseAnim .75s cubic-bezier(.1,1.6,.6,1)" : "none"
+        animation: visible ? "heartPulseAnim .79s cubic-bezier(.1,1.6,.6,1)" : "none",
+        transition: "opacity .15s"
       }}
     >
       <svg viewBox="0 0 96 96" width={90} height={90} style={{ display: "block" }}>
@@ -60,16 +60,7 @@ function PulseHeart({ visible }) {
   );
 }
 
-// --------- CAPTION TRUNCATE
-function truncateString(str, maxLen = 90) {
-  if (!str) return '';
-  if (str.length <= maxLen) return str;
-  let nextSpace = str.indexOf(" ", maxLen);
-  if (nextSpace === -1) nextSpace = str.length;
-  return str.substring(0, nextSpace) + '…';
-}
-
-// --------- RANDOMIZE
+// --------- SHUFFLE UTILITY
 function shuffleArray(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -77,6 +68,15 @@ function shuffleArray(arr) {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+// --------- CAPTION TRUNCATE
+function truncateString(str, maxLen = 90) {
+  if (!str) return '';
+  if (str.length <= maxLen) return str;
+  let nextSpace = str.indexOf(" ", maxLen);
+  if (nextSpace === -1) nextSpace = str.length;
+  return str.substring(0, nextSpace) + '…';
 }
 
 export default function Feed() {
@@ -88,19 +88,21 @@ export default function Feed() {
   const [showComments, setShowComments] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
-  // Animations
+  // Animations/UX state:
   const [showPause, setShowPause] = useState(false);
   const [showPulseHeart, setShowPulseHeart] = useState(false);
-  // Caption expand/collapse
+  const [pulseLikeBtn, setPulseLikeBtn] = useState({}); // {filename: bool}
+  const [showShareBubble, setShowShareBubble] = useState({}); // {filename: bool}
   const [expandedCaptions, setExpandedCaptions] = useState({});
 
-  // ---- FETCH shorts and RANDOMIZE ----
+  // --- FETCH videos (randomized)
   useEffect(() => {
     axios.get(HOST + "/shorts").then(res => {
-      setShorts(shuffleArray(res.data)); // RANDOMIZE ORDER
+      setShorts(shuffleArray(res.data));
     });
   }, []);
 
+  // --- Pausing/Unpausing
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
@@ -109,6 +111,7 @@ export default function Feed() {
     });
     setShowPause(false); setShowPulseHeart(false);
   }, [currentIdx]);
+
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       entries => {
@@ -127,7 +130,7 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length]);
 
-  // ---- Video/Like/Share logic unchanged ----
+  // ---- Like, Share, Animation/UX logic ----
   function isLiked(filename) { return localStorage.getItem("like_" + filename) === "1"; }
   function setLiked(filename, yes) {
     if (yes) localStorage.setItem("like_" + filename, "1");
@@ -137,6 +140,10 @@ export default function Feed() {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
     setLikePending(l => ({ ...l, [filename]: true }));
+    // Pulse-heart the BUTTON
+    setPulseLikeBtn((prev) => ({ ...prev, [filename]: true }));
+    setTimeout(() => setPulseLikeBtn(prev => ({ ...prev, [filename]: false })), 350);
+
     if (!liked) {
       axios.post(`${HOST}/shorts/${filename}/like`).then(() => {
         setShorts(prev => prev.map((v, i) => i === idx ? { ...v, likes: (v.likes || 0) + 1 } : v));
@@ -157,15 +164,18 @@ export default function Feed() {
   }
   function handleShare(filename) {
     const url = window.location.origin + "/?v=" + filename;
+    // Share bubble feedback
+    setShowShareBubble(prev => ({ ...prev, [filename]: true }));
+    setTimeout(() => setShowShareBubble(prev => ({ ...prev, [filename]: false })), 1060);
+
     if (navigator.share) {
       navigator.share({ url, title: "Watch this short!" });
     } else {
       navigator.clipboard.writeText(url);
-      alert("Link copied to clipboard!");
     }
   }
 
-  // --- Modern tap/animation logic
+  // --- Video tap/double tap logic (with animation)
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -269,6 +279,7 @@ export default function Feed() {
     }));
   };
 
+  // --- Modern, smooth, animated UI/UX ---
   return (
     <div style={{ minHeight: "100dvh", width: "100vw", background: "#000", margin: 0, padding: 0, overflow: "hidden" }}>
       <div style={{
@@ -279,6 +290,42 @@ export default function Feed() {
         scrollSnapType: "y mandatory",
         background: "#000"
       }}>
+        <style>{`
+          .smooth-modal {
+            will-change: transform, opacity;
+            transition: opacity .35s cubic-bezier(.62,1.2,.5,1), transform .43s cubic-bezier(.63,1.35,.46,1);
+            opacity: 1; transform: translateY(0);
+            z-index: 501;
+          }
+          .smooth-modal.closed {
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(42px);
+          }
+          .like-pulse {
+            animation: likePulseBtn .36s cubic-bezier(.53,1.7,.53,1.18);
+          }
+          @keyframes likePulseBtn { 
+            0% {transform:scale(1);}
+            20%{transform:scale(1.25);}
+            52%{transform:scale(0.93);}
+            90%{transform:scale(1.06);}
+            100%{transform:scale(1);}
+          }
+          .fade-bubble {
+            animation: fadeBubbleIn .48s cubic-bezier(.4,1.5,.51,1) both;
+          }
+          .fade-bubble.out {
+            opacity: 0;
+            transform: scale(0.94) translateY(20px);
+            transition: opacity .33s, transform .33s;
+          }
+          @keyframes fadeBubbleIn {
+            0% {opacity:0;transform:scale(0.92) translateY(12px);}
+            65%{opacity:1;transform:scale(1.13) translateY(-8px);}
+            100%{opacity:1;transform:scale(1) translateY(0);}
+          }
+        `}</style>
         {shorts.length === 0 && (
           <div style={{ color: "#bbb", textAlign: "center", marginTop: 120, fontSize: 20 }}>No shorts uploaded yet.</div>
         )}
@@ -349,6 +396,7 @@ export default function Feed() {
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                 gap: '24px', zIndex: 10
               }}>
+                {/* Profile Picture */}
                 <div style={{
                   marginBottom: 6, width: 48, height: 48,
                   borderRadius: "50%", overflow: "hidden"
@@ -362,33 +410,73 @@ export default function Feed() {
                 </div>
                 {/* Like */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <button onClick={e => { e.stopPropagation(); if (!liked) handleLike(idx, filename, true); else handleLike(idx, filename, false); }}
-                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                  <button
+                    className={pulseLikeBtn[filename] ? "like-pulse" : ""}
+                    onClick={e => { e.stopPropagation(); if (!liked) handleLike(idx, filename, true); else handleLike(idx, filename, false); }}
+                    style={{
+                      background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                      outline: "none",
+                      transition: "transform 0.12s cubic-bezier(.7,2,.3,.9)",
+                      ...(pulseLikeBtn[filename] ? {
+                        transform: "scale(1.13)"
+                      } : {})
+                    }}>
                     <HeartSVG filled={liked} />
                   </button>
                   <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px' }}>{v.likes || 0}</span>
                 </div>
                 {/* Comment */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <button onClick={e => { e.stopPropagation(); setShowComments(filename); }}
-                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                  <button
+                    onClick={e => { e.stopPropagation(); setShowComments(filename); }}
+                    style={{
+                      background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                      outline: "none",
+                      transition: "transform .08s cubic-bezier(.65,1.4,.6,1)",
+                    }}
+                  >
                     <svg aria-label="Comment" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
-                      <path d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z" fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
+                      <path d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z"
+                        fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
                     </svg>
                   </button>
                   <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>{v.comments?.length || 0}</span>
                 </div>
                 {/* Share */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
                   <button
                     onClick={() => handleShare(filename)}
-                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                    style={{
+                      background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                      outline: "none",
+                    }}
+                  >
                     <svg aria-label="Share Post" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
                       <line fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="3" y2="10.083"/>
                       <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
                     </svg>
                   </button>
                   <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
+                  {/* Share "copied!" bubble */}
+                  <div
+                    className={showShareBubble[filename] ? "fade-bubble" : "fade-bubble out"}
+                    style={{
+                      position: "absolute", right: "110%", top: -8,
+                      background: "#fff",
+                      color: "#1e2b3c",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                      fontSize: 15,
+                      padding: "6px 16px",
+                      boxShadow: "0 6px 20px #20223c28",
+                      opacity: showShareBubble[filename] ? 0.97 : 0,
+                      pointerEvents: "none",
+                      marginLeft: 18,
+                      zIndex: 190,
+                      transition: "opacity .22s, transform .33s"
+                  }}>
+                    Copied!
+                  </div>
                 </div>
               </div>
 
@@ -400,7 +488,6 @@ export default function Feed() {
                 color: "#fff", padding: "20px 18px 28px 18px", zIndex: 6,
                 display: "flex", flexDirection: "column", userSelect: "none"
               }}>
-                {/* Username */}
                 <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
                   @{v.author || "anonymous"}
                 </div>
@@ -464,31 +551,35 @@ export default function Feed() {
                 >View all {v.comments ? v.comments.length : 0} comments</div>
               </div>
 
-              {/* ------------- COMMENTS MODAL unchanged ------------- */}
+              {/* ------------- COMMENTS MODAL WITH MODERN ANIMATION ------------- */}
               {showComments === filename &&
                 <div
                   style={{
                     position: "fixed",
                     inset: 0,
                     zIndex: 500,
-                    background: "rgba(0,0,0,0.91)",
+                    background: "rgba(0,0,0,0.25)",
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "flex-end"
+                    justifyContent: "flex-end",
+                    transition: "background .25s"
                   }}
                   onClick={() => setShowComments(null)}
                 >
                   <div
-                    className="comments-modal"
+                    className={`smooth-modal`}
                     style={{
                       backgroundColor: "#000",
-                      borderTopLeftRadius: 15,
-                      borderTopRightRadius: 15,
+                      borderTopLeftRadius: 18,
+                      borderTopRightRadius: 18,
                       padding: 15,
                       minHeight: '36vh', height: '70vh',
                       display: 'flex', flexDirection: 'column',
                       maxWidth: 500, width: "97vw", margin: "0 auto",
-                      border: '1px solid #262626'
+                      border: '1px solid #262626',
+                      boxShadow: "0 -3px 30px #0a102370",
+                      opacity: 1, transform: "translateY(0)",
+                      transition: "opacity .32s cubic-bezier(.62,1.2,.4,1), transform .43s cubic-bezier(.63,1.35,.46,1)"
                     }}
                     onClick={e => e.stopPropagation()}
                   >
@@ -504,8 +595,13 @@ export default function Feed() {
                       <h2 style={{ fontSize: 16, fontWeight: 600, color: "#fff" }}>Comments</h2>
                       <span
                         className="fas fa-times"
-                        style={{ fontSize: 22, color: "#fff", cursor: "pointer" }}
+                        style={{
+                          fontSize: 22, color: "#fff", cursor: "pointer",
+                          transition: "color .15s"
+                        }}
                         onClick={() => setShowComments(null)}
+                        tabIndex={0}
+                        onMouseDown={e=>e.preventDefault()}
                       >×</span>
                     </div>
                     <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}>
@@ -513,13 +609,13 @@ export default function Feed() {
                         <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
                       ) : (
                         allComments.map((c, i) => (
-                          <div className="comment" style={{ display: 'flex', marginBottom: 15 }} key={i}>
+                          <div className="comment" style={{ display: 'flex', marginBottom: 15, opacity:1, transition:"opacity .17s" }} key={i}>
                             <img
                               src={c.avatar}
                               className="comment-avatar"
                               alt="avatar"
                               style={{
-                                width: 30, height: 30, borderRadius: "50%", marginRight: 10
+                                width: 30, height: 30, borderRadius: "50%", marginRight: 10, opacity:1
                               }}
                             />
                             <div className="comment-content" style={{ flex: 1 }}>
@@ -535,8 +631,8 @@ export default function Feed() {
                               <div className="comment-actions" style={{
                                 display: 'flex', marginTop: 5
                               }}>
-                                <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer" }}>Reply</span>
-                                <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer" }}>Like</span>
+                                <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", transition:"color .15s" }}>Reply</span>
+                                <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", transition:"color .15s" }}>Like</span>
                               </div>
                             </div>
                           </div>
@@ -577,7 +673,8 @@ export default function Feed() {
                           background: "none",
                           border: "none",
                           cursor: (commentInputs[filename] || "").trim() !== "" ? "pointer" : "default",
-                          opacity: (commentInputs[filename] || "").trim() !== "" ? 1 : 0.5
+                          opacity: (commentInputs[filename] || "").trim() !== "" ? 1 : 0.5,
+                          transition: "opacity .13s"
                         }}
                         disabled={(commentInputs[filename] || "").trim() === ""}
                         onClick={() => handleAddComment(idx, filename)}
