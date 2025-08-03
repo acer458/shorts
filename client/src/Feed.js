@@ -84,7 +84,6 @@ function truncateString(str, maxLen = 90) {
 
 // -------- SKELETON COMPONENT -----------
 function SkeletonShort() {
-  // Respects your grid/layout and button stack
   return (
     <div
       style={{
@@ -169,6 +168,16 @@ function SkeletonShort() {
   );
 }
 
+// -------- Fisher-Yates SHUFFLE ---------
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export default function Feed() {
   const [shorts, setShorts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -192,7 +201,7 @@ export default function Feed() {
   useEffect(() => {
     setLoading(true);
     axios.get(HOST + "/shorts")
-      .then(res => setShorts(res.data))
+      .then(res => setShorts(shuffleArray(res.data)))
       .finally(() => setLoading(false));
   }, []);
   useEffect(() => {
@@ -573,7 +582,6 @@ export default function Feed() {
                 <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
                   @{v.author || "anonymous"}
                 </div>
-                {/* Modern Caption with ...more */}
                 {caption && (
                   <div style={{
                     display: "flex", alignItems: "flex-end", minHeight: "26px", maxWidth: 500
@@ -632,8 +640,6 @@ export default function Feed() {
                   onClick={() => setShowComments(filename)}
                 >View all {v.comments ? v.comments.length : 0} comments</div>
               </div>
-
-              {/* ------------- COMMENTS MODAL ------------- */}
               {showComments === filename &&
                 <div
                   style={{
