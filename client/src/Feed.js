@@ -1,19 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
+// --------- CONFIG
 const HOST = "https://shorts-t2dk.onrender.com";
-const MAX_AUTOPLAY = 2;
-const APP_FONT = `'Inter', system-ui, sans-serif`;
 
-// Inject Google Fonts (Inter) once
-if (!document.getElementById('feedjs-inter-font')) {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.id = 'feedjs-inter-font';
-  link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap';
-  document.head.appendChild(link);
-}
-
+// --------- UI SVGs
 function HeartSVG({ filled }) {
   return (
     <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
@@ -68,84 +59,21 @@ function PulseHeart({ visible }) {
     </div>
   );
 }
-function ReplayFAB({ onClick }) {
-  return (
-    <button
-      aria-label="Replay"
-      onClick={onClick}
-      style={{
-        position:"absolute",
-        left: "50%",
-        top: "50%",
-        transform: "translate(-50%,-50%)",
-        background: "#191919e0",
-        border: "none",
-        borderRadius: "50%",
-        width: 56,
-        height: 56,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        boxShadow: "0 4px 24px #0008",
-        zIndex: 120,
-        cursor: "pointer",
-        transition: "background .2s, transform .2s"
-      }}
-    >
-      {/* “Replay” icon: a circular arrow */}
-      <svg width="34" height="34" viewBox="0 0 48 48">
-        <circle cx="24" cy="24" r="20" fill="#fff2" />
-        <path
-          d="M22 12a12 12 0 1 1-8.5 20.5"
-          fill="none"
-          stroke="#fff"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <polygon points="13,27 21,28 16,33" fill="#fff"/>
-      </svg>
-    </button>
+function MuteMicIcon({ muted }) {
+  return muted ? (
+    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff2" stroke="#fff"/>
+      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff"/>
+      <line x1="4.8" y1="4.8" x2="19.2" y2="19.2" stroke="#fff" strokeWidth="2.6"/>
+    </svg>
+  ) : (
+    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff1" stroke="#fff"/>
+      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff"/>
+    </svg>
   );
 }
-function MuteButton({ muted, onToggle }) {
-  return (
-    <button
-      aria-label={muted ? "Unmute" : "Mute"}
-      onClick={onToggle}
-      style={{
-        position:"absolute",
-        left:18,
-        bottom:100,
-        zIndex:120,
-        background: muted ? "#232323e0" : "linear-gradient(90deg,#1da1f2,#0796fa)",
-        border:"none",
-        borderRadius:18,
-        width:44,
-        height:44,
-        display:"flex",
-        justifyContent:"center",
-        alignItems:"center",
-        transition:"background .18s",
-        boxShadow:"0 2px 8px #0004",
-        cursor:"pointer"
-      }}
-    >
-      {muted ? (
-        // Muted Icon
-        <svg width="24" height="24" fill="none" viewBox="0 0 28 28">
-          <path d="M4 10h5l7-5v18l-7-5H4z" fill="#fff5" />
-          <path d="M21 10l-8 8M21 18l-8-8" stroke="#fa5555" strokeWidth="2"/>
-        </svg>
-      ) : (
-        // Unmuted Icon
-        <svg width="24" height="24" fill="none" viewBox="0 0 28 28">
-          <path d="M4 10h5l7-5v18l-7-5H4z" fill="#fff9" />
-          <path d="M20 10.5V17.5C21.5 16 22.5 14 22.5 12C22.5 10 21.5 8 20 6.5" stroke="#33eaff" strokeWidth="2"/>
-        </svg>
-      )}
-    </button>
-  );
-}
+// --------- CAPTION TRUNCATE
 function truncateString(str, maxLen = 90) {
   if (!str) return '';
   if (str.length <= maxLen) return str;
@@ -154,17 +82,110 @@ function truncateString(str, maxLen = 90) {
   return str.substring(0, nextSpace) + '…';
 }
 
-const fontStyle = {
-  fontFamily: APP_FONT,
-  letterSpacing: '-0.01em',
-  WebkitFontSmoothing: "antialiased"
-};
+// -------- SKELETON COMPONENT -----------
+function SkeletonShort() {
+  return (
+    <div
+      style={{
+        width: "100vw", height: "100dvh",
+        scrollSnapAlign: "start",
+        position: "relative",
+        background: "#111",
+        display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
+      }}
+    >
+      {/* Video skeleton */}
+      <div style={{
+        width: "100vw",
+        height: "100dvh",
+        background: "linear-gradient(90deg,#16181f 0%,#212332 50%,#181924 100%)",
+        animation: "skelAnim 1.3s infinite linear",
+        position: "absolute",
+        top: 0, left: 0,
+        zIndex: 1
+      }} />
+      <style>
+        {`
+        @keyframes skelAnim { 
+          0% { filter:brightness(1); }
+          55% { filter: brightness(1.07); }
+          100% { filter:brightness(1);}
+        }
+        `}
+      </style>
+
+      {/* Skeleton Mute button */}
+      <div
+        style={{
+          position: "absolute", top: 20, right: 20, zIndex: 20,
+          background: "rgba(28,29,34,0.65)",
+          borderRadius: 16, width: 39, height: 39,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        <div style={{
+          width: 24, height: 24,
+          background: "linear-gradient(90deg,#222 30%,#333 60%,#222 100%)",
+          borderRadius: "50%"
+        }} />
+      </div>
+
+      {/* Side action skeletons */}
+      <div
+        style={{
+          position: 'absolute', right: '12px', bottom: '100px', zIndex: 10,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '25px'
+        }}
+      >
+        {Array.from({length:3}).map((_,i) => (
+          <div key={i} style={{
+            width: 46, height: 49, marginBottom: i===0?6:0,
+            borderRadius: 16,
+            background: "linear-gradient(90deg,#20212c 30%,#292a37 60%,#20212c 100%)"
+          }} />
+        ))}
+      </div>
+      {/* Bottom caption */}
+      <div style={{
+        position: "absolute",
+        left: 0, right: 0, bottom: 0,
+        background: "linear-gradient(0deg,#151721 88%,transparent 100%)",
+        color: "#fff", padding: "22px 18px 33px 18px", zIndex: 6,
+        display: "flex", flexDirection: "column", userSelect: "none"
+      }}>
+        <div style={{
+          width: 110, height: 17, marginBottom: 10, borderRadius: 7,
+          background: "linear-gradient(90deg,#21243a 30%,#393b56 60%,#21243a 100%)",
+          marginLeft: 2
+        }} />
+        <div style={{
+          height: 15, width: "70%", borderRadius: 5,
+          background: "linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"
+        }}/>
+        <div style={{marginTop:8, width:76, height:14, borderRadius:6, background:"linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"}}/>
+      </div>
+    </div>
+  );
+}
+
+// -------- Fisher-Yates SHUFFLE ---------
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 export default function Feed() {
   const [shorts, setShorts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const videoRefs = useRef([]);
   const wrapperRefs = useRef([]);
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [muted, setMuted] = useState(true);
+  const [mutePulse, setMutePulse] = useState(false);
   const [likePending, setLikePending] = useState({});
   const [showComments, setShowComments] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
@@ -172,43 +193,28 @@ export default function Feed() {
   const [showPause, setShowPause] = useState(false);
   const [showPulseHeart, setShowPulseHeart] = useState(false);
   const [expandedCaptions, setExpandedCaptions] = useState({});
-  const replayCounts = useRef({});
-  const [showReplay, setShowReplay] = useState({});
-  const [isTabActive, setIsTabActive] = useState(true);
-  const [mutedVideos, setMutedVideos] = useState({});
+  // Modal drag-to-close states
+  const [modalDragY, setModalDragY] = useState(0);
+  const [isDraggingModal, setIsDraggingModal] = useState(false);
+  const dragStartY = useRef(0);
 
   useEffect(() => {
-    axios.get(HOST + "/shorts").then(res => setShorts(res.data));
+    setLoading(true);
+    axios.get(HOST + "/shorts")
+      .then(res => setShorts(shuffleArray(res.data)))
+      .finally(() => setLoading(false));
   }, []);
-
   useEffect(() => {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
-      const filename = shorts[idx]?.url?.split('/')?.pop();
       if (idx === currentIdx) {
-        vid.muted = !!mutedVideos[filename];
-        vid.load();
+        vid.muted = muted;
         vid.play().catch(()=>{});
-        if (videoRefs.current[idx+1]) {
-          videoRefs.current[idx+1].preload = 'auto';
-        }
-        for (let i = 0; i < videoRefs.current.length; i++) {
-          if (i !== idx && i !== idx+1 && videoRefs.current[i]) {
-            videoRefs.current[i].preload = 'none';
-            videoRefs.current[i].load();
-          }
-        }
-      } else {
-        vid.pause();
-        vid.currentTime = 0;
-        vid.muted = true;
       }
+      else { vid.pause(); vid.currentTime = 0; vid.muted = true; }
     });
-    setShowPause(false);
-    setShowPulseHeart(false);
-    setShowReplay({});
-  }, [currentIdx, shorts, mutedVideos]);
-
+    setShowPause(false); setShowPulseHeart(false);
+  }, [currentIdx, muted]);
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       entries => {
@@ -226,21 +232,6 @@ export default function Feed() {
     wrapperRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
   }, [shorts.length]);
-
-  useEffect(() => {
-    const handler = () => {
-      const active = !document.hidden;
-      setIsTabActive(active);
-      const vid = videoRefs.current[currentIdx];
-      if (vid) {
-        if (!active) vid.pause();
-        else if (!showReplay[shorts?.[currentIdx]?.url?.split('/')?.pop()] && !vid.paused)
-          vid.play().catch(()=>{});
-      }
-    };
-    document.addEventListener("visibilitychange", handler);
-    return () => document.removeEventListener("visibilitychange", handler);
-  }, [currentIdx, showReplay, shorts]);
 
   function isLiked(filename) { return localStorage.getItem("like_" + filename) === "1"; }
   function setLiked(filename, yes) {
@@ -278,6 +269,7 @@ export default function Feed() {
       alert("Link copied to clipboard!");
     }
   }
+
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -316,6 +308,7 @@ export default function Feed() {
       }
     };
   }
+
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -376,33 +369,29 @@ export default function Feed() {
       [filename]: !prev[filename]
     }));
   };
-  const handleVideoEnded = (filename, idx) => {
-    replayCounts.current[filename] = (replayCounts.current[filename] || 0) + 1;
-    if (replayCounts.current[filename] < MAX_AUTOPLAY) {
-      setTimeout(() => {
-        if (videoRefs.current[idx]) {
-          videoRefs.current[idx].currentTime = 0;
-          videoRefs.current[idx].play().catch(()=>{});
-        }
-      }, 200);
-    } else {
-      setShowReplay(prev => ({...prev, [filename]: true}));
-    }
-  };
-  const toggleMute = (filename, idx) => {
-    setMutedVideos(prev => {
-      const newMuted = { ...prev, [filename]: !prev[filename] };
-      if (videoRefs.current[idx]) videoRefs.current[idx].muted = newMuted[filename];
-      return newMuted;
-    });
-  };
 
+  // -------- MODAL - Drag down handlers
+  function handleModalTouchStart(e) {
+    if (!e.touches || e.touches.length !== 1) return;
+    dragStartY.current = e.touches[0].clientY;
+    setIsDraggingModal(true);
+  }
+  function handleModalTouchMove(e) {
+    if (!isDraggingModal || !e.touches || e.touches.length !== 1) return;
+    const dy = e.touches[0].clientY - dragStartY.current;
+    if (dy > 0) setModalDragY(dy);
+  }
+  function handleModalTouchEnd() {
+    setIsDraggingModal(false);
+    if (modalDragY > 65) { // Threshold for closing
+      setShowComments(null);
+    }
+    setModalDragY(0);
+  }
+
+  // ---- MAIN RENDER -----
   return (
-    <div style={{
-      minHeight: "100dvh", width: "100vw",
-      background: "#000", margin: 0, padding: 0, overflow: "hidden",
-      ...fontStyle
-    }}>
+    <div style={{ minHeight: "100dvh", width: "100vw", background: "#000", margin: 0, padding: 0, overflow: "hidden" }}>
       <div style={{
         width: "100vw",
         height: "100dvh",
@@ -411,9 +400,17 @@ export default function Feed() {
         scrollSnapType: "y mandatory",
         background: "#000"
       }}>
-        {shorts.length === 0 && (
-          <div style={{ color: "#bbb", textAlign: "center", marginTop: 120, fontSize: 20, ...fontStyle }}>No shorts uploaded yet.</div>
+        {/* ---- SKELETONS ---- */}
+        {loading && (
+          <>
+            {Array.from({length: 2}).map((_, idx) => <SkeletonShort key={idx} />)}
+          </>
         )}
+        {/* ---- EMPTY STATE ---- */}
+        {!loading && shorts.length === 0 && (
+          <div style={{ color: "#bbb", textAlign: "center", marginTop: 120, fontSize: 20 }}>No shorts uploaded yet.</div>
+        )}
+        {/* ---- REAL CONTENT ---- */}
         {shorts.map((v, idx) => {
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
@@ -427,8 +424,6 @@ export default function Feed() {
           const showFull = expandedCaptions[filename];
           const displayedCaption = !caption ? "" : showFull ? caption : truncateString(caption, previewLimit);
           const isCurrent = idx === currentIdx;
-          const replayDone = showReplay[filename];
-          const muted = !!mutedVideos[filename];
 
           return (
             <div key={idx} data-idx={idx} ref={el => (wrapperRefs.current[idx] = el)}
@@ -440,26 +435,61 @@ export default function Feed() {
               {/* ---- VIDEO ---- */}
               <video ref={el => (videoRefs.current[idx] = el)}
                 src={HOST + v.url}
-                controls={false}
-                autoPlay={isCurrent && isTabActive && !replayDone}
-                muted={muted}
-                preload={isCurrent || idx === currentIdx + 1 ? 'auto' : 'none'}
-                playsInline
-                style={{
-                  width: "100vw", height: "100dvh", objectFit: "contain", background: "#000", cursor: "pointer", display: "block",
-                  userSelect: "none",
-                  borderRadius: 0
-                }}
-                tabIndex={-1}
-                disablePictureInPicture
-                controlsList="nodownload nofullscreen noremoteplayback"
-                onContextMenu={e => e.preventDefault()}
-                onMouseDown={e => { if (e.button === 2) e.preventDefault(); }}
+                loop playsInline
+                style={{ width: "100vw", height: "100dvh", objectFit: "contain", background: "#000", cursor: "pointer", display: "block" }}
                 {...handleVideoEvents(idx, filename)}
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
-                onEnded={() => handleVideoEnded(filename, idx)}
               />
 
+              {/* Mute/Unmute Button */}
+              {isCurrent && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    setMuted(m => !m);
+                    setMutePulse(true);
+                    setTimeout(() => setMutePulse(false), 350);
+                  }}
+                  aria-label={muted ? "Unmute" : "Mute"}
+                  style={{
+                    position: "absolute",
+                    top: 20,
+                    right: 20,
+                    zIndex: 60,
+                    background: "rgba(28,29,34,0.65)",
+                    border: "none",
+                    borderRadius: 16,
+                    width: 39,
+                    height: 39,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    boxShadow: "0 2px 6px #0002",
+                    outline: "none",
+                    transition: "box-shadow .22s,ease",
+                    ...(mutePulse
+                      ? {
+                          animation: "mutepulseanim 0.38s cubic-bezier(.3,1.5,.65,1.05)",
+                          boxShadow: "0 0 0 9px #33b6ff27"
+                        }
+                      : {})
+                  }}
+                >
+                  <MuteMicIcon muted={muted} />
+                  <style>
+                    {`
+                      @keyframes mutepulseanim {
+                        0% { box-shadow: 0 0 0 0 #33b6ff88; transform: scale(1.09);}
+                        75%{ box-shadow:0 0 0 13px #33b6ff22; transform: scale(1.13);}
+                        100% { box-shadow: 0 0 0 0 #33b6ff00; transform: scale(1);}
+                      }
+                    `}
+                  </style>
+                </button>
+              )}
+
+              {/* Pause Anim */}
               {isCurrent && showPause && (
                 <div style={{
                   position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -471,28 +501,8 @@ export default function Feed() {
                   <style>{`@keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }`}</style>
                 </div>
               )}
+              {/* Heart Pulse */}
               {isCurrent && <PulseHeart visible={showPulseHeart} />}
-              {isCurrent && (
-                <MuteButton
-                  muted={muted}
-                  onToggle={() => toggleMute(filename, idx)}
-                />
-              )}
-              {replayDone && isCurrent && (
-                <ReplayFAB
-                  onClick={e => {
-                    e.stopPropagation();
-                    replayCounts.current[filename] = 0;
-                    setShowReplay(prev => ({...prev, [filename]: false}));
-                    setTimeout(()=>{
-                      if (videoRefs.current[idx]) {
-                        videoRefs.current[idx].currentTime = 0;
-                        videoRefs.current[idx].play().catch(()=>{});
-                      }
-                    }, 50);
-                  }}
-                />
-              )}
 
               {/* Progress Bar */}
               <div style={{
@@ -528,45 +538,39 @@ export default function Feed() {
                       borderRadius: "50%", objectFit: "cover"
                     }} />
                 </div>
+                {/* Like */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button onClick={e => { e.stopPropagation(); if (!liked) handleLike(idx, filename, true); else handleLike(idx, filename, false); }}
-                    style={{
-                      background: 'none', border: 'none', padding: 0, cursor: 'pointer', ...fontStyle,
-                      outline:"none"
-                    }}
-                  >
+                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                     <HeartSVG filled={liked} />
                   </button>
-                  <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px', ...fontStyle }}>{v.likes || 0}</span>
+                  <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px' }}>{v.likes || 0}</span>
                 </div>
+                {/* Comment */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button onClick={e => { e.stopPropagation(); setShowComments(filename); }}
-                    style={{
-                      background: 'none', border: 'none', padding: 0, cursor: 'pointer', ...fontStyle,
-                      outline:"none"
-                    }}>
+                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                     <svg aria-label="Comment" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
                       <path d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z" fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
                     </svg>
                   </button>
-                  <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px', ...fontStyle }}>{v.comments?.length || 0}</span>
+                  <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>{v.comments?.length || 0}</span>
                 </div>
+                {/* Share */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button
                     onClick={() => handleShare(filename)}
-                    style={{
-                      background: 'none', border: 'none', padding: 0, cursor: 'pointer', ...fontStyle,
-                      outline:"none"
-                    }}>
+                    style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                     <svg aria-label="Share Post" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
                       <line fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="3" y2="10.083"/>
                       <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
                     </svg>
                   </button>
-                  <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px', ...fontStyle }}>Share</span>
+                  <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
                 </div>
               </div>
 
+              {/* ----- Caption/comments IG bottom bar ----- */}
               <div style={{
                 position: "absolute",
                 left: 0, right: 0, bottom: 0,
@@ -574,7 +578,8 @@ export default function Feed() {
                 color: "#fff", padding: "20px 18px 28px 18px", zIndex: 6,
                 display: "flex", flexDirection: "column", userSelect: "none"
               }}>
-                <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2, ...fontStyle }}>
+                {/* Username */}
+                <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
                   @{v.author || "anonymous"}
                 </div>
                 {caption && (
@@ -595,8 +600,7 @@ export default function Feed() {
                         WebkitBoxOrient: "vertical",
                         wordBreak: "break-word",
                         marginRight: isTruncated ? 10 : 0,
-                        whiteSpace: "pre-line",
-                        ...fontStyle
+                        whiteSpace: "pre-line"
                       }}
                     >
                       {displayedCaption}
@@ -614,8 +618,7 @@ export default function Feed() {
                           padding: 0,
                           lineHeight: 1.3,
                           textDecoration: "underline",
-                          transition: "color .15s",
-                          ...fontStyle
+                          transition: "color .15s"
                         }}
                         onClick={() => handleCaptionExpand(filename)}
                         tabIndex={0}
@@ -626,18 +629,21 @@ export default function Feed() {
                   </div>
                 )}
                 {v.comments && v.comments.length > 0 && (
-                  <div style={{ fontSize: 14, color: "#bae6fd", ...fontStyle }}>
-                    <b>{v.comments[0].name}:</b> {v.comments[0].text}
+                  <div style={{ fontSize: 14, color: "#bae6fd" }}>
+                    {v.comments[0].name === "You" ? (
+                      <>{v.comments[0].text}</>
+                    ) : (
+                      <><b>{v.comments[0].name}:</b> {v.comments[0].text}</>
+                    )}
                   </div>
                 )}
                 <div
                   style={{
-                    color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer", ...fontStyle
+                    color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer"
                   }}
                   onClick={() => setShowComments(filename)}
                 >View all {v.comments ? v.comments.length : 0} comments</div>
               </div>
-
               {showComments === filename &&
                 <div
                   style={{
@@ -662,10 +668,18 @@ export default function Feed() {
                       display: 'flex', flexDirection: 'column',
                       maxWidth: 500, width: "97vw", margin: "0 auto",
                       border: '1px solid #262626',
-                      ...fontStyle
+                      touchAction: "none",
+                      transition: isDraggingModal ? "none" : "transform 0.22s cubic-bezier(.43,1.5,.48,1.16)",
+                      transform: modalDragY
+                        ? `translateY(${Math.min(modalDragY, 144)}px)`
+                        : "translateY(0)"
                     }}
+                    onTouchStart={handleModalTouchStart}
+                    onTouchMove={handleModalTouchMove}
+                    onTouchEnd={handleModalTouchEnd}
                     onClick={e => e.stopPropagation()}
                   >
+                    {/* Header */}
                     <div
                       style={{
                         display: 'flex',
@@ -674,16 +688,16 @@ export default function Feed() {
                         paddingBottom: 15,
                         borderBottom: '1px solid #262626'
                       }}>
-                      <h2 style={{ fontSize: 16, fontWeight: 600, color: "#fff", ...fontStyle }}>Comments</h2>
+                      <h2 style={{ fontSize: 16, fontWeight: 600, color: "#fff" }}>Comments</h2>
                       <span
                         className="fas fa-times"
-                        style={{ fontSize: 22, color: "#fff", cursor: "pointer", ...fontStyle }}
+                        style={{ fontSize: 22, color: "#fff", cursor: "pointer" }}
                         onClick={() => setShowComments(null)}
                       >×</span>
                     </div>
                     <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}>
                       {allComments.length === 0 ? (
-                        <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0", ...fontStyle }}>No comments yet.</div>
+                        <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
                       ) : (
                         allComments.map((c, i) => (
                           <div className="comment" style={{ display: 'flex', marginBottom: 15 }} key={i}>
@@ -698,24 +712,25 @@ export default function Feed() {
                             <div className="comment-content" style={{ flex: 1 }}>
                               <div>
                                 <span className="comment-username" style={{
-                                  fontWeight: 600, fontSize: 14, marginRight: 5, color:"#fff", ...fontStyle
+                                  fontWeight: 600, fontSize: 14, marginRight: 5, color:"#fff"
                                 }}>{c.name}</span>
-                                <span className="comment-text" style={{ fontSize: 14, color:"#fff", ...fontStyle }}>{c.text}</span>
+                                <span className="comment-text" style={{ fontSize: 14, color:"#fff" }}>{c.text}</span>
                               </div>
                               <div className="comment-time" style={{
-                                fontSize: 12, color: "#a8a8a8", marginTop: 2, ...fontStyle
+                                fontSize: 12, color: "#a8a8a8", marginTop: 2
                               }}>{c.time}</div>
                               <div className="comment-actions" style={{
                                 display: 'flex', marginTop: 5
                               }}>
-                                <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", ...fontStyle }}>Reply</span>
-                                <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", ...fontStyle }}>Like</span>
+                                <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer" }}>Reply</span>
+                                <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer" }}>Like</span>
                               </div>
                             </div>
                           </div>
                         ))
                       )}
                     </div>
+                    {/* Add Comment */}
                     <div style={{
                       display: 'flex', alignItems: 'center',
                       paddingTop: 10, borderTop: '1px solid #262626'
@@ -730,8 +745,7 @@ export default function Feed() {
                           borderRadius: 20,
                           padding: "10px 15px",
                           color: "white",
-                          fontSize: 14,
-                          ...fontStyle
+                          fontSize: 14
                         }}
                         value={commentInputs[filename] || ""}
                         onChange={e => setCommentInputs(prev => ({
@@ -750,8 +764,7 @@ export default function Feed() {
                           background: "none",
                           border: "none",
                           cursor: (commentInputs[filename] || "").trim() !== "" ? "pointer" : "default",
-                          opacity: (commentInputs[filename] || "").trim() !== "" ? 1 : 0.5,
-                          ...fontStyle
+                          opacity: (commentInputs[filename] || "").trim() !== "" ? 1 : 0.5
                         }}
                         disabled={(commentInputs[filename] || "").trim() === ""}
                         onClick={() => handleAddComment(idx, filename)}
@@ -764,16 +777,6 @@ export default function Feed() {
           );
         })}
       </div>
-      <style>
-        {`
-          html, body, #root {
-            font-family: 'Inter', system-ui, sans-serif !important;
-            letter-spacing: -0.02em;
-            background: #000;
-            color: #fff;
-          }
-        `}
-      </style>
     </div>
   );
 }
