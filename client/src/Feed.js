@@ -1,18 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 
-// Google Fonts injection for modern look
-const FONT_LINK_ID = 'app-google-fonts';
-if (!document.getElementById(FONT_LINK_ID)) {
-  const link = document.createElement("link");
-  link.id = FONT_LINK_ID;
-  link.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap";
-  link.rel = "stylesheet";
-  document.head.appendChild(link);
-}
-
 const HOST = "https://shorts-t2dk.onrender.com";
 const MAX_AUTOPLAY = 2;
+const APP_FONT = `'Inter', system-ui, sans-serif`;
+
+// Inject Google Fonts (Inter) once
+if (!document.getElementById('feedjs-inter-font')) {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.id = 'feedjs-inter-font';
+  link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap';
+  document.head.appendChild(link);
+}
 
 function HeartSVG({ filled }) {
   return (
@@ -78,24 +78,31 @@ function ReplayFAB({ onClick }) {
         left: "50%",
         top: "50%",
         transform: "translate(-50%,-50%)",
-        background: "linear-gradient(90deg,#1da1f2,#0796fa)",
+        background: "#191919e0",
         border: "none",
         borderRadius: "50%",
-        width: 72,
-        height: 72,
+        width: 56,
+        height: 56,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        boxShadow: "0 4px 20px #2227",
+        boxShadow: "0 4px 24px #0008",
         zIndex: 120,
         cursor: "pointer",
         transition: "background .2s, transform .2s"
       }}
     >
-      <svg width="40" height="40" viewBox="0 0 48 48">
-        <circle cx="24" cy="24" r="22" fill="#fff3" />
-        <path d="M25 12c-6.6,0-12,5.4-12,12s5.4,12,12,12c4.7,0,8.7-2.7,10.7-6.6" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"/>
-        <path d="M31,13v7h-7" fill="none" stroke="#fff" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round"/>
+      {/* “Replay” icon: a circular arrow */}
+      <svg width="34" height="34" viewBox="0 0 48 48">
+        <circle cx="24" cy="24" r="20" fill="#fff2" />
+        <path
+          d="M22 12a12 12 0 1 1-8.5 20.5"
+          fill="none"
+          stroke="#fff"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        />
+        <polygon points="13,27 21,28 16,33" fill="#fff"/>
       </svg>
     </button>
   );
@@ -109,29 +116,29 @@ function MuteButton({ muted, onToggle }) {
         position:"absolute",
         left:18,
         bottom:100,
-        zIndex: 120,
-        background: muted ? "rgba(30,30,30,0.90)" : "linear-gradient(90deg,#1da1f2,#0796fa)",
+        zIndex:120,
+        background: muted ? "#232323e0" : "linear-gradient(90deg,#1da1f2,#0796fa)",
         border:"none",
         borderRadius:18,
-        width:48,
-        height:48,
+        width:44,
+        height:44,
         display:"flex",
         justifyContent:"center",
         alignItems:"center",
         transition:"background .18s",
         boxShadow:"0 2px 8px #0004",
-        cursor: "pointer"
+        cursor:"pointer"
       }}
     >
       {muted ? (
         // Muted Icon
-        <svg width="28" height="28" fill="none" stroke="#fff" viewBox="0 0 28 28">
-          <path d="M4 10h5l7-5v18l-7-5H4z" fill="#fff3" />
+        <svg width="24" height="24" fill="none" viewBox="0 0 28 28">
+          <path d="M4 10h5l7-5v18l-7-5H4z" fill="#fff5" />
           <path d="M21 10l-8 8M21 18l-8-8" stroke="#fa5555" strokeWidth="2"/>
         </svg>
       ) : (
         // Unmuted Icon
-        <svg width="28" height="28" fill="none" stroke="#fff" viewBox="0 0 28 28">
+        <svg width="24" height="24" fill="none" viewBox="0 0 28 28">
           <path d="M4 10h5l7-5v18l-7-5H4z" fill="#fff9" />
           <path d="M20 10.5V17.5C21.5 16 22.5 14 22.5 12C22.5 10 21.5 8 20 6.5" stroke="#33eaff" strokeWidth="2"/>
         </svg>
@@ -148,8 +155,8 @@ function truncateString(str, maxLen = 90) {
 }
 
 const fontStyle = {
-  fontFamily: '"Inter",system-ui,sans-serif',
-  letterSpacing: '-0.02em',
+  fontFamily: APP_FONT,
+  letterSpacing: '-0.01em',
   WebkitFontSmoothing: "antialiased"
 };
 
@@ -168,7 +175,7 @@ export default function Feed() {
   const replayCounts = useRef({});
   const [showReplay, setShowReplay] = useState({});
   const [isTabActive, setIsTabActive] = useState(true);
-  const [mutedVideos, setMutedVideos] = useState({}); // filename: boolean
+  const [mutedVideos, setMutedVideos] = useState({});
 
   useEffect(() => {
     axios.get(HOST + "/shorts").then(res => setShorts(res.data));
@@ -182,7 +189,6 @@ export default function Feed() {
         vid.muted = !!mutedVideos[filename];
         vid.load();
         vid.play().catch(()=>{});
-        // Preload next short
         if (videoRefs.current[idx+1]) {
           videoRefs.current[idx+1].preload = 'auto';
         }
@@ -195,7 +201,6 @@ export default function Feed() {
       } else {
         vid.pause();
         vid.currentTime = 0;
-        // still muted for all but the visible
         vid.muted = true;
       }
     });
@@ -204,7 +209,6 @@ export default function Feed() {
     setShowReplay({});
   }, [currentIdx, shorts, mutedVideos]);
 
-  // Intersection observer for vertical snap
   useEffect(() => {
     const observer = new window.IntersectionObserver(
       entries => {
@@ -223,7 +227,6 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length]);
 
-  // Auto-pause if tab is inactive
   useEffect(() => {
     const handler = () => {
       const active = !document.hidden;
@@ -275,7 +278,6 @@ export default function Feed() {
       alert("Link copied to clipboard!");
     }
   }
-
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -374,7 +376,6 @@ export default function Feed() {
       [filename]: !prev[filename]
     }));
   };
-
   const handleVideoEnded = (filename, idx) => {
     replayCounts.current[filename] = (replayCounts.current[filename] || 0) + 1;
     if (replayCounts.current[filename] < MAX_AUTOPLAY) {
@@ -388,19 +389,20 @@ export default function Feed() {
       setShowReplay(prev => ({...prev, [filename]: true}));
     }
   };
-
-  // Mute toggle
   const toggleMute = (filename, idx) => {
     setMutedVideos(prev => {
       const newMuted = { ...prev, [filename]: !prev[filename] };
-      // Actually set on video
       if (videoRefs.current[idx]) videoRefs.current[idx].muted = newMuted[filename];
       return newMuted;
     });
   };
 
   return (
-    <div style={{ minHeight: "100dvh", width: "100vw", background: "#000", margin: 0, padding: 0, overflow: "hidden", ...fontStyle }}>
+    <div style={{
+      minHeight: "100dvh", width: "100vw",
+      background: "#000", margin: 0, padding: 0, overflow: "hidden",
+      ...fontStyle
+    }}>
       <div style={{
         width: "100vw",
         height: "100dvh",
@@ -458,7 +460,6 @@ export default function Feed() {
                 onEnded={() => handleVideoEnded(filename, idx)}
               />
 
-              {/* Pause Animation */}
               {isCurrent && showPause && (
                 <div style={{
                   position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -470,16 +471,13 @@ export default function Feed() {
                   <style>{`@keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }`}</style>
                 </div>
               )}
-              {/* Heart Pulse */}
               {isCurrent && <PulseHeart visible={showPulseHeart} />}
-              {/* Mute/Unmute Button */}
               {isCurrent && (
                 <MuteButton
                   muted={muted}
                   onToggle={() => toggleMute(filename, idx)}
                 />
               )}
-              {/* Clean Replay Button */}
               {replayDone && isCurrent && (
                 <ReplayFAB
                   onClick={e => {
@@ -530,7 +528,6 @@ export default function Feed() {
                       borderRadius: "50%", objectFit: "cover"
                     }} />
                 </div>
-                {/* Like */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button onClick={e => { e.stopPropagation(); if (!liked) handleLike(idx, filename, true); else handleLike(idx, filename, false); }}
                     style={{
@@ -542,7 +539,6 @@ export default function Feed() {
                   </button>
                   <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px', ...fontStyle }}>{v.likes || 0}</span>
                 </div>
-                {/* Comment */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button onClick={e => { e.stopPropagation(); setShowComments(filename); }}
                     style={{
@@ -555,7 +551,6 @@ export default function Feed() {
                   </button>
                   <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px', ...fontStyle }}>{v.comments?.length || 0}</span>
                 </div>
-                {/* Share */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button
                     onClick={() => handleShare(filename)}
@@ -572,7 +567,6 @@ export default function Feed() {
                 </div>
               </div>
 
-              {/* ----- Caption/comments IG bottom bar ----- */}
               <div style={{
                 position: "absolute",
                 left: 0, right: 0, bottom: 0,
@@ -580,11 +574,9 @@ export default function Feed() {
                 color: "#fff", padding: "20px 18px 28px 18px", zIndex: 6,
                 display: "flex", flexDirection: "column", userSelect: "none"
               }}>
-                {/* Username */}
                 <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2, ...fontStyle }}>
                   @{v.author || "anonymous"}
                 </div>
-                {/* Modern Caption with ...more */}
                 {caption && (
                   <div style={{
                     display: "flex", alignItems: "flex-end", minHeight: "26px", maxWidth: 500
@@ -674,7 +666,6 @@ export default function Feed() {
                     }}
                     onClick={e => e.stopPropagation()}
                   >
-                    {/* Header */}
                     <div
                       style={{
                         display: 'flex',
@@ -725,7 +716,6 @@ export default function Feed() {
                         ))
                       )}
                     </div>
-                    {/* Add Comment */}
                     <div style={{
                       display: 'flex', alignItems: 'center',
                       paddingTop: 10, borderTop: '1px solid #262626'
