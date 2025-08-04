@@ -350,8 +350,7 @@ export default function Feed() {
       });
   }
   function getProfilePic(v) {
-    return v.avatar || v.profilePic ||
-      `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author || "anonymous")}`;
+    return v.avatar || v.profilePic || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23256EFD'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='40' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'%3EP%3C/text%3E%3C/svg%3E";
   }
   function fakeAvatar(i) { const urls = [
     "https://randomuser.me/api/portraits/men/32.jpg",
@@ -529,7 +528,8 @@ export default function Feed() {
               }}>
                 <div style={{
                   marginBottom: 6, width: 48, height: 48,
-                  borderRadius: "50%", overflow: "hidden"
+                  borderRadius: "50%", overflow: "hidden",
+                  boxShadow: '0 0 0 2px #256EFD, 0 0 15px #256EFD'
                 }}>
                   <img src={getProfilePic(v)}
                     alt="dp"
@@ -580,7 +580,7 @@ export default function Feed() {
               }}>
                 {/* Username */}
                 <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
-                  @{v.author || "anonymous"}
+                  @{v.author || "propscholar"}
                 </div>
                 {caption && (
                   <div style={{
