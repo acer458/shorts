@@ -1,9 +1,39 @@
+// AdminDashboard.js
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
-const ADMIN_KEY = "Hindi@1234";
 
+// ============= LOGIN FORM COMPONENT =============
+function AdminLogin({ onLogin }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [status, setStatus] = useState('');
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    setStatus('');
+    axios.post(HOST + "/admin/login", { email, password })
+      .then(res => {
+        localStorage.setItem("adminToken", res.data.token);
+        onLogin();
+      })
+      .catch(() => setStatus("Wrong email or password!"));
+  }
+
+  return (
+    <form onSubmit={handleSubmit} style={{margin:"100px auto",maxWidth:350,padding:40,background:"#222",borderRadius:16}}>
+      <h2 style={{color:"#fff"}}>Admin Login</h2>
+      <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Gmail" required style={{width:"100%",padding:8,marginBottom:10}} />
+      <input value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder="Password" required style={{width:"100%",padding:8,marginBottom:20}} />
+      {status && <div style={{color:"#f66",marginBottom:10}}>{status}</div>}
+      <button type="submit" style={{width:"100%",padding:10,background:"#3079ed",color:"#fff",fontWeight:700,border:0,borderRadius:7}}>Sign In</button>
+    </form>
+  )
+}
+
+// ============= BYTES UTILITY =============
 function bytesToSize(bytes) {
   if (bytes === 0) return "0 B";
   const sizes = ["B", "KB", "MB", "GB"];
@@ -11,6 +41,7 @@ function bytesToSize(bytes) {
   return Math.round((bytes / Math.pow(1024, i)) * 10) / 10 + " " + sizes[i];
 }
 
+// ============= MAIN DASHBOARD =============
 export default function AdminDashboard() {
   const [shorts, setShorts] = useState([]);
   const [video, setVideo] = useState(null);
@@ -19,35 +50,50 @@ export default function AdminDashboard() {
   const [status, setStatus] = useState("");
   const [editState, setEditState] = useState({});
   const [scrollCounts, setScrollCounts] = useState({});
+  const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("adminToken"));
 
-  // Fetch videos and scroll counts
+  // Force logout on certain failures
+  function handleLogout() {
+    localStorage.removeItem("adminToken");
+    setLoggedIn(false);
+  }
+
+  // Helper to add auth header if logged in
+  function authHeaders() {
+    const token = localStorage.getItem("adminToken");
+    return token ? { "Authorization": `Bearer ${token}` } : {};
+  }
+
+  // Fetch all videos (and scroll/view counts)
   const refreshShorts = () => {
     axios
       .get(HOST + "/shorts")
       .then((res) => setShorts(res.data))
       .catch(() => setStatus("Could not fetch shorts."));
-    // Fetch scroll/view counts, expects { filename1: count, filename2: count }
+
+    // Fetch scroll/view counts (if you use a /views endpoint)
     axios.get(HOST + "/views")
       .then(res => setScrollCounts(res.data))
       .catch(() => {});
   };
 
-  useEffect(refreshShorts, []);
+  useEffect(() => {
+    if (loggedIn) refreshShorts();
+    // eslint-disable-next-line
+  }, [loggedIn]);
 
   // UPLOAD
   const handleUpload = (e) => {
     e.preventDefault();
-    if (!video) return;
-    setUploading(true);
-    setUploadProgress(0);
-    setStatus("");
+    if (!video) { setStatus("Please select a file!"); return; }
+    setUploading(true); setUploadProgress(0); setStatus("");
     const formData = new FormData();
     formData.append("video", video);
 
     axios
       .post(HOST + "/upload", formData, {
         headers: {
-          "x-admin-key": ADMIN_KEY,
+          ...authHeaders()
         },
         onUploadProgress: progressEvent => {
           setUploadProgress(Math.round((progressEvent.loaded * 100) / progressEvent.total));
@@ -63,7 +109,8 @@ export default function AdminDashboard() {
         setUploading(false);
         setUploadProgress(0);
         if (err.response && err.response.status === 401) {
-          setStatus("Upload Failed: Unauthorized (Check admin key)");
+          setStatus("Login expired. Please log in again.");
+          handleLogout();
         } else if (err.response && err.response.status === 413) {
           setStatus("Upload Failed: File too large.");
         } else {
@@ -79,12 +126,19 @@ export default function AdminDashboard() {
     if (!window.confirm("Delete this video permanently?")) return;
     axios
       .delete(`${HOST}/delete/${filename}`, {
-        headers: { "x-admin-key": ADMIN_KEY },
+        headers: { ...authHeaders() }
       })
       .then(() =>
         setShorts((prev) => prev.filter((s) => s.filename !== filename))
       )
-      .catch(() => alert("Delete failed!"));
+      .catch(err => {
+        if (err.response && err.response.status === 401) {
+          setStatus("Login expired. Please log in again.");
+          handleLogout();
+        } else {
+          alert("Delete failed!");
+        }
+      });
   };
 
   // Caption EDIT
@@ -104,7 +158,7 @@ export default function AdminDashboard() {
     }));
 
     axios
-      .post(`${HOST}/shorts/${filename}/update_caption`, { caption })
+      .patch(`${HOST}/shorts/${filename}`, { caption }, { headers: { ...authHeaders() } })
       .then(() => {
         setShorts((current) =>
           current.map((video) =>
@@ -116,11 +170,16 @@ export default function AdminDashboard() {
           [filename]: { ...prev[filename], loading: false, saved: true, error: null },
         }));
       })
-      .catch(() => {
-        setEditState((prev) => ({
-          ...prev,
-          [filename]: { ...prev[filename], loading: false, error: "Failed to save" },
-        }));
+      .catch(err => {
+        if (err.response && err.response.status === 401) {
+          setStatus("Login expired. Please log in again.");
+          handleLogout();
+        } else {
+          setEditState((prev) => ({
+            ...prev,
+            [filename]: { ...prev[filename], loading: false, error: "Failed to save" },
+          }));
+        }
       });
   };
 
@@ -128,6 +187,9 @@ export default function AdminDashboard() {
     (sum, v) => sum + (v.size ? Number(v.size) : 0),
     0
   );
+
+  // Require login
+  if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />;
 
   return (
     <div
@@ -151,7 +213,11 @@ export default function AdminDashboard() {
           gap: 28,
         }}
       >
-        <form onSubmit={handleUpload} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <button onClick={handleLogout} style={{
+          position:"absolute", top:18, right:22, zIndex:100,
+          background:"#FE5555", color:"#fff", fontWeight:800, border:"none", borderRadius:8, padding:"7px 13px", cursor:"pointer"
+        }}>Logout</button>
+        <form onSubmit={handleUpload} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop:24 }}>
           <label
             htmlFor="upload"
             style={{
@@ -193,7 +259,7 @@ export default function AdminDashboard() {
             {uploading ? "Uploading..." : "Submit"}
           </button>
           {uploadProgress > 0 && (
-            <div style={{width: '100%', background: '#333', borderRadius: 8, marginTop: 10}}>
+            <div style={{width: '100%', background: '#333', borderRadius: 8, marginTop: 10, position:'relative'}}>
               <div style={{
                 width: `${uploadProgress}%`,
                 height: 18, background: '#3eeaa7', borderRadius: 8,
@@ -201,7 +267,7 @@ export default function AdminDashboard() {
               }} />
               <div style={{
                 position: "absolute", color: "#000", fontWeight: 700,
-                fontSize: 15, left: 8, top: 2
+                fontSize: 15, left: 8, top: 1
               }}>
                 {uploadProgress}%
               </div>
