@@ -1,4 +1,3 @@
-// app.js
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
@@ -9,9 +8,9 @@ const app = express();
 app.use(cors());
 app.use(express.json()); // For parsing JSON bodies
 
-const DISK_PATH = '/data'; // Must match your Render mount path!
+const DISK_PATH = '/data'; // Use your Render disk mount path!
 
-// Ensure disk path exists (on first boot)
+// Ensure disk path exists (server startup)
 if (!fs.existsSync(DISK_PATH)) fs.mkdirSync(DISK_PATH, { recursive: true });
 
 // Persistent video "database"
@@ -47,8 +46,21 @@ function findVideo(videos, filename) {
 }
 
 // === PUBLIC ENDPOINTS ===
+
+// Get ALL shorts
 app.get('/shorts', (req, res) => { res.json(getVideos()); });
 
+// Increment view count
+app.post('/shorts/:filename/view', (req, res) => {
+  const videos = getVideos();
+  const vid = findVideo(videos, req.params.filename);
+  if (!vid) return res.status(404).json({ error: "Video not found" });
+  vid.views = (vid.views || 0) + 1;
+  saveVideos(videos);
+  res.json({ success: true, views: vid.views });
+});
+
+// Like (increment like count)
 app.post('/shorts/:filename/like', (req, res) => {
   const videos = getVideos();
   const vid = findVideo(videos, req.params.filename);
@@ -58,6 +70,7 @@ app.post('/shorts/:filename/like', (req, res) => {
   res.json({ success: true, likes: vid.likes });
 });
 
+// Add a comment
 app.post('/shorts/:filename/comment', (req, res) => {
   const { name = "Anonymous", text } = req.body || {};
   if (!text) return res.status(400).json({ error: "No comment text" });
@@ -72,6 +85,7 @@ app.post('/shorts/:filename/comment', (req, res) => {
 
 // === ADMIN ENDPOINTS ===
 
+// UPLOAD (with caption, optional author)
 app.post('/upload', adminAuth, upload.single('video'), (req, res) => {
   const videoUrl = `/uploads/${req.file.filename}`;
   const stats = fs.statSync(path.join(DISK_PATH, req.file.filename));
@@ -81,22 +95,23 @@ app.post('/upload', adminAuth, upload.single('video'), (req, res) => {
     fs.unlinkSync(path.join(DISK_PATH, req.file.filename));
     return res.status(400).json({ error: "Caption too long" });
   }
-
   let videos = getVideos();
   videos.unshift({
     url: videoUrl,
+    filename: req.file.filename,
     createdAt: new Date(),
     size: stats.size,
     caption,
     author,
     likes: 0,
+    views: 0,
     comments: []
   });
   saveVideos(videos);
-
   res.json({ success: true, url: videoUrl });
 });
 
+// PATCH (edit caption)
 app.patch('/shorts/:filename', adminAuth, (req, res) => {
   const filename = req.params.filename;
   const { caption } = req.body || {};
@@ -113,6 +128,7 @@ app.patch('/shorts/:filename', adminAuth, (req, res) => {
   return res.status(400).json({ error: "No caption sent" });
 });
 
+// Delete video
 app.delete('/delete/:filename', adminAuth, (req, res) => {
   const filename = req.params.filename;
   const filePath = path.join(DISK_PATH, filename);
