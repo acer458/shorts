@@ -81,6 +81,14 @@ function findVideo(videos, filename) {
 // Get ALL shorts
 app.get('/shorts', (req, res) => { res.json(getVideos()); });
 
+// Get single video by filename
+app.get('/shorts/:filename', (req, res) => {
+  const videos = getVideos();
+  const vid = findVideo(videos, req.params.filename);
+  if (!vid) return res.status(404).json({ error: "Video not found" });
+  res.json(vid);
+});
+
 // Increment view count
 app.post('/shorts/:filename/view', (req, res) => {
   const videos = getVideos();
