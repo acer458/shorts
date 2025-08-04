@@ -5,9 +5,9 @@ import axios from "axios";
 const HOST = "https://shorts-t2dk.onrender.com";
 
 // --------- UI SVGs
-function HeartSVG({ filled }) {
+function HeartSVG({ filled, size = 22 }) {
   return (
-    <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
+    <svg aria-label={filled ? "Unlike" : "Like"} height={size} width={size} viewBox="0 0 48 48">
       <path
         fill={filled ? "#ed4956" : "none"}
         stroke={filled ? "#ed4956" : "#fff"}
@@ -17,6 +17,7 @@ function HeartSVG({ filled }) {
     </svg>
   );
 }
+
 function PauseIcon() {
   return (
     <svg width={82} height={82} viewBox="0 0 82 82">
@@ -74,12 +75,6 @@ function MuteMicIcon({ muted }) {
   );
 }
 
-// Prevent video download (no context menu)
-function blockContextMenu(e) {
-  e.preventDefault();
-}
-
-// --------- CAPTION TRUNCATE
 function truncateString(str, maxLen = 90) {
   if (!str) return '';
   if (str.length <= maxLen) return str;
@@ -88,7 +83,6 @@ function truncateString(str, maxLen = 90) {
   return str.substring(0, nextSpace) + '…';
 }
 
-// -------- SKELETON COMPONENT -----------
 function SkeletonShort() {
   return (
     <div
@@ -100,7 +94,6 @@ function SkeletonShort() {
         display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
       }}
     >
-      {/* Video skeleton */}
       <div style={{
         width: "100vw",
         height: "100dvh",
@@ -119,8 +112,6 @@ function SkeletonShort() {
         }
         `}
       </style>
-
-      {/* Skeleton Mute button */}
       <div
         style={{
           position: "absolute", top: 20, right: 20, zIndex: 20,
@@ -135,8 +126,6 @@ function SkeletonShort() {
           borderRadius: "50%"
         }} />
       </div>
-
-      {/* Side action skeletons */}
       <div
         style={{
           position: 'absolute', right: '12px', bottom: '100px', zIndex: 10,
@@ -151,7 +140,6 @@ function SkeletonShort() {
           }} />
         ))}
       </div>
-      {/* Bottom caption */}
       <div style={{
         position: "absolute",
         left: 0, right: 0, bottom: 0,
@@ -174,7 +162,6 @@ function SkeletonShort() {
   );
 }
 
-// -------- Fisher-Yates SHUFFLE ---------
 function shuffleArray(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -182,6 +169,256 @@ function shuffleArray(arr) {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+
+// ------ APP Font + DevTools block, GLOBAL ONCE ------ //
+const FONT_FAMILY = "'Inter','Roboto','SF Pro','Segoe UI',Arial,sans-serif";
+if (typeof window !== "undefined") {
+  if (!window.__shorts_fonts_once) {
+    window.__shorts_fonts_once = true;
+    // Font
+    const style = document.createElement("style");
+    style.innerHTML = `
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+      html, body, * {
+        font-family: ${FONT_FAMILY} !important;
+        letter-spacing: 0.01em;
+        -webkit-font-smoothing: antialiased;
+        box-sizing: border-box;
+      }
+      input, textarea, button {
+        font-family: ${FONT_FAMILY} !important;
+      }
+    `;
+    document.head.appendChild(style);
+    // Prevent context menu everywhere (except text inputs/textarea)
+    window.addEventListener("contextmenu", (e) => {
+      let n = e.target;
+      if (!n) return;
+      if (
+        !(
+          n.nodeName === "INPUT" ||
+          n.nodeName === "TEXTAREA" ||
+          n.isContentEditable
+        )
+      ) {
+        e.preventDefault();
+      }
+    });
+    // Prevent most devtools openers for normal users
+    window.addEventListener("keydown", (e) => {
+      if (
+        (e.ctrlKey && e.shiftKey && ["I", "C", "J"].includes(e.key.toUpperCase())) ||
+        (e.ctrlKey && e.key === "u") ||
+        e.key === "F12"
+      ) {
+        e.preventDefault(); e.stopPropagation();
+        return false;
+      }
+    });
+  }
+}
+
+// -------- COMMENT "LIKES" & REPLIES (localStorage DEMO persisting) ----
+const COMMENT_LIKES_KEY = "shorts_comment_likes_v2";
+const COMMENT_REPLIES_KEY = "shorts_comment_replies_v2";
+function getCommentLikes() {
+  try { return JSON.parse(localStorage.getItem(COMMENT_LIKES_KEY) || "{}"); } catch { return {}; }
+}
+function setCommentLikes(obj) {
+  localStorage.setItem(COMMENT_LIKES_KEY, JSON.stringify(obj));
+}
+function getCommentReplies() {
+  try { return JSON.parse(localStorage.getItem(COMMENT_REPLIES_KEY) || "{}"); } catch { return {}; }
+}
+function setCommentReplies(obj) {
+  localStorage.setItem(COMMENT_REPLIES_KEY, JSON.stringify(obj));
+}
+
+// -------- MODERN COMMENT COMPONENT --------
+function Comment({
+  uniqueId, comment, onReply, showReplyInput, replyVal, onReplyInput, onReplySend, refreshFeed,
+}) {
+  const [liked, setLiked] = useState(() => !!getCommentLikes()[uniqueId]);
+  const [likeCount, setLikeCount] = useState(() => getCommentLikes()[uniqueId] || 0);
+  const [replies, setReplies] = useState(() => getCommentReplies()[uniqueId] || []);
+  useEffect(() => {
+    setLiked(!!getCommentLikes()[uniqueId]);
+    setLikeCount(getCommentLikes()[uniqueId] || 0);
+    setReplies(getCommentReplies()[uniqueId] || []);
+  }, [refreshFeed, uniqueId]);
+  // Like btn
+  const handleLike = () => {
+    let stored = getCommentLikes();
+    if (!liked) {
+      stored[uniqueId] = (stored[uniqueId] || 0) + 1;
+    } else {
+      stored[uniqueId] = Math.max(0, (stored[uniqueId] || 1) - 1);
+    }
+    setCommentLikes(stored);
+    setLiked(!liked);
+    setLikeCount(stored[uniqueId]);
+  };
+  // Replies
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 12,
+      marginBottom: 15,
+      animation: "fadeinC .33s cubic-bezier(.61,2,.32,1)"
+    }}>
+      <img src={comment.avatar} alt="avatar" width={32} height={32} style={{
+        borderRadius: "50%",
+        objectFit: "cover",
+        marginTop: 2,
+        border: "1.2px solid #232b37",
+        background: "#151c22"
+      }} />
+      <div style={{ flex: 1 }}>
+        <span style={{
+          fontWeight: 600,
+          fontSize: 15,
+          color: "#fff",
+          letterSpacing: "0.02em"
+        }}>{comment.name}</span>{" "}
+        <span style={{
+          color: "#f0f3fa",
+          fontSize: 15,
+          fontWeight: 400,
+        }}>{comment.text}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 4 }}>
+          <span style={{
+            fontSize: 13,
+            color: "#a6aed4",
+            fontWeight: 400
+          }}>{comment.time}</span>
+          <span
+            style={{
+              fontSize: 14,
+              color: "#4da6ff",
+              cursor: "pointer",
+              fontWeight: 500,
+              padding: "0 5px 0 0",
+              letterSpacing: ".01em",
+              transition: "color .17s"
+            }}
+            tabIndex={0}
+            onClick={() => onReply(uniqueId)}
+          >Reply</span>
+          <button
+            aria-label={liked ? "Unlike" : "Like"}
+            onClick={handleLike}
+            style={{
+              background: "none",
+              border: "none",
+              display: "flex", alignItems: "center",
+              cursor: "pointer",
+              padding: 0,
+              marginLeft: 2,
+              marginRight: 4,
+              outline: "none",
+              borderRadius: 99,
+              transition: "background .17s",
+              boxShadow: liked ? "0 1px 4px #ed495610" : "",
+            }}
+          >
+            <HeartSVG filled={liked} size={20} />
+            {likeCount > 0 &&
+              <span style={{
+                fontSize: 13,
+                marginLeft: 3,
+                color: liked ? "#ed4956" : "#bbb",
+                fontWeight: 500
+              }}>{likeCount}</span>
+            }
+          </button>
+        </div>
+        {/* Replies */}
+        {replies && replies.length > 0 && (
+          <div style={{ marginTop: 7, marginLeft: 7 }}>
+            {replies.map((reply, idx) => (
+              <div key={idx}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 8,
+                  marginBottom: 6,
+                  animation: "fadeinRep .26s"
+                }}>
+                <img src={reply.avatar} width={22} height={22} alt="avatar"
+                  style={{
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    marginTop: 2,
+                    boxShadow: "0 0 2px #15192a38"
+                  }} />
+                <div>
+                  <span style={{
+                    fontSize: 13.5,
+                    fontWeight: 600,
+                    color: "#7dd3fc"
+                  }}>{reply.name}</span>{" "}
+                  <span style={{
+                    fontSize: 13.6,
+                    color: "#eaf6fb"
+                  }}>{reply.text}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {/* Reply input */}
+        {showReplyInput && (
+          <form
+            style={{ marginTop: 8, marginLeft: 1 }}
+            onSubmit={e => {
+              e.preventDefault(); onReplySend(uniqueId);
+            }}>
+            <input
+              type="text"
+              autoFocus
+              value={replyVal}
+              placeholder={`Reply to ${comment.name}...`}
+              maxLength={120}
+              style={{
+                fontFamily: FONT_FAMILY,
+                fontSize: 14,
+                padding: "7px 13px",
+                borderRadius: 18,
+                border: "1.2px solid #40495a",
+                background: "#192028",
+                color: "#fff",
+                outline: "none",
+                width: "83%",
+                marginRight: 7
+              }}
+              onChange={e => onReplyInput(e.target.value)}
+            />
+            <button
+              type="submit"
+              style={{
+                color: "#2e91fc",
+                background: "none",
+                border: "none",
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: "pointer",
+                letterSpacing: "0.01em"
+              }}
+            >
+              Send
+            </button>
+          </form>
+        )}
+      </div>
+      <style>{`
+        @keyframes fadeinC { from{opacity:0;transform:translateY(15px);} to{opacity:1;transform:translateY(0);} }
+        @keyframes fadeinRep { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+      `}</style>
+    </div>
+  );
 }
 
 export default function Feed() {
@@ -199,14 +436,14 @@ export default function Feed() {
   const [showPause, setShowPause] = useState(false);
   const [showPulseHeart, setShowPulseHeart] = useState(false);
   const [expandedCaptions, setExpandedCaptions] = useState({});
-  // Modal drag-to-close states
   const [modalDragY, setModalDragY] = useState(0);
   const [isDraggingModal, setIsDraggingModal] = useState(false);
   const dragStartY = useRef(0);
 
-  // PLAY TRACKING for infinite loop block
-  const [playCount, setPlayCount] = useState({});
-  const [showReload, setShowReload] = useState({});
+  // For comment reply/like UI
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyInputs, setReplyInputs] = useState({});
+  const [refreshFeed, setRefreshFeed] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -276,61 +513,25 @@ export default function Feed() {
       navigator.share({ url, title: "Watch this short!" });
     } else {
       navigator.clipboard.writeText(url);
-      // Subtle app-like hint/animation instead of alert
       let snackbar = document.createElement('div');
       snackbar.innerText = "Link copied!";
       snackbar.style.position = "fixed";
-      snackbar.style.bottom = "70px";
+      snackbar.style.bottom = "72px";
       snackbar.style.left = "50%";
       snackbar.style.transform = "translateX(-50%)";
-      snackbar.style.background = "#111b";
+      snackbar.style.background = "#202b";
       snackbar.style.color = "#fff";
-      snackbar.style.borderRadius = "14px";
-      snackbar.style.padding = "8px 22px";
+      snackbar.style.borderRadius = "12px";
+      snackbar.style.padding = "7px 19px";
       snackbar.style.fontSize = "14px";
       snackbar.style.zIndex = "99999";
-      snackbar.style.transition = "opacity 0.26s";
+      snackbar.style.fontFamily = FONT_FAMILY;
+      snackbar.style.transition = "opacity 0.22s";
       document.body.appendChild(snackbar);
       setTimeout(() => { snackbar.style.opacity = "0"; }, 1200);
       setTimeout(() => { document.body.removeChild(snackbar); }, 1750);
     }
   }
-
-  // ---- DISABLE CONTEXT MENU on all videos
-  function onVideoRef(el) {
-    if (el) el.addEventListener('contextmenu', blockContextMenu);
-  }
-
-  // --- TRACK video play-to-end, for infinite loop block logic
-  function handlePlayEnd(idx, filename) {
-    setPlayCount(last => {
-      const updatedCount = { ...last };
-      updatedCount[filename] = (updatedCount[filename] || 0) + 1;
-      // If played twice, enable reload
-      if (updatedCount[filename] === 2) {
-        setShowReload(sr => ({ ...sr, [filename]: true }));
-      }
-      return updatedCount;
-    });
-  }
-  // When play starts, if reload is showing, reset count so reload Logic works perfectly
-  function handlePlayStart(idx, filename) {
-    if (showReload[filename]) {
-      setShowReload(sr => ({ ...sr, [filename]: false }));
-      setPlayCount(pc => ({ ...pc, [filename]: 0 }));
-    }
-  }
-  // "Reload UI" click resets video & hides (app-like fade)
-  function handleReloadClick(idx, filename) {
-    setShowReload(sr => ({ ...sr, [filename]: false }));
-    setPlayCount(pc => ({ ...pc, [filename]: 0 }));
-    const vid = videoRefs.current[idx];
-    if (vid) {
-      vid.currentTime = 0;
-      vid.play();
-    }
-  }
-
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -369,7 +570,6 @@ export default function Feed() {
       }
     };
   }
-
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -414,13 +614,16 @@ export default function Feed() {
     return v.avatar || v.profilePic ||
       `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author || "anonymous")}`;
   }
-  function fakeAvatar(i) { const urls = [
-    "https://randomuser.me/api/portraits/men/32.jpg",
-    "https://randomuser.me/api/portraits/women/63.jpg",
-    "https://randomuser.me/api/portraits/men/75.jpg",
-    "https://randomuser.me/api/portraits/women/22.jpg",
-    "https://randomuser.me/api/portraits/men/18.jpg"
-  ]; return urls[i % urls.length]; }
+  function fakeAvatar(i) {
+    const urls = [
+      "https://randomuser.me/api/portraits/men/32.jpg",
+      "https://randomuser.me/api/portraits/women/63.jpg",
+      "https://randomuser.me/api/portraits/men/75.jpg",
+      "https://randomuser.me/api/portraits/women/22.jpg",
+      "https://randomuser.me/api/portraits/men/18.jpg"
+    ];
+    return urls[i % urls.length];
+  }
   function fakeTime(i) {
     return ["2h ago", "1h ago", "45m ago", "30m ago", "15m ago", "Just now"][i % 6] || "Just now";
   }
@@ -430,8 +633,6 @@ export default function Feed() {
       [filename]: !prev[filename]
     }));
   };
-
-  // -------- MODAL - Drag down handlers
   function handleModalTouchStart(e) {
     if (!e.touches || e.touches.length !== 1) return;
     dragStartY.current = e.touches[0].clientY;
@@ -447,8 +648,28 @@ export default function Feed() {
     if (modalDragY > 65) setShowComments(null);
     setModalDragY(0);
   }
+  // Comment Reply logic
+  function handleReplyOpen(uniqueId) {
+    setReplyingTo(uniqueId);
+  }
+  function handleReplyInput(uniqueId, value) {
+    setReplyInputs(q => ({ ...q, [uniqueId]: value }));
+  }
+  function handleReplySend(uniqueId) {
+    const val = (replyInputs[uniqueId] || '').trim();
+    if (!val) return;
+    let allReplies = getCommentReplies();
+    let arr = allReplies[uniqueId] || [];
+    arr.push({
+      name: "You", text: val, avatar: "https://api.dicebear.com/8.x/thumbs/svg?seed=YOU_REPLY", time: "Just now"
+    });
+    allReplies[uniqueId] = arr;
+    setCommentReplies(allReplies);
+    setReplyInputs(q => ({ ...q, [uniqueId]: "" }));
+    setReplyingTo(null);
+    setTimeout(() => setRefreshFeed(Date.now()), 80);
+  }
 
-  // ---- MAIN RENDER -----
   return (
     <div style={{ minHeight: "100dvh", width: "100vw", background: "#000", margin: 0, padding: 0, overflow: "hidden" }}>
       <div style={{
@@ -459,19 +680,16 @@ export default function Feed() {
         scrollSnapType: "y mandatory",
         background: "#000"
       }}>
-        {/* ---- SKELETONS ---- */}
         {loading && (
           <>
             {Array.from({length: 2}).map((_, idx) => <SkeletonShort key={idx} />)}
           </>
         )}
-        {/* ---- EMPTY STATE ---- */}
         {!loading && shorts.length === 0 && (
-          <div style={{ color: "#bbb", textAlign: "center", marginTop: 120, fontSize: 20 }}>
+          <div style={{ color: "#bbb", textAlign: "center", marginTop: 120, fontSize: 20, fontFamily: FONT_FAMILY }}>
             No shorts yet. Why not be first?
           </div>
         )}
-        {/* ---- REAL CONTENT ---- */}
         {shorts.map((v, idx) => {
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
@@ -485,7 +703,6 @@ export default function Feed() {
           const showFull = expandedCaptions[filename];
           const displayedCaption = !caption ? "" : showFull ? caption : truncateString(caption, previewLimit);
           const isCurrent = idx === currentIdx;
-
           return (
             <div key={idx} data-idx={idx} ref={el => (wrapperRefs.current[idx] = el)}
               style={{
@@ -493,23 +710,25 @@ export default function Feed() {
                 position: "relative", background: "#000",
                 display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
               }}>
-              {/* ---- VIDEO (no download, block context menu) ---- */}
-              <video
-                ref={el => { videoRefs.current[idx] = el; onVideoRef(el); }}
+              <video ref={el => (videoRefs.current[idx] = el)}
                 src={HOST + v.url}
-                loop
-                playsInline
-                style={{ width: "100vw", height: "100dvh", objectFit: "contain", background: "#000", cursor: "pointer", display: "block", userSelect: "none" }}
+                loop playsInline
+                style={{
+                  width: "100vw", height: "100dvh",
+                  objectFit: "contain",
+                  background: "#000",
+                  cursor: "pointer",
+                  display: "block",
+                  fontFamily: FONT_FAMILY,
+                  userSelect: "none"
+                }}
                 {...handleVideoEvents(idx, filename)}
                 onTimeUpdate={() => handleTimeUpdate(idx, filename)}
-                onEnded={() => handlePlayEnd(idx, filename)}
-                onPlay={() => handlePlayStart(idx, filename)}
                 controls={false}
                 tabIndex={-1}
                 preload="auto"
               />
 
-              {/* Mute/Unmute Button */}
               {isCurrent && (
                 <button
                   onClick={e => {
@@ -536,6 +755,7 @@ export default function Feed() {
                     boxShadow: "0 2px 6px #0002",
                     outline: "none",
                     transition: "box-shadow .22s,ease",
+                    fontFamily: FONT_FAMILY,
                     ...(mutePulse
                       ? {
                           animation: "mutepulseanim 0.38s cubic-bezier(.3,1.5,.65,1.05)",
@@ -556,13 +776,12 @@ export default function Feed() {
                   </style>
                 </button>
               )}
-
-              {/* Pause Icon */}
               {isCurrent && showPause && (
                 <div style={{
                   position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   zIndex: 105, background: 'rgba(0,0,0,0.26)', pointerEvents: "none",
+                  fontFamily: FONT_FAMILY,
                   animation: 'fadeInPause .29s'
                 }}>
                   <PauseIcon />
@@ -570,47 +789,6 @@ export default function Feed() {
                 </div>
               )}
               {isCurrent && <PulseHeart visible={showPulseHeart} />}
-
-              {/* Prevent Infinite Bandwidth Abuse: reload UI button */}
-              {isCurrent && showReload[filename] &&
-                <button
-                  className="reload-btn"
-                  style={{
-                    position: "absolute",
-                    left: 11,
-                    top: 18,
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    background: "#111d",
-                    border: "1px solid #191a",
-                    color: "#fff",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    boxShadow: "0 1px 8px #0006",
-                    opacity: 1,
-                    transition: "opacity 0.38s cubic-bezier(.56,1.6,.8,1.09)",
-                    zIndex: 101,
-                    display: "flex", alignItems: "center", justifyContent: "center"
-                  }}
-                  onClick={e => {
-                    e.stopPropagation();
-                    handleReloadClick(idx, filename);
-                  }}
-                  aria-label="Reload UI"
-                >
-                  Reload UI
-                </button>
-              }
-              {/* Animate fadeout for reload button */}
-              <style>{`
-                .reload-btn[aria-hidden="true"] { opacity: 0 !important; pointer-events: none; }
-                .reload-btn { 
-                  transition: opacity 0.32s cubic-bezier(.41,1.16,.62,1.09);
-                }
-              `}</style>
-
-              {/* Progress Bar */}
               <div style={{
                 position: "absolute", left: 0, right: 0, bottom: 0,
                 height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32,
@@ -626,8 +804,6 @@ export default function Feed() {
                   pointerEvents: "none"
                 }} />
               </div>
-
-              {/* ---- ACTION STACK (DP, Like, Comment, Share) ---- */}
               <div style={{
                 position: 'absolute', right: '12px', bottom: '100px',
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -644,15 +820,13 @@ export default function Feed() {
                       borderRadius: "50%", objectFit: "cover"
                     }} />
                 </div>
-                {/* Like */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button onClick={e => { e.stopPropagation(); if (!liked) handleLike(idx, filename, true); else handleLike(idx, filename, false); }}
                     style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
                     <HeartSVG filled={liked} />
                   </button>
-                  <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px' }}>{v.likes || 0}</span>
+                  <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px', fontFamily: FONT_FAMILY }}>{v.likes || 0}</span>
                 </div>
-                {/* Comment */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button onClick={e => { e.stopPropagation(); setShowComments(filename); }}
                     style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
@@ -660,9 +834,8 @@ export default function Feed() {
                       <path d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z" fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
                     </svg>
                   </button>
-                  <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>{v.comments?.length || 0}</span>
+                  <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px', fontFamily: FONT_FAMILY }}>{v.comments?.length || 0}</span>
                 </div>
-                {/* Share */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <button
                     onClick={() => handleShare(filename)}
@@ -672,11 +845,9 @@ export default function Feed() {
                       <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
                     </svg>
                   </button>
-                  <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
+                  <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px', fontFamily: FONT_FAMILY }}>Share</span>
                 </div>
               </div>
-
-              {/* ----- Caption/comments IG bottom bar ----- */}
               <div style={{
                 position: "absolute",
                 left: 0, right: 0, bottom: 0,
@@ -684,7 +855,7 @@ export default function Feed() {
                 color: "#fff", padding: "20px 18px 28px 18px", zIndex: 6,
                 display: "flex", flexDirection: "column", userSelect: "none"
               }}>
-                <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
+                <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2, fontFamily: FONT_FAMILY }}>
                   @{v.author || "anonymous"}
                 </div>
                 {caption && (
@@ -705,7 +876,8 @@ export default function Feed() {
                         WebkitBoxOrient: "vertical",
                         wordBreak: "break-word",
                         marginRight: isTruncated ? 10 : 0,
-                        whiteSpace: "pre-line"
+                        whiteSpace: "pre-line",
+                        fontFamily: FONT_FAMILY,
                       }}
                     >
                       {displayedCaption}
@@ -723,6 +895,7 @@ export default function Feed() {
                           padding: 0,
                           lineHeight: 1.3,
                           textDecoration: "underline",
+                          fontFamily: FONT_FAMILY,
                           transition: "color .15s"
                         }}
                         onClick={() => handleCaptionExpand(filename)}
@@ -734,7 +907,7 @@ export default function Feed() {
                   </div>
                 )}
                 {v.comments && v.comments.length > 0 && (
-                  <div style={{ fontSize: 14, color: "#bae6fd" }}>
+                  <div style={{ fontSize: 14, color: "#bae6fd", fontFamily: FONT_FAMILY }}>
                     {v.comments[0].name === "You" ? (
                       <>{v.comments[0].text}</>
                     ) : (
@@ -744,7 +917,7 @@ export default function Feed() {
                 )}
                 <div
                   style={{
-                    color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer"
+                    color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer", fontFamily: FONT_FAMILY
                   }}
                   onClick={() => setShowComments(filename)}
                 >View all {v.comments ? v.comments.length : 0} comments</div>
@@ -777,14 +950,14 @@ export default function Feed() {
                       transition: isDraggingModal ? "none" : "transform 0.22s cubic-bezier(.43,1.5,.48,1.16)",
                       transform: modalDragY
                         ? `translateY(${Math.min(modalDragY, 144)}px)`
-                        : "translateY(0)"
+                        : "translateY(0)",
+                      fontFamily: FONT_FAMILY
                     }}
                     onTouchStart={handleModalTouchStart}
                     onTouchMove={handleModalTouchMove}
                     onTouchEnd={handleModalTouchEnd}
                     onClick={e => e.stopPropagation()}
                   >
-                    {/* Header */}
                     <div
                       style={{
                         display: 'flex',
@@ -793,56 +966,47 @@ export default function Feed() {
                         paddingBottom: 15,
                         borderBottom: '1px solid #262626'
                       }}>
-                      <h2 style={{ fontSize: 16, fontWeight: 600, color: "#fff" }}>Comments</h2>
+                      <h2 style={{ fontSize: 16, fontWeight: 600, color: "#fff", fontFamily: FONT_FAMILY }}>Comments</h2>
                       <span
-                        className="fas fa-times"
-                        style={{ fontSize: 22, color: "#fff", cursor: "pointer" }}
+                        style={{ fontSize: 22, color: "#fff", cursor: "pointer", fontFamily: FONT_FAMILY }}
                         onClick={() => setShowComments(null)}
                       >×</span>
                     </div>
-                    <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}>
+                    <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0', fontFamily: FONT_FAMILY }}>
                       {allComments.length === 0 ? (
-                        <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>Be the first to comment!</div>
+                        <div style={{
+                          color: "#68747b",
+                          textAlign: "center",
+                          padding: "40px 0",
+                          fontWeight: 500,
+                          fontFamily: FONT_FAMILY,
+                          fontSize: 16
+                        }}>
+                          No comments yet. Be first!
+                        </div>
                       ) : (
                         allComments.map((c, i) => (
-                          <div className="comment" style={{ display: 'flex', marginBottom: 15 }} key={i}>
-                            <img
-                              src={c.avatar}
-                              className="comment-avatar"
-                              alt="avatar"
-                              style={{
-                                width: 30, height: 30, borderRadius: "50%", marginRight: 10
-                              }}
-                            />
-                            <div className="comment-content" style={{ flex: 1 }}>
-                              <div>
-                                <span className="comment-username" style={{
-                                  fontWeight: 600, fontSize: 14, marginRight: 5, color:"#fff"
-                                }}>{c.name}</span>
-                                <span className="comment-text" style={{ fontSize: 14, color:"#fff" }}>{c.text}</span>
-                              </div>
-                              <div className="comment-time" style={{
-                                fontSize: 12, color: "#a8a8a8", marginTop: 2
-                              }}>{c.time}</div>
-                              <div className="comment-actions" style={{
-                                display: 'flex', marginTop: 5
-                              }}>
-                                <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer" }}>Reply</span>
-                                <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer" }}>Like</span>
-                              </div>
-                            </div>
-                          </div>
+                          <Comment
+                            key={i}
+                            uniqueId={`${filename}_${i}`}
+                            comment={c}
+                            onReply={handleReplyOpen}
+                            showReplyInput={replyingTo === `${filename}_${i}`}
+                            replyVal={replyInputs[`${filename}_${i}`] || ''}
+                            onReplyInput={v => handleReplyInput(`${filename}_${i}`, v)}
+                            onReplySend={handleReplySend}
+                            refreshFeed={refreshFeed}
+                          />
                         ))
                       )}
                     </div>
-                    {/* Add Comment */}
                     <div style={{
                       display: 'flex', alignItems: 'center',
                       paddingTop: 10, borderTop: '1px solid #262626'
                     }}>
                       <input
                         type="text"
-                        placeholder="Add a comment..."
+                        placeholder="Add a comment…"
                         style={{
                           flex: 1,
                           backgroundColor: "#262626",
@@ -850,7 +1014,8 @@ export default function Feed() {
                           borderRadius: 20,
                           padding: "10px 15px",
                           color: "white",
-                          fontSize: 14
+                          fontSize: 14,
+                          fontFamily: FONT_FAMILY
                         }}
                         value={commentInputs[filename] || ""}
                         onChange={e => setCommentInputs(prev => ({
@@ -869,7 +1034,8 @@ export default function Feed() {
                           background: "none",
                           border: "none",
                           cursor: (commentInputs[filename] || "").trim() !== "" ? "pointer" : "default",
-                          opacity: (commentInputs[filename] || "").trim() !== "" ? 1 : 0.5
+                          opacity: (commentInputs[filename] || "").trim() !== "" ? 1 : 0.5,
+                          fontFamily: FONT_FAMILY
                         }}
                         disabled={(commentInputs[filename] || "").trim() === ""}
                         onClick={() => handleAddComment(idx, filename)}
