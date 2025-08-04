@@ -3,6 +3,7 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
+const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(cors());
@@ -33,11 +34,31 @@ const upload = multer({ storage });
 // Serve static files from disk for video playback
 app.use('/uploads', express.static(DISK_PATH));
 
-// Admin Auth Middleware
-const ADMIN_KEY = 'Hindi@1234';
-function adminAuth(req, res, next) {
-  if (req.header("x-admin-key") === ADMIN_KEY) return next();
-  else return res.status(401).json({ error: "Unauthorized" });
+// === ADMIN LOGIN SYSTEM (JWT) ===
+const ADMIN_EMAIL = "propscholars@gmail.com";      // CHANGE THIS!
+const ADMIN_PASSWORD = "Hindi@1234";    // CHANGE THIS!
+const SECRET = "super-strong-secret-key-change-this"; // Use env variable for production!
+
+app.post("/admin/login", (req, res) => {
+  const { email, password } = req.body || {};
+  if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    const token = jwt.sign({ email }, SECRET, { expiresIn: "4h" });
+    return res.json({ token });
+  }
+  res.status(401).json({ error: "Unauthorized" });
+});
+
+function adminJwtAuth(req, res, next) {
+  const header = req.header("Authorization");
+  if (!header) return res.status(401).json({ error: "No token" });
+  const token = header.replace("Bearer ", "");
+  try {
+    const decoded = jwt.verify(token, SECRET);
+    if (decoded.email !== ADMIN_EMAIL) throw new Error();
+    return next();
+  } catch {
+    return res.status(401).json({ error: "Invalid token" });
+  }
 }
 
 // Helper: Find video by filename
@@ -86,7 +107,7 @@ app.post('/shorts/:filename/comment', (req, res) => {
 // === ADMIN ENDPOINTS ===
 
 // UPLOAD (with caption, optional author)
-app.post('/upload', adminAuth, upload.single('video'), (req, res) => {
+app.post('/upload', adminJwtAuth, upload.single('video'), (req, res) => {
   const videoUrl = `/uploads/${req.file.filename}`;
   const stats = fs.statSync(path.join(DISK_PATH, req.file.filename));
   const caption = typeof req.body.caption === "string" ? req.body.caption.trim() : "";
@@ -112,7 +133,7 @@ app.post('/upload', adminAuth, upload.single('video'), (req, res) => {
 });
 
 // PATCH (edit caption)
-app.patch('/shorts/:filename', adminAuth, (req, res) => {
+app.patch('/shorts/:filename', adminJwtAuth, (req, res) => {
   const filename = req.params.filename;
   const { caption } = req.body || {};
   let videos = getVideos();
@@ -129,7 +150,7 @@ app.patch('/shorts/:filename', adminAuth, (req, res) => {
 });
 
 // Delete video
-app.delete('/delete/:filename', adminAuth, (req, res) => {
+app.delete('/delete/:filename', adminJwtAuth, (req, res) => {
   const filename = req.params.filename;
   const filePath = path.join(DISK_PATH, filename);
   if (fs.existsSync(filePath)) {
