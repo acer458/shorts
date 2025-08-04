@@ -1,17 +1,20 @@
+// index.js (or app.js if you use require('./app') from index.js)
+
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const jwt = require("jsonwebtoken");
+const { randomUUID } = require('crypto');
 
 const app = express();
 app.use(cors());
-app.use(express.json()); // For parsing JSON bodies
+app.use(express.json());
 
-const DISK_PATH = '/data'; // MUST match your Render persistent disk mount path!
+const DISK_PATH = '/data'; // Your Render persistent disk path
 
-// Health/debug endpoint to check persistent disk contents after deploy
+// Health/debug endpoint
 app.get('/_diskdebug', (req, res) => {
   try {
     const files = fs.existsSync(DISK_PATH) ? fs.readdirSync(DISK_PATH) : [];
@@ -21,10 +24,8 @@ app.get('/_diskdebug', (req, res) => {
   }
 });
 
-// Ensure disk path exists (server startup)
 if (!fs.existsSync(DISK_PATH)) fs.mkdirSync(DISK_PATH, { recursive: true });
 
-// Persistent video "database"
 const VIDEOS_JSON = path.join(__dirname, 'videos.json');
 function getVideos() {
   if (!fs.existsSync(VIDEOS_JSON)) return [];
@@ -34,20 +35,18 @@ function saveVideos(videos) {
   fs.writeFileSync(VIDEOS_JSON, JSON.stringify(videos, null, 2), 'utf-8');
 }
 
-// Multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, DISK_PATH),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+  filename: (req, file, cb) => cb(null, randomUUID() + path.extname(file.originalname))
 });
 const upload = multer({ storage });
 
-// Serve static files from disk for video playback
 app.use('/uploads', express.static(DISK_PATH));
 
 // --- ADMIN LOGIN SYSTEM (JWT) ---
-const ADMIN_EMAIL = "propscholars@gmail.com";      // CHANGE THIS!
-const ADMIN_PASSWORD = "Hindi@1234";              // CHANGE THIS!
-const SECRET = "super-strong-secret-key-change-this"; // Use env variable for production!
+const ADMIN_EMAIL = "propscholars@gmail.com";
+const ADMIN_PASSWORD = "Hindi@1234";
+const SECRET = "super-strong-secret-key-change-this"; // Change for production
 
 app.post("/admin/login", (req, res) => {
   const { email, password } = req.body || {};
@@ -71,17 +70,20 @@ function adminJwtAuth(req, res, next) {
   }
 }
 
-// Helper: Find video by filename
 function findVideo(videos, filename) {
-  return videos.find(v => v.url && v.url.split('/').pop() === filename);
+  return videos.find(v => v.filename === filename);
 }
 
 // === PUBLIC ENDPOINTS ===
-
-// Get ALL shorts
 app.get('/shorts', (req, res) => { res.json(getVideos()); });
 
-// Increment view count
+app.get('/shorts/:filename', (req, res) => {
+  const videos = getVideos();
+  const vid = findVideo(videos, req.params.filename);
+  if (!vid) return res.status(404).json({ error: "Video not found" });
+  res.json(vid);
+});
+
 app.post('/shorts/:filename/view', (req, res) => {
   const videos = getVideos();
   const vid = findVideo(videos, req.params.filename);
@@ -91,7 +93,6 @@ app.post('/shorts/:filename/view', (req, res) => {
   res.json({ success: true, views: vid.views });
 });
 
-// Like (increment like count)
 app.post('/shorts/:filename/like', (req, res) => {
   const videos = getVideos();
   const vid = findVideo(videos, req.params.filename);
@@ -101,7 +102,6 @@ app.post('/shorts/:filename/like', (req, res) => {
   res.json({ success: true, likes: vid.likes });
 });
 
-// Add a comment
 app.post('/shorts/:filename/comment', (req, res) => {
   const { name = "Anonymous", text } = req.body || {};
   if (!text) return res.status(400).json({ error: "No comment text" });
@@ -115,21 +115,20 @@ app.post('/shorts/:filename/comment', (req, res) => {
 });
 
 // === ADMIN ENDPOINTS ===
-
-// UPLOAD (with caption, optional author)
 app.post('/upload', adminJwtAuth, upload.single('video'), (req, res) => {
-  const videoUrl = `/uploads/${req.file.filename}`;
-  const stats = fs.statSync(path.join(DISK_PATH, req.file.filename));
+  const filename = req.file.filename;
+  const videoUrl = `/uploads/${filename}`;
+  const stats = fs.statSync(path.join(DISK_PATH, filename));
   const caption = typeof req.body.caption === "string" ? req.body.caption.trim() : "";
   const author = typeof req.body.author === "string" ? req.body.author.trim() : "";
   if (caption.length > 250) {
-    fs.unlinkSync(path.join(DISK_PATH, req.file.filename));
+    fs.unlinkSync(path.join(DISK_PATH, filename));
     return res.status(400).json({ error: "Caption too long" });
   }
   let videos = getVideos();
   videos.unshift({
     url: videoUrl,
-    filename: req.file.filename,
+    filename,
     createdAt: new Date(),
     size: stats.size,
     caption,
@@ -142,7 +141,6 @@ app.post('/upload', adminJwtAuth, upload.single('video'), (req, res) => {
   res.json({ success: true, url: videoUrl });
 });
 
-// PATCH (edit caption)
 app.patch('/shorts/:filename', adminJwtAuth, (req, res) => {
   const filename = req.params.filename;
   const { caption } = req.body || {};
@@ -159,7 +157,6 @@ app.patch('/shorts/:filename', adminJwtAuth, (req, res) => {
   return res.status(400).json({ error: "No caption sent" });
 });
 
-// Delete video
 app.delete('/delete/:filename', adminJwtAuth, (req, res) => {
   const filename = req.params.filename;
   const filePath = path.join(DISK_PATH, filename);
@@ -167,7 +164,7 @@ app.delete('/delete/:filename', adminJwtAuth, (req, res) => {
     try { fs.unlinkSync(filePath); } catch (err) {}
   }
   let videos = getVideos();
-  videos = videos.filter(v => v.url.split('/').pop() !== filename);
+  videos = videos.filter(v => v.filename !== filename);
   saveVideos(videos);
   res.json({ success: true });
 });
