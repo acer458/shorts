@@ -9,7 +9,17 @@ const app = express();
 app.use(cors());
 app.use(express.json()); // For parsing JSON bodies
 
-const DISK_PATH = '/data'; // Use your Render disk mount path!
+const DISK_PATH = '/data'; // MUST match your Render persistent disk mount path!
+
+// Health/debug endpoint to check persistent disk contents after deploy
+app.get('/_diskdebug', (req, res) => {
+  try {
+    const files = fs.existsSync(DISK_PATH) ? fs.readdirSync(DISK_PATH) : [];
+    res.json({ disk_path: DISK_PATH, files });
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
 
 // Ensure disk path exists (server startup)
 if (!fs.existsSync(DISK_PATH)) fs.mkdirSync(DISK_PATH, { recursive: true });
@@ -34,9 +44,9 @@ const upload = multer({ storage });
 // Serve static files from disk for video playback
 app.use('/uploads', express.static(DISK_PATH));
 
-// === ADMIN LOGIN SYSTEM (JWT) ===
+// --- ADMIN LOGIN SYSTEM (JWT) ---
 const ADMIN_EMAIL = "propscholars@gmail.com";      // CHANGE THIS!
-const ADMIN_PASSWORD = "Hindi@1234";    // CHANGE THIS!
+const ADMIN_PASSWORD = "Hindi@1234";              // CHANGE THIS!
 const SECRET = "super-strong-secret-key-change-this"; // Use env variable for production!
 
 app.post("/admin/login", (req, res) => {
