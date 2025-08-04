@@ -1,3 +1,4 @@
+// app.js
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
@@ -6,11 +7,12 @@ const multer = require('multer');
 
 const app = express();
 app.use(cors());
-app.use('/uploads', express.static('uploads'));
 app.use(express.json()); // For parsing JSON bodies
 
-// Ensure uploads folder exists
-if (!fs.existsSync('uploads')) fs.mkdirSync('uploads');
+const DISK_PATH = '/data'; // Must match your Render mount path!
+
+// Ensure disk path exists (on first boot)
+if (!fs.existsSync(DISK_PATH)) fs.mkdirSync(DISK_PATH, { recursive: true });
 
 // Persistent video "database"
 const VIDEOS_JSON = path.join(__dirname, 'videos.json');
@@ -24,10 +26,13 @@ function saveVideos(videos) {
 
 // Multer for file uploads
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
+  destination: (req, file, cb) => cb(null, DISK_PATH),
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
 const upload = multer({ storage });
+
+// Serve static files from disk for video playback
+app.use('/uploads', express.static(DISK_PATH));
 
 // Admin Auth Middleware
 const ADMIN_KEY = 'Hindi@1234';
@@ -42,11 +47,8 @@ function findVideo(videos, filename) {
 }
 
 // === PUBLIC ENDPOINTS ===
-
-// Get ALL shorts
 app.get('/shorts', (req, res) => { res.json(getVideos()); });
 
-// Like a video
 app.post('/shorts/:filename/like', (req, res) => {
   const videos = getVideos();
   const vid = findVideo(videos, req.params.filename);
@@ -56,7 +58,6 @@ app.post('/shorts/:filename/like', (req, res) => {
   res.json({ success: true, likes: vid.likes });
 });
 
-// Add a comment
 app.post('/shorts/:filename/comment', (req, res) => {
   const { name = "Anonymous", text } = req.body || {};
   if (!text) return res.status(400).json({ error: "No comment text" });
@@ -71,14 +72,13 @@ app.post('/shorts/:filename/comment', (req, res) => {
 
 // === ADMIN ENDPOINTS ===
 
-// UPLOAD (with caption, optional author)
 app.post('/upload', adminAuth, upload.single('video'), (req, res) => {
   const videoUrl = `/uploads/${req.file.filename}`;
-  const stats = fs.statSync(path.join('uploads', req.file.filename));
+  const stats = fs.statSync(path.join(DISK_PATH, req.file.filename));
   const caption = typeof req.body.caption === "string" ? req.body.caption.trim() : "";
   const author = typeof req.body.author === "string" ? req.body.author.trim() : "";
   if (caption.length > 250) {
-    fs.unlinkSync(path.join('uploads', req.file.filename));
+    fs.unlinkSync(path.join(DISK_PATH, req.file.filename));
     return res.status(400).json({ error: "Caption too long" });
   }
 
@@ -97,7 +97,6 @@ app.post('/upload', adminAuth, upload.single('video'), (req, res) => {
   res.json({ success: true, url: videoUrl });
 });
 
-// PATCH (edit caption)
 app.patch('/shorts/:filename', adminAuth, (req, res) => {
   const filename = req.params.filename;
   const { caption } = req.body || {};
@@ -114,10 +113,9 @@ app.patch('/shorts/:filename', adminAuth, (req, res) => {
   return res.status(400).json({ error: "No caption sent" });
 });
 
-// Delete video
 app.delete('/delete/:filename', adminAuth, (req, res) => {
   const filename = req.params.filename;
-  const filePath = path.join(__dirname, 'uploads', filename);
+  const filePath = path.join(DISK_PATH, filename);
   if (fs.existsSync(filePath)) {
     try { fs.unlinkSync(filePath); } catch (err) {}
   }
