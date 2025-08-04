@@ -15,15 +15,21 @@ export default function AdminDashboard() {
   const [shorts, setShorts] = useState([]);
   const [video, setVideo] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [status, setStatus] = useState("");
-  const [editState, setEditState] = useState({}); // { filename: {caption, loading, saved, error} }
+  const [editState, setEditState] = useState({});
+  const [scrollCounts, setScrollCounts] = useState({});
 
-  // Fetch all videos on mount and after changes
+  // Fetch videos and scroll counts
   const refreshShorts = () => {
     axios
       .get(HOST + "/shorts")
       .then((res) => setShorts(res.data))
       .catch(() => setStatus("Could not fetch shorts."));
+    // Fetch scroll/view counts, expects { filename1: count, filename2: count }
+    axios.get(HOST + "/views")
+      .then(res => setScrollCounts(res.data))
+      .catch(() => {});
   };
 
   useEffect(refreshShorts, []);
@@ -33,6 +39,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!video) return;
     setUploading(true);
+    setUploadProgress(0);
     setStatus("");
     const formData = new FormData();
     formData.append("video", video);
@@ -42,14 +49,19 @@ export default function AdminDashboard() {
         headers: {
           "x-admin-key": ADMIN_KEY,
         },
+        onUploadProgress: progressEvent => {
+          setUploadProgress(Math.round((progressEvent.loaded * 100) / progressEvent.total));
+        }
       })
       .then(() => {
         setVideo(null);
         setStatus("Upload Successful!");
+        setUploadProgress(0);
         refreshShorts();
       })
       .catch((err) => {
         setUploading(false);
+        setUploadProgress(0);
         if (err.response && err.response.status === 401) {
           setStatus("Upload Failed: Unauthorized (Check admin key)");
         } else if (err.response && err.response.status === 413) {
@@ -127,7 +139,7 @@ export default function AdminDashboard() {
         fontFamily: "Inter, sans-serif",
       }}
     >
-      {/* LEFT: Upload area / meta stats / file list */}
+      {/* LEFT: Upload/meta/file list */}
       <div
         style={{
           flex: "0 0 340px",
@@ -180,6 +192,21 @@ export default function AdminDashboard() {
           >
             {uploading ? "Uploading..." : "Submit"}
           </button>
+          {uploadProgress > 0 && (
+            <div style={{width: '100%', background: '#333', borderRadius: 8, marginTop: 10}}>
+              <div style={{
+                width: `${uploadProgress}%`,
+                height: 18, background: '#3eeaa7', borderRadius: 8,
+                transition: "width 0.17s"
+              }} />
+              <div style={{
+                position: "absolute", color: "#000", fontWeight: 700,
+                fontSize: 15, left: 8, top: 2
+              }}>
+                {uploadProgress}%
+              </div>
+            </div>
+          )}
           {status && (
             <div
               style={{
@@ -196,7 +223,7 @@ export default function AdminDashboard() {
             </div>
           )}
         </form>
-        {/* Video statistics */}
+        {/* Stats */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ fontWeight: "bold" }}>
             No. of videos: <span style={{ color: "#22d3ee" }}>{shorts.length}</span>
@@ -281,7 +308,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* RIGHT: Scrollable videos, caption editor */}
+      {/* RIGHT: Editable video list with view scroll counter */}
       <div
         style={{
           flex: 1,
@@ -329,6 +356,7 @@ export default function AdminDashboard() {
             const state = editState[filename] || {};
             const origCaption = s.caption ?? "";
             const caption = state.caption !== undefined ? state.caption : origCaption;
+            const viewCount = scrollCounts[filename] || 0;
 
             return (
               <div
@@ -360,6 +388,10 @@ export default function AdminDashboard() {
                   }}
                 />
                 <small style={{ color: "#aaa" }}>{filename}</small>
+                <div>
+                  <strong style={{color:'#43e'}}>Views/Scrolls:</strong>{" "}
+                  <span style={{color:'#0fa'}}>{viewCount}</span>
+                </div>
                 <div style={{ margin: "12px 0 3px 0" }}>
                   <label
                     style={{
