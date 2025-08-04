@@ -324,7 +324,7 @@ function Comment({
               boxShadow: liked ? "0 1px 4px #ed495610" : "",
             }}
           >
-            <HeartSVG filled={liked} size={20} />
+            <HeartSVG filled={liked} size={32} />
             {likeCount > 0 &&
               <span style={{
                 fontSize: 13,
