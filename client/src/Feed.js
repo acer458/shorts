@@ -10,7 +10,10 @@ function truncateString(str, maxLen = 90) {
   if (!str) return "";
   if (str.length <= maxLen) return str;
   const nextSpace = str.indexOf(" ", maxLen);
-  return str.substring(0, nextSpace === -1 ? str.length : nextSpace) + "…";
+  return (
+    str.substring(0, nextSpace === -1 ? str.length : nextSpace) +
+    "…"
+  );
 }
 function shuffleArray(arr) {
   const a = [...arr];
@@ -50,27 +53,16 @@ function fakeTime(i) {
   ][i % 6] || "Just now";
 }
 function throttle(fn, wait) {
-  let inThrottle, lastFn, lastTime;
-  return function () {
-    const context = this,
-      args = arguments;
-    if (!inThrottle) {
-      fn.apply(context, args);
-      lastTime = Date.now();
-      inThrottle = true;
-    } else {
-      clearTimeout(lastFn);
-      lastFn = setTimeout(function () {
-        if (Date.now() - lastTime >= wait) {
-          fn.apply(context, args);
-          lastTime = Date.now();
-        }
-      }, Math.max(wait - (Date.now() - lastTime), 0));
-    }
+  let locked = false;
+  return (...args) => {
+    if (locked) return;
+    locked = true;
+    fn(...args);
+    setTimeout(() => (locked = false), wait);
   };
 }
 
-// ---- SVG ICONS (unchanged from your template) ----
+// ---- SVG ICONS ----
 function HeartSVG({ filled }) {
   return (
     <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
@@ -87,8 +79,8 @@ function PauseIcon() {
   return (
     <svg width={82} height={82} viewBox="0 0 82 82">
       <circle cx="41" cy="41" r="40" fill="#000A" />
-      <rect x="26" y="20" width="10" height="42" rx="3" fill="#fff"/>
-      <rect x="46" y="20" width="10" height="42" rx="3" fill="#fff"/>
+      <rect x="26" y="20" width="10" height="42" rx="3" fill="#fff" />
+      <rect x="46" y="20" width="10" height="42" rx="3" fill="#fff" />
     </svg>
   );
 }
@@ -144,7 +136,6 @@ function SkeletonShort() {
     <div
       style={{
         width: "100vw", height: "100dvh",
-        scrollSnapAlign: "start",
         position: "relative",
         background: "#111",
         display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
@@ -171,41 +162,18 @@ function SkeletonShort() {
           borderRadius: "50%"
         }} />
       </div>
-      <div style={{
-        position: 'absolute', right: '12px', bottom: '100px', zIndex: 10,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '25px'
-      }}>
-        {Array.from({length:3}).map((_,i) => (
-          <div key={i} style={{
-            width: 46, height: 49, marginBottom: i===0?6:0, borderRadius: 16,
-            background: "linear-gradient(90deg,#20212c 30%,#292a37 60%,#20212c 100%)"
-          }} />
-        ))}
-      </div>
-      <div style={{
-        position: "absolute", left: 0, right: 0, bottom: 0,
-        background: "linear-gradient(0deg,#151721 88%,transparent 100%)",
-        color: "#fff", padding: "22px 18px 33px 18px", zIndex: 6,
-        display: "flex", flexDirection: "column", userSelect: "none"
-      }}>
-        <div style={{width: 110, height: 17, marginBottom: 10, borderRadius: 7,
-          background: "linear-gradient(90deg,#21243a 30%,#393b56 60%,#21243a 100%)", marginLeft: 2
-        }} />
-        <div style={{
-          height: 15, width: "70%", borderRadius: 5,
-          background: "linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"
-        }}/>
-        <div style={{marginTop:8, width:76, height:14, borderRadius:6, background:"linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"}}/>
-      </div>
     </div>
   );
 }
 
-// ---- ANTI-INSPECT (DEV TOOL BLOCK) ----
+// ---- ANTI-INSPECT ----
 function useAntiInspect() {
   useEffect(() => {
     const blockDevtools = e => {
-      if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase()))) {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase()))
+      ) {
         e.preventDefault();
         e.stopPropagation();
       }
@@ -225,42 +193,50 @@ export default function Feed() {
   useAntiInspect();
   const location = useLocation();
   const navigate = useNavigate();
+  // CORE STATE
   const [shorts, setShorts] = useState([]);
   const [aloneVideo, setAloneVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const videoRefs = useRef([]);
-  const wrapperRefs = useRef([]);
   const [currentIdx, setCurrentIdx] = useState(0);
+
+  // LOCAL UI STATE
+  const videoRefs = useRef({});
   const [muted, setMuted] = useState(true);
   const [mutePulse, setMutePulse] = useState(false);
+  const [showPause, setShowPause] = useState(false);
+  const [showPulseHeart, setShowPulseHeart] = useState(false);
   const [likePending, setLikePending] = useState({});
   const [showComments, setShowComments] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
-  const [videoProgress, setVideoProgress] = useState({});
-  const [showPause, setShowPause] = useState(false);
-  const [showPulseHeart, setShowPulseHeart] = useState(false);
   const [expandedCaptions, setExpandedCaptions] = useState({});
+  const [videoProgress, setVideoProgress] = useState({});
+
+  // Comments modal drag
   const [modalDragY, setModalDragY] = useState(0);
   const [isDraggingModal, setIsDraggingModal] = useState(false);
   const dragStartY = useRef(0);
+
+  // "Replay-protection" overlay
   const [replayCounts, setReplayCounts] = useState({});
   const [overlayShown, setOverlayShown] = useState({});
 
-  // ---- FEED/SINGLE-VIDEO FETCH ----
+  // ---- FETCH ----
   useEffect(() => {
-    setLoading(true); setNotFound(false); setAloneVideo(null); setShorts([]);
-    setReplayCounts({}); setOverlayShown({});
+    setLoading(true);
+    setNotFound(false);
+    setAloneVideo(null);
+    setShorts([]);
+    setReplayCounts({});
+    setOverlayShown({});
     const params = new URLSearchParams(location.search);
     const filename = params.get("v");
     if (filename) {
       axios.get(`${HOST}/shorts/${filename}`)
-        .then(res =>
-          setAloneVideo({
-            ...res.data,
-            url: res.data.url || `/shorts/${filename}`,
-          })
-        )
+        .then(res => setAloneVideo({
+          ...res.data,
+          url: res.data.url || `/shorts/${filename}`
+        }))
         .catch(() => setNotFound(true))
         .finally(() => setLoading(false));
     } else {
@@ -270,44 +246,70 @@ export default function Feed() {
     }
   }, [location.search]);
 
-  // --- INTERSECTION OBSERVER for "which video in focus" ----
+  // ---- PAGING: Only one video at a time, strictly state-based ----
+  // No scroll container! Paging only through up/down
+  const pageLock = useRef(false);
+
+  function changeIdx(direction) {
+    if (pageLock.current) return;
+    let next = currentIdx + direction;
+    if (next < 0 || next >= shorts.length) return;
+    pageLock.current = true;
+    setCurrentIdx(next);
+    setTimeout(() => (pageLock.current = false), 500); // lock for anim duration
+  }
+
+  // Wheel and swipe listeners
   useEffect(() => {
     if (aloneVideo) return;
-    const observer = new window.IntersectionObserver(
-      entries => {
-        let maxRatio = 0, visibleIdx = 0;
-        entries.forEach(entry => {
-          if (entry.intersectionRatio > maxRatio) {
-            maxRatio = entry.intersectionRatio;
-            visibleIdx = Number(entry.target.dataset.idx);
-          }
-        });
-        if (maxRatio > 0.7) setCurrentIdx(visibleIdx);
-      },
-      { threshold: [0, 0.5, 0.7, 1] }
-    );
-    wrapperRefs.current.forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, [shorts.length, aloneVideo]);
 
-  useEffect(() => {
-    videoRefs.current = Array(shorts.length);
-    wrapperRefs.current = Array(shorts.length);
-  }, [shorts.length]);
+    function onWheel(e) {
+      if (Math.abs(e.deltaY) < 16) return;
+      if (e.deltaY > 0) changeIdx(1);
+      else if (e.deltaY < 0) changeIdx(-1);
+      e.preventDefault();
+    }
 
-  // --- Mute/play/pause for focused video
+    let touchStartY = null;
+    function onTouchStart(e) {
+      if (e.touches.length !== 1) return;
+      touchStartY = e.touches[0].clientY;
+    }
+    function onTouchEnd(e) {
+      if (!touchStartY || !e.changedTouches) return;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dy) > 40) {
+        if (dy < 0) changeIdx(1);
+        if (dy > 0) changeIdx(-1);
+      }
+      touchStartY = null;
+    }
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("touchstart", onTouchStart, { passive: false });
+    window.addEventListener("touchend", onTouchEnd, { passive: false });
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [currentIdx, shorts.length, aloneVideo]);
+
+  // ---- VIDEO CONTROL: Play/pause
   useEffect(() => {
+    // Mute, pause all others, play current if not overlay
     if (aloneVideo) return;
-    videoRefs.current.forEach((vid, idx) => {
+    Object.entries(videoRefs.current).forEach(([idx, vid]) => {
+      let nidx = Number(idx);
       if (!vid) return;
-      if (idx === currentIdx) {
+      if (nidx === currentIdx) {
         vid.muted = muted;
-        const filename = (shorts[idx] && shorts[idx].url.split('/').pop()) || "";
+        const filename = shorts[nidx] && shorts[nidx].url.split("/").pop();
         if (!overlayShown[filename]) {
           vid.play().catch(() => {});
         }
       } else {
-        vid.pause();
+        vid.pause && vid.pause();
         vid.muted = true;
       }
     });
@@ -316,15 +318,17 @@ export default function Feed() {
   }, [currentIdx, muted, aloneVideo, shorts, overlayShown]);
 
   useEffect(() => {
+    // Pause all on tab switch
     function visibilityHandler() {
       if (document.visibilityState !== "visible") {
-        videoRefs.current.forEach((vid) => vid && vid.pause());
+        Object.values(videoRefs.current).forEach((vid) => vid && vid.pause());
       }
     }
     document.addEventListener("visibilitychange", visibilityHandler);
     return () => document.removeEventListener("visibilitychange", visibilityHandler);
   }, []);
 
+  // ---- LIKE / COMMENT / SHARE
   function isLiked(filename) {
     return localStorage.getItem("like_" + filename) === "1";
   }
@@ -419,7 +423,7 @@ export default function Feed() {
       [filename]: !prev[filename]
     }));
 
-  // ---- Modal Drag handlers ----
+  // ---- Comments modal drag
   function handleModalTouchStart(e) {
     if (!e.touches || e.touches.length !== 1) return;
     dragStartY.current = e.touches[0].clientY;
@@ -435,6 +439,51 @@ export default function Feed() {
     if (modalDragY > 65) setShowComments(null);
     setModalDragY(0);
   }
+
+  // ---- Video Progress
+  function handleTimeUpdate(idx, filename) {
+    const vid = videoRefs.current[idx];
+    setVideoProgress((prev) => ({
+      ...prev,
+      [filename]:
+        vid && vid.duration && isFinite(vid.duration)
+          ? vid.currentTime / vid.duration
+          : 0
+    }));
+  }
+
+  // ---- ============= REPLAY PROTECTION =============== ----
+  function handleVideoEnded(idx, filename) {
+    setReplayCounts((prev) => {
+      const prevCount = prev[filename] || 0;
+      if (prevCount < 2) {
+        if (videoRefs.current[idx]) {
+          videoRefs.current[idx].currentTime = 0;
+          videoRefs.current[idx].play().catch(() => {});
+        }
+        return { ...prev, [filename]: prevCount + 1 };
+      } else {
+        setOverlayShown((prevOverlay) => ({
+          ...prevOverlay,
+          [filename]: true,
+        }));
+        if (videoRefs.current[idx]) {
+          videoRefs.current[idx].pause();
+        }
+        return { ...prev, [filename]: prevCount + 1 };
+      }
+    });
+  }
+  function handleOverlayContinue(idx, filename) {
+    setReplayCounts((prev) => ({ ...prev, [filename]: 0 }));
+    setOverlayShown((prev) => ({ ...prev, [filename]: false }));
+    if (videoRefs.current[idx]) {
+      videoRefs.current[idx].currentTime = 0;
+      videoRefs.current[idx].play().catch(() => {});
+    }
+  }
+
+  // ---- TAP + HEART UI ----
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -504,157 +553,55 @@ export default function Feed() {
       vid.currentTime = Math.max(0, Math.min(percent, 1)) * vid.duration;
     }
   }
-  function handleTimeUpdate(idx, filename) {
-    const vid = videoRefs.current[idx];
-    setVideoProgress(prev => ({
-      ...prev,
-      [filename]:
-        vid && vid.duration && isFinite(vid.duration)
-          ? vid.currentTime / vid.duration
-          : 0
-    }));
+
+  // ---- PAGED RENDER LOGIC ----
+  function getPagedShorts() {
+    if (shorts.length === 0) return [];
+    return [
+      currentIdx - 1,
+      currentIdx,
+      currentIdx + 1,
+    ]
+      .filter((idx) => idx >= 0 && idx < shorts.length)
+      .map((idx) => ({ ...shorts[idx], _idx: idx }));
   }
 
-  // ---- ============= REPLAY PROTECTION =============== ----
-  function handleVideoEnded(idx, filename) {
-    setReplayCounts((prev) => {
-      const prevCount = prev[filename] || 0;
-      if (prevCount < 2) {
-        if (videoRefs.current[idx]) {
-          videoRefs.current[idx].currentTime = 0;
-          videoRefs.current[idx].play().catch(() => {});
-        }
-        return { ...prev, [filename]: prevCount + 1 };
-      } else {
-        setOverlayShown((prevOverlay) => ({
-          ...prevOverlay,
-          [filename]: true,
-        }));
-        if (videoRefs.current[idx]) {
-          videoRefs.current[idx].pause();
-        }
-        return { ...prev, [filename]: prevCount + 1 };
-      }
-    });
-  }
-  function handleOverlayContinue(idx, filename) {
-    setReplayCounts((prev) => ({ ...prev, [filename]: 0 }));
-    setOverlayShown((prev) => ({ ...prev, [filename]: false }));
-    if (videoRefs.current[idx]) {
-      videoRefs.current[idx].currentTime = 0;
-      videoRefs.current[idx].play().catch(() => {});
-    }
-  }
-
-  // ---- SCROLL SNAP LOCK (prevents multiple rapid snaps) ---
-  const containerRef = useRef(null);
-  const isScrollLocked = useRef(false);
-
-  useEffect(() => {
-    if (aloneVideo) return;
-    const el = containerRef.current;
-    if (!el) return;
-
-    function getNextSnapIdx(dir) {
-      if (dir > 0 && currentIdx < shorts.length - 1) return currentIdx + 1;
-      if (dir < 0 && currentIdx > 0) return currentIdx - 1;
-      return currentIdx;
-    }
-
-    // Wheel/Touchpad scroll
-    const onWheel = throttle((e) => {
-      if (isScrollLocked.current) {
-        e.preventDefault();
-        return;
-      }
-      const deltaY = e.deltaY;
-      if (Math.abs(deltaY) < 10) return;
-      let newIdx = currentIdx;
-      if (deltaY > 0) newIdx = getNextSnapIdx(1);
-      else if (deltaY < 0) newIdx = getNextSnapIdx(-1);
-      if (newIdx !== currentIdx) {
-        isScrollLocked.current = true;
-        setCurrentIdx(newIdx);
-        if (containerRef.current && containerRef.current.children[newIdx]) {
-          containerRef.current.children[newIdx].scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-          });
-        }
-        setTimeout(() => { isScrollLocked.current = false; }, 520);
-      }
-      e.preventDefault();
-    }, 480);
-    el.addEventListener("wheel", onWheel, { passive: false });
-
-    // Touch (mobile swipe)
-    let lastTouchY = null;
-    let touchBlocked = false;
-    function onTouchStart(e) {
-      if (e.touches.length === 1) lastTouchY = e.touches[0].clientY;
-    }
-    function onTouchMove(e) {
-      if (lastTouchY !== null && !touchBlocked) {
-        const delta = e.touches[0].clientY - lastTouchY;
-        if (Math.abs(delta) > 38) {
-          let newIdx = currentIdx;
-          if (delta < 0) newIdx = getNextSnapIdx(1);
-          else newIdx = getNextSnapIdx(-1);
-          if (newIdx !== currentIdx) {
-            touchBlocked = true;
-            isScrollLocked.current = true;
-            setCurrentIdx(newIdx);
-            if (containerRef.current && containerRef.current.children[newIdx]) {
-              containerRef.current.children[newIdx].scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-              });
-            }
-            setTimeout(() => {
-              isScrollLocked.current = false;
-              touchBlocked = false;
-            }, 520);
-          }
-        }
-      }
-    }
-    function onTouchEnd() {
-      lastTouchY = null;
-    }
-    el.addEventListener("touchstart", onTouchStart);
-    el.addEventListener("touchmove", onTouchMove, { passive: false });
-    el.addEventListener("touchend", onTouchEnd);
-
-    return () => {
-      el.removeEventListener("wheel", onWheel);
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchmove", onTouchMove);
-      el.removeEventListener("touchend", onTouchEnd);
-    };
-    // eslint-disable-next-line
-  }, [currentIdx, shorts.length, aloneVideo]);
-
-  // ---- VIDEO UI LOGIC (unchanged) ----
+  // ---- RENDER VIDEO ----
   function renderVideo({
-    v, idx, filename, prog, liked, isCurrent, allComments,
-    caption, showFull, isTruncated, displayedCaption, inFeed
+    v,
+    idx,
+    filename,
+    prog,
+    liked,
+    isCurrent,
+    allComments,
+    caption,
+    showFull,
+    isTruncated,
+    displayedCaption,
+    inFeed
   }) {
     const isOverlayShown = overlayShown[filename];
     return (
-      <div key={filename} data-idx={idx}
-        ref={el => inFeed && (wrapperRefs.current[idx] = el)}
+      <div
+        key={filename}
         style={{
-          width: "100vw", height: "100dvh", scrollSnapAlign: "start",
-          position: "relative", background: "black",
-          display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
+          width: "100vw", height: "100dvh", position: "absolute", left: 0, top: 0,
+          transition: "transform 0.44s cubic-bezier(.5,1,.5,1)",
+          willChange: "transform",
+          background: "black",
+          overflow: "hidden"
         }}
       >
         <video
-          ref={el => (videoRefs.current[idx] = el)}
+          ref={el => el && (videoRefs.current[idx] = el)}
           src={HOST + v.url}
           loop={false}
           playsInline
-          style={{ width: "100vw", height: "100dvh", objectFit: "contain", background: "#000", cursor: "pointer", display: "block" }}
+          style={{
+            width: "100vw", height: "100dvh", objectFit: "contain", background: "#000",
+            cursor: "pointer", display: "block"
+          }}
           muted={muted}
           autoPlay
           onTimeUpdate={() => handleTimeUpdate(idx, filename)}
@@ -663,53 +610,23 @@ export default function Feed() {
         />
         {isOverlayShown && (
           <div style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1002,
+            position: "absolute", inset: 0, display: "flex",
+            alignItems: "center", justifyContent: "center", zIndex: 1002,
           }}>
             <div style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "12px",
-              minWidth: "260px",
-              minHeight: "92px",
-              background: "rgba(30,30,38,0.41)",
-              borderRadius: "16px",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", minWidth: "260px",
+              minHeight: "92px", background: "rgba(30,30,38,0.41)", borderRadius: "16px",
               boxShadow: "0 8px 32px 0 rgba(12,16,30,0.21), 0 1.5px 11px #0004",
-              backdropFilter: "blur(14px) saturate(160%)",
-              border: "1.6px solid rgba(80,80,86,0.16)",
-              padding: "24px 26px 18px 26px",
-              animation: "glassRise .36s cubic-bezier(.61,2,.22,1.02)"
+              backdropFilter: "blur(14px) saturate(160%)", border: "1.6px solid rgba(80,80,86,0.16)",
+              padding: "24px 26px 18px 26px", animation: "glassRise .36s cubic-bezier(.61,2,.22,1.02)"
             }}>
-              <span style={{
-                color: "#fff",
-                fontSize: "1.11rem",
-                fontWeight: 600,
-                letterSpacing: "0.01em",
-                whiteSpace: "nowrap",
-                marginBottom: "6px",
-                fontFamily: "inherit"
-              }}>
+              <span style={{ color: "#fff", fontSize: "1.11rem", fontWeight: 600, marginBottom: "6px" }}>
                 Continue watching?
               </span>
               <button onClick={() => handleOverlayContinue(idx, filename)} style={{
-                background: "rgba(0,0,0,0.30)",
-                color: "#fff",
-                fontFamily: "inherit",
-                padding: "8px 28px",
-                fontSize: "1rem",
-                fontWeight: 500,
-                borderRadius: "12px",
-                border: "1.1px solid rgba(255,255,255,0.085)",
-                boxShadow: "0 1.5px 8px #0004",
-                outline: "none",
-                marginTop: "1px",
-                cursor: "pointer",
-                letterSpacing: "0.01em"
+                background: "rgba(0,0,0,0.30)", color: "#fff", fontFamily: "inherit", padding: "8px 28px",
+                fontSize: "1rem", fontWeight: 500, borderRadius: "12px", border: "1.1px solid rgba(255,255,255,0.085)",
+                boxShadow: "0 1.5px 8px #0004", outline: "none", marginTop: "1px", cursor: "pointer", letterSpacing: "0.01em"
               }}>
                 Continue
               </button>
@@ -722,34 +639,32 @@ export default function Feed() {
             `}</style>
           </div>
         )}
-        {(inFeed ? isCurrent : true) && (
-          <button
-            onClick={e => { e.stopPropagation(); setMuted(m => !m); setMutePulse(true); setTimeout(() => setMutePulse(false), 350); }}
-            aria-label={muted ? "Unmute" : "Mute"}
-            tabIndex={0}
-            style={{
-              position: "absolute", top: 20, right: 20, zIndex: 60,
-              background: "rgba(28,29,34,0.65)", border: "none",
-              borderRadius: 16, width: 39, height: 39,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", boxShadow: "0 2px 6px #0002", outline: "none",
-              transition: "box-shadow .22s,ease",
-              ...(mutePulse
-                ? { animation: "mutepulseanim 0.38s cubic-bezier(.3,1.5,.65,1.05)", boxShadow: "0 0 0 9px #33b6ff27" }
-                : {})
-            }}
-          >
-            <MuteMicIcon muted={muted} />
-            <style>{`
-              @keyframes mutepulseanim {
-                0% { box-shadow: 0 0 0 0 #33b6ff88; transform: scale(1.09);}
-                75%{ box-shadow:0 0 0 13px #33b6ff22; transform: scale(1.13);}
-                100% { box-shadow: 0 0 0 0 #33b6ff00; transform: scale(1);}
-              }
-            `}</style>
-          </button>
-        )}
-        {(inFeed ? isCurrent : true) && showPause && (
+        <button
+          onClick={e => { e.stopPropagation(); setMuted(m => !m); setMutePulse(true); setTimeout(() => setMutePulse(false), 350); }}
+          aria-label={muted ? "Unmute" : "Mute"}
+          tabIndex={0}
+          style={{
+            position: "absolute", top: 20, right: 20, zIndex: 60,
+            background: "rgba(28,29,34,0.65)", border: "none",
+            borderRadius: 16, width: 39, height: 39,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", boxShadow: "0 2px 6px #0002", outline: "none",
+            transition: "box-shadow .22s,ease",
+            ...(mutePulse
+              ? { animation: "mutepulseanim 0.38s cubic-bezier(.3,1.5,.65,1.05)", boxShadow: "0 0 0 9px #33b6ff27" }
+              : {})
+          }}
+        >
+          <MuteMicIcon muted={muted} />
+          <style>{`
+            @keyframes mutepulseanim {
+              0% { box-shadow: 0 0 0 0 #33b6ff88; transform: scale(1.09);}
+              75%{ box-shadow:0 0 0 13px #33b6ff22; transform: scale(1.13);}
+              100% { box-shadow: 0 0 0 0 #33b6ff00; transform: scale(1);}
+            }
+          `}</style>
+        </button>
+        {isCurrent && showPause && (
           <div style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -760,7 +675,7 @@ export default function Feed() {
             <style>{`@keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }`}</style>
           </div>
         )}
-        {(inFeed ? isCurrent : true) && <PulseHeart visible={showPulseHeart} />}
+        {isCurrent && <PulseHeart visible={showPulseHeart} />}
         <div style={{
           position: "absolute", left: 0, right: 0, bottom: 0,
           height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32, borderRadius: 2, overflow: "hidden", cursor: "pointer"
@@ -801,7 +716,7 @@ export default function Feed() {
               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
             >
               <svg aria-label="Comment" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
-                <path d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z" fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
+                <path d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z" fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" />
               </svg>
             </button>
             <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>{v.comments?.length || 0}</span>
@@ -812,8 +727,8 @@ export default function Feed() {
               onClick={() => handleShare(filename)}
               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
               <svg aria-label="Share Post" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
-                <line fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="3" y2="10.083"/>
-                <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
+                <line fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="3" y2="10.083" />
+                <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="#fff" strokeLinejoin="round" strokeWidth="2" />
               </svg>
             </button>
             <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
@@ -922,16 +837,16 @@ export default function Feed() {
                       <div className="comment-content" style={{ flex: 1 }}>
                         <div>
                           <span className="comment-username" style={{
-                            fontWeight: 600, fontSize: 14, marginRight: 5, color:"#fff"
+                            fontWeight: 600, fontSize: 14, marginRight: 5, color: "#fff"
                           }}>{c.name}</span>
-                          <span className="comment-text" style={{ fontSize: 14, color:"#fff" }}>{c.text}</span>
+                          <span className="comment-text" style={{ fontSize: 14, color: "#fff" }}>{c.text}</span>
                         </div>
                         <div className="comment-time" style={{
                           fontSize: 12, color: "#a8a8a8", marginTop: 2
                         }}>{c.time}</div>
                         <div className="comment-actions" style={{ display: 'flex', marginTop: 5 }}>
-                          <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", userSelect:"none" }}>Reply</span>
-                          <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", userSelect:"none" }}>Like</span>
+                          <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", userSelect: "none" }}>Reply</span>
+                          <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", userSelect: "none" }}>Like</span>
                         </div>
                       </div>
                     </div>
@@ -951,7 +866,8 @@ export default function Feed() {
                   }}
                   value={commentInputs[filename] || ""}
                   onChange={e => setCommentInputs(prev => ({
-                    ...prev, [filename]: e.target.value
+                    ...prev,
+                    [filename]: e.target.value
                   }))}
                   onKeyDown={e => e.key === "Enter" && (commentInputs[filename] || "").trim() !== "" && handleAddComment(idx, filename)}
                 />
@@ -969,25 +885,11 @@ export default function Feed() {
             </div>
           </div>
         }
-        {!inFeed && (
-          <button
-            onClick={() => navigate("/", { replace: true })}
-            aria-label="Back to Feed"
-            style={{
-              position: "absolute", top: 20, left: 16, zIndex: 100,
-              background: "#222f", color: "#fff",
-              fontWeight: 600, fontSize: 16, padding: "6px 17px",
-              borderRadius: 15, border: "none", cursor: "pointer", letterSpacing: ".02em",
-              boxShadow: "0 2px 10px #0003"
-            }}>
-            ← Feed
-          </button>
-        )}
       </div>
     );
   }
 
-  // ---- NOT FOUND ----
+  // ---- VIDEO FEED UI STATE ----
   if (notFound) {
     return (
       <div style={{
@@ -995,7 +897,7 @@ export default function Feed() {
         color: "#ca7979", textAlign: "center", marginTop: 120, fontSize: 22,
         background: "#000", minHeight: "100dvh"
       }}>
-        <div style={{marginBottom:12}}>Video not found.</div>
+        <div style={{ marginBottom: 12 }}>Video not found.</div>
         <button
           onClick={() => navigate("/", { replace: true })}
           style={{
@@ -1008,15 +910,15 @@ export default function Feed() {
       </div>
     );
   }
-  // ---- LOADING SKELETON ----
   if (loading) {
     return (
       <>
-        {Array.from({ length: 2 }).map((_, idx) => <SkeletonShort key={idx} />)}
+        <SkeletonShort />
       </>
     );
   }
-  // --- SINGLE VIDEO MODE ---
+
+  // ---- Single video mode ----
   if (aloneVideo) {
     const v = aloneVideo;
     const urlParts = (v.url || "").split("/");
@@ -1032,58 +934,84 @@ export default function Feed() {
     const showFull = expandedCaptions[filename];
     const displayedCaption = !caption ? "" : showFull ? caption : truncateString(caption, previewLimit);
 
-    return renderVideo({
-      v, idx: 0, filename, prog, liked, isCurrent: true, allComments,
-      caption, showFull, isTruncated, displayedCaption, inFeed: false
-    });
+    return (
+      <div
+        style={{
+          width: "100vw", height: "100dvh", position: "relative", background: "black",
+          overflow: "hidden"
+        }}
+      >
+        {renderVideo({
+          v, idx: 0, filename, prog, liked, isCurrent: true, allComments,
+          caption, showFull, isTruncated, displayedCaption, inFeed: false
+        })}
+        <button
+          onClick={() => navigate("/", { replace: true })}
+          aria-label="Back to Feed"
+          style={{
+            position: "absolute", top: 20, left: 16, zIndex: 100,
+            background: "#222f", color: "#fff",
+            fontWeight: 600, fontSize: 16, padding: "6px 17px",
+            borderRadius: 15, border: "none", cursor: "pointer", letterSpacing: ".02em",
+            boxShadow: "0 2px 10px #0003"
+          }}>
+          ← Feed
+        </button>
+      </div>
+    );
   }
-  // --- EMPTY FEED ---
   if (!loading && shorts.length === 0) {
     return (
       <div style={{
         fontFamily: "Inter, Arial,sans-serif",
         color: "#bbb", textAlign: "center", marginTop: 120, fontSize: 20,
-        background:"#0a0a0c", minHeight:"100dvh", letterSpacing:".01em"
+        background: "#0a0a0c", minHeight: "100dvh", letterSpacing: ".01em"
       }}>
         No shorts uploaded yet.
       </div>
     );
   }
-  // --- NORMAL FEED (all videos, snap/lock enabled) ---
+
+  // ---- STRICT YT/REELS STYLE PAGED FEED ----
+  // Only current, previous and next video are rendered, strictly one page at a time.
   return (
     <div
-      ref={containerRef}
       style={{
-        minHeight: "100dvh", width: "100vw", background: "black", margin: 0, padding: 0, overflow: "hidden",
+        position: "relative", height: "100dvh", width: "100vw", background: "black", margin: 0, padding: 0, overflow: "hidden",
         fontFamily: "Inter, Arial,sans-serif"
-      }}
-    >
-      <div
-        style={{
-          width: "100vw", height: "100dvh", overflowY: "scroll", overflowX: "hidden",
-          scrollSnapType: "y mandatory", background: "#000"
-        }}
-      >
-        {shorts.map((v, idx) => {
-          const filename = v.url.split("/").pop();
-          const liked = isLiked(filename);
-          const prog = videoProgress[filename] || 0;
-          const allComments = (v.comments || []).map((c, i) => ({
-            ...c, avatar: fakeAvatar(i), time: fakeTime(i)
-          }));
-          const caption = v.caption || "";
-          const previewLimit = 90;
-          const isTruncated = caption && caption.length > previewLimit;
-          const showFull = expandedCaptions[filename];
-          const displayedCaption = !caption ? "" : showFull ? caption : truncateString(caption, previewLimit);
-          const isCurrent = idx === currentIdx;
-
-          return renderVideo({
-            v, idx, filename, prog, liked, isCurrent, allComments,
-            caption, showFull, isTruncated, displayedCaption, inFeed: true
-          });
-        })}
-      </div>
+      }}>
+      {getPagedShorts().map((v, j) => {
+        const idx = v._idx;
+        const filename = v.url.split("/").pop();
+        const liked = isLiked(filename);
+        const prog = videoProgress[filename] || 0;
+        const allComments = (v.comments || []).map((c, i) => ({
+          ...c, avatar: fakeAvatar(i), time: fakeTime(i)
+        }));
+        const caption = v.caption || "";
+        const previewLimit = 90;
+        const isTruncated = caption && caption.length > previewLimit;
+        const showFull = expandedCaptions[filename];
+        const displayedCaption = !caption ? "" : showFull ? caption : truncateString(caption, previewLimit);
+        const isCurrent = idx === currentIdx;
+        return (
+          <div
+            key={filename || idx}
+            style={{
+              width: "100vw", height: "100dvh", position: "absolute", left: 0, top: 0,
+              transition: "transform 0.44s cubic-bezier(.5,1,.5,1)",
+              willChange: "transform",
+              zIndex: idx === currentIdx ? 2 : 1,
+              transform: `translateY(${(idx - currentIdx) * 100}%)`
+            }}
+          >
+            {renderVideo({
+              v, idx, filename, prog, liked, isCurrent, allComments,
+              caption, showFull, isTruncated, displayedCaption, inFeed: true
+            })}
+          </div>
+        );
+      })}
     </div>
   );
 }
