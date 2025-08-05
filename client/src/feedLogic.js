@@ -12,7 +12,7 @@ export function truncateString(str, maxLen = 90) {
   return str.substring(0, nextSpace) + '…';
 }
 
-// -------- Fisher-Yates SHUFFLE ---------
+// -------- Fisher-Yates SHUFFLE --------
 export function shuffleArray(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
