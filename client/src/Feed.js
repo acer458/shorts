@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
+import { HOST } from "./feedLogic";
+// (other code for Feed.js continues...)
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   HOST, fetchFeed, fetchSingle, shuffleArray, isLiked, setLiked, truncateString,
