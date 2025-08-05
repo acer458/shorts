@@ -1,3 +1,6 @@
+// ----- BEGIN server.js -----
+require("dotenv").config(); // Always at the top!
+
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -9,6 +12,9 @@ const jwt = require('jsonwebtoken');
 const app = express();
 app.use(cors());
 app.use(express.json()); // For parsing JSON bodies
+
+// Mount additional auth/email endpoints
+app.use("/api", require("./routes/auth")); // will load routes/auth.js if you have it
 
 const DISK_PATH = '/data'; // Must match your Render persistent disk mount path
 
@@ -38,7 +44,7 @@ function saveVideos(videos) {
 // Admin settings
 const ADMIN_EMAIL = "propscholars@gmail.com";
 const ADMIN_PASSWORD = "Hindi@1234";
-const SECRET = "super-strong-secret-key-change-this"; // Use an ENV variable for production
+const SECRET = process.env.JWT_SECRET || "super-strong-secret-key-change-this"; // Use an ENV variable for production
 
 // LOGIN SYSTEM
 app.post("/admin/login", (req, res) => {
@@ -233,6 +239,11 @@ app.delete('/delete/:filename', adminJwtAuth, (req, res) => {
   res.json({ success: true, deleted: filename });
 });
 
+// Fallback route
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
+// ----- END server.js -----
