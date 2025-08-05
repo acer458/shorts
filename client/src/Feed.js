@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-// (other code for Feed.js continues...)
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   HOST, fetchFeed, fetchSingle, shuffleArray, isLiked, setLiked, truncateString,
@@ -8,7 +7,6 @@ import {
 import {
   HeartSVG, PauseIcon, PulseHeart, MuteMicIcon, SkeletonShort
 } from "./FeedUI";
-
 
 export default function Feed() {
   const location = useLocation();
@@ -74,13 +72,8 @@ export default function Feed() {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
       if (idx === currentIdx) {
-        // GLASS OVERLAY LOGIC
-        if (!showContinue[shorts[idx]?.url?.split("/").pop()]) {
-          vid.muted = muted;
-          vid.play().catch(()=>{});
-        }
+        vid.muted = muted; vid.play().catch(()=>{});
       }
-
       else { vid.pause(); vid.currentTime = 0; vid.muted = true; }
     });
     setShowPause(false); setShowPulseHeart(false);
@@ -160,7 +153,7 @@ export default function Feed() {
       }
     };
   }
- 
+
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -307,66 +300,13 @@ export default function Feed() {
                 display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
               }}>
               {/* VIDEO */}
-              <video
-  ref={el => (videoRefs.current[idx] = el)}
-  src={HOST + v.url}
-  loop
-  playsInline
-  style={{
-    width: "100vw",
-    height: "100dvh",
-    objectFit: "contain",
-    background: "#000",
-    cursor: "pointer",
-    display: "block"
-  }}
-  {...handleVideoEvents(idx, filename)}
-  onTimeUpdate={() => handleTimeUpdate(idx, filename)}
-  onEnded={() => {
-    const filename = v.url.split("/").pop();
-    setConsecutivePlays(pc => {
-      const count = (pc[filename] || 0) + 1;
-      if (count >= 3) setShowContinue(sc => ({ ...sc, [filename]: true }));
-      return { ...pc, [filename]: count };
-    });
-  }}
-/>
-{showContinue[filename] && idx === currentIdx && (
-  <div style={{
-    position: "absolute", inset: 0, display: "flex",
-    alignItems: "center", justifyContent: "center", zIndex: 1999,
-    pointerEvents: 'auto', background: "rgba(0,0,0,0.0)"
-  }}>
-    <div style={{
-      display: "flex", flexDirection: "column", alignItems: "center", gap: "12px",
-      minWidth: 260, minHeight: 92, background: "rgba(30,30,38,0.41)",
-      borderRadius: 16, boxShadow: "0 8px 32px 0 rgba(12,16,30,0.21), 0 1.5px 11px #0004",
-      backdropFilter: "blur(14px) saturate(160%)",
-      border: "1.6px solid rgba(80,80,86,0.16)", padding: "24px 26px 18px 26px"
-    }}>
-      <span style={{
-        color: "#fff", fontSize: "1.11rem", fontWeight: 600,
-        letterSpacing: "0.01em", whiteSpace: "nowrap", fontFamily: "inherit", marginBottom: 6
-      }}>Continue watching?</span>
-      <button
-        style={{
-          background: "rgba(0,0,0, 0.30)", color: "#fff", fontFamily: "inherit", padding: "8px 28px",
-          fontSize: "1rem", fontWeight: 500, borderRadius: 12,
-          border: "1.1px solid rgba(255,255,255,0.085)",
-          boxShadow: "0 1.5px 8px #0004", outline: "none", marginTop: 1,
-          cursor: "pointer", letterSpacing: "0.01em"
-        }}
-        onClick={() => {
-          setShowContinue(sc => ({ ...sc, [filename]: false }));
-          setConsecutivePlays(pc => ({ ...pc, [filename]: 0 }));
-          const vid = videoRefs.current[idx];
-          if (vid) { vid.currentTime = 0; vid.play(); }
-        }}
-      >Continue</button>
-    </div>
-  </div>
-)}
-
+              <video ref={el => (videoRefs.current[idx] = el)}
+                src={HOST + v.url}
+                loop playsInline
+                style={{ width: "100vw", height: "100dvh", objectFit: "contain", background: "#000", cursor: "pointer", display: "block" }}
+                {...handleVideoEvents(idx, filename)}
+                onTimeUpdate={() => handleTimeUpdate(idx, filename)}
+              />
               {/* Mute Button */}
               {isCurrent && (
                 <button
