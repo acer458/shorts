@@ -1,9 +1,11 @@
-import React, { useState } from "react";
-import Sidebar from "./components/Sidebar";
+// AdminDashboard.js
+
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
+// ============= LOGIN FORM COMPONENT =============
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,6 +33,7 @@ function AdminLogin({ onLogin }) {
   )
 }
 
+// ============= BYTES UTILITY =============
 function bytesToSize(bytes) {
   if (bytes === 0) return "0 B";
   const sizes = ["B", "KB", "MB", "GB"];
@@ -38,7 +41,8 @@ function bytesToSize(bytes) {
   return Math.round((bytes / Math.pow(1024, i)) * 10) / 10 + " " + sizes[i];
 }
 
-function VideoUploadTab() {
+// ============= MAIN DASHBOARD =============
+export default function AdminDashboard() {
   const [shorts, setShorts] = useState([]);
   const [video, setVideo] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -47,52 +51,38 @@ function VideoUploadTab() {
   const [editState, setEditState] = useState({});
   const [scrollCounts, setScrollCounts] = useState({});
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("adminToken"));
-  const [isDragging, setIsDragging] = useState(false);
 
+  // Force logout on certain failures
   function handleLogout() {
     localStorage.removeItem("adminToken");
     setLoggedIn(false);
   }
 
+  // Helper to add auth header if logged in
   function authHeaders() {
     const token = localStorage.getItem("adminToken");
     return token ? { "Authorization": `Bearer ${token}` } : {};
   }
 
+  // Fetch all videos (and scroll/view counts)
   const refreshShorts = () => {
     axios
       .get(HOST + "/shorts")
       .then((res) => setShorts(res.data))
       .catch(() => setStatus("Could not fetch shorts."));
 
+    // Fetch scroll/view counts (if you use a /views endpoint)
     axios.get(HOST + "/views")
       .then(res => setScrollCounts(res.data))
       .catch(() => {});
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (loggedIn) refreshShorts();
+    // eslint-disable-next-line
   }, [loggedIn]);
 
-  // Drag and drop handlers
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files[0]) {
-      setVideo(e.dataTransfer.files[0]);
-    }
-  };
-
+  // UPLOAD
   const handleUpload = (e) => {
     e.preventDefault();
     if (!video) { setStatus("Please select a file!"); return; }
@@ -131,6 +121,7 @@ function VideoUploadTab() {
       .finally(() => setUploading(false));
   };
 
+  // DELETE
   const handleDelete = (filename) => {
     if (!window.confirm("Delete this video permanently?")) return;
     axios
@@ -150,6 +141,7 @@ function VideoUploadTab() {
       });
   };
 
+  // Caption EDIT
   const handleCaptionChange = (filename, value) => {
     setEditState((prev) => ({
       ...prev,
@@ -196,6 +188,7 @@ function VideoUploadTab() {
     0
   );
 
+  // Require login
   if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />;
 
   return (
@@ -208,6 +201,7 @@ function VideoUploadTab() {
         fontFamily: "Inter, sans-serif",
       }}
     >
+      {/* LEFT: Upload/meta/file list */}
       <div
         style={{
           flex: "0 0 340px",
@@ -223,19 +217,11 @@ function VideoUploadTab() {
           position:"absolute", top:18, right:22, zIndex:100,
           background:"#FE5555", color:"#fff", fontWeight:800, border:"none", borderRadius:8, padding:"7px 13px", cursor:"pointer"
         }}>Logout</button>
-        
-        <form 
-          onSubmit={handleUpload} 
-          style={{ display: "flex", flexDirection: "column", gap: 8, marginTop:24 }}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleDrop}
-        >
+        <form onSubmit={handleUpload} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop:24 }}>
           <label
             htmlFor="upload"
             style={{
-              background: isDragging ? "#3d8de0" : "#47A3F3",
+              background: "#47A3F3",
               color: "#fff",
               fontWeight: 600,
               fontSize: 18,
@@ -245,11 +231,9 @@ function VideoUploadTab() {
               display: "inline-block",
               textAlign: "center",
               marginBottom: 8,
-              transition: "background 0.2s",
-              border: isDragging ? "2px dashed #fff" : "none"
             }}
           >
-            {isDragging ? "Drop Video Here" : "Upload Video"}
+            Upload Video
             <input
               id="upload"
               type="file"
@@ -258,11 +242,6 @@ function VideoUploadTab() {
               onChange={(e) => setVideo(e.target.files[0])}
             />
           </label>
-          {video && (
-            <div style={{color: '#aaf', fontSize: 14, textAlign: 'center'}}>
-              Selected: {video.name}
-            </div>
-          )}
           <button
             type="submit"
             disabled={uploading || !video}
@@ -310,7 +289,7 @@ function VideoUploadTab() {
             </div>
           )}
         </form>
-        
+        {/* Stats */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ fontWeight: "bold" }}>
             No. of videos: <span style={{ color: "#22d3ee" }}>{shorts.length}</span>
@@ -322,7 +301,7 @@ function VideoUploadTab() {
             </span>
           </div>
         </div>
-        
+        {/* File List */}
         <div
           style={{
             background: "#111116",
@@ -395,6 +374,7 @@ function VideoUploadTab() {
         </div>
       </div>
 
+      {/* RIGHT: Editable video list with view scroll counter */}
       <div
         style={{
           flex: 1,
@@ -568,42 +548,6 @@ function VideoUploadTab() {
           })}
         </div>
       </div>
-    </div>
-  );
-}
-
-function UserStatsTab() {
-  return (
-    <div style={{padding: 32}}>
-      <h2>User Analytics (Coming Soon)</h2>
-      <p>Number of users and watcher leaderboard will appear here.</p>
-    </div>
-  );
-}
-
-function StorageStatsTab() {
-  return (
-    <div style={{padding: 32}}>
-      <h2>Storage Usage (Coming Soon)</h2>
-      <p>Storage and bandwidth data will appear here.</p>
-    </div>
-  );
-}
-
-export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('upload');
-
-  let mainContent;
-  if (activeTab === "upload") mainContent = <VideoUploadTab />;
-  else if (activeTab === "users") mainContent = <UserStatsTab />;
-  else if (activeTab === "storage") mainContent = <StorageStatsTab />;
-
-  return (
-    <div style={{ display: 'flex', height: '100vh', background: '#f6fafe', fontFamily: "Inter,sans-serif" }}>
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main style={{ flexGrow: 1, padding: 0, overflowY: 'auto' }}>
-        {mainContent}
-      </main>
     </div>
   );
 }
