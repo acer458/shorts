@@ -212,9 +212,15 @@ export default function Feed() {
   const [isDraggingModal, setIsDraggingModal] = useState(false);
   const dragStartY = useRef(0);
 
+  // ---- Replay Protection State ----
+  // Map: filename -> playCount (0,1,2,...), overlayShown (true/false)
+  const [replayCounts, setReplayCounts] = useState({});
+  const [overlayShown, setOverlayShown] = useState({}); // filename -> true/false
+
   // --- FEED/SINGLE-VIDEO FETCH ---
   useEffect(() => {
     setLoading(true); setNotFound(false); setAloneVideo(null); setShorts([]);
+    setReplayCounts({}); setOverlayShown({});
     const params = new URLSearchParams(location.search);
     const filename = params.get("v");
     if (filename) {
@@ -262,12 +268,15 @@ export default function Feed() {
       if (!vid) return;
       if (idx === currentIdx) {
         vid.muted = muted;
-        vid.play().catch(()=>{});
-      }
-      else { vid.pause(); vid.muted = true; }
+        // If overlay is up for this video, do NOT auto-play.
+        const filename = (shorts[idx] && shorts[idx].url.split('/').pop()) || "";
+        if (!overlayShown[filename]) {
+          vid.play().catch(()=>{});
+        }
+      } else { vid.pause(); vid.muted = true; }
     });
     setShowPause(false); setShowPulseHeart(false);
-  }, [currentIdx, muted, aloneVideo]);
+  }, [currentIdx, muted, aloneVideo, shorts, overlayShown]);
 
   // --- Prevent videos playing on visibility loss (battery/UX)
   useEffect(() => {
@@ -369,7 +378,7 @@ export default function Feed() {
     setModalDragY(0);
   }
 
-  // ---- Double tap/dblClick/touch events for video ----
+  // ---- Video Events: tap/dbltap/touch ----
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -434,12 +443,44 @@ export default function Feed() {
     }));
   }
 
+  // ---- ============= REPLAY PROTECTION =============== ----
+  function handleVideoEnded(idx, filename) {
+    setReplayCounts(prev => {
+      const prevCount = prev[filename] || 0;
+      if (prevCount < 2) {
+        // Allow auto replay (playCount goes 0->1->2 for 3 "plays")
+        // If overlay is shown, don't auto-replay.
+        if (videoRefs.current[idx]) {
+          videoRefs.current[idx].currentTime = 0;
+          videoRefs.current[idx].play().catch(()=>{});
+        }
+        return { ...prev, [filename]: prevCount + 1 };
+      } else {
+        // 3rd time ended: show overlay, pause video, disallow loop
+        setOverlayShown(prevOverlay => ({ ...prevOverlay, [filename]: true }));
+        if (videoRefs.current[idx]) {
+          videoRefs.current[idx].pause();
+        }
+        return { ...prev, [filename]: prevCount + 1 }; // goes to 3
+      }
+    });
+  }
+
+  function handleOverlayContinue(idx, filename) {
+    setReplayCounts(prev => ({ ...prev, [filename]: 0 }));
+    setOverlayShown(prev => ({ ...prev, [filename]: false }));
+    if (videoRefs.current[idx]) {
+      videoRefs.current[idx].currentTime = 0;
+      videoRefs.current[idx].play().catch(()=>{});
+    }
+  }
+
   // ---- SHARED VIDEO UI LOGIC ----
   function renderVideo({
     v, idx, filename, prog, liked, isCurrent, allComments,
     caption, showFull, isTruncated, displayedCaption, inFeed
   }) {
-    // Ensure key events and UI are shared between feed/single mode
+    const isOverlayShown = overlayShown[filename];
     return (
       <div key={filename} data-idx={idx}
         ref={el => inFeed && (wrapperRefs.current[idx] = el)}
@@ -453,13 +494,76 @@ export default function Feed() {
         <video
           ref={el => (videoRefs.current[idx] = el)}
           src={HOST + v.url}
-          loop playsInline
+          loop={false} playsInline
           style={{ width: "100vw", height: "100dvh", objectFit: "contain", background: "#000", cursor: "pointer", display: "block" }}
           muted={muted}
           autoPlay
           onTimeUpdate={() => handleTimeUpdate(idx, filename)}
+          onEnded={() => handleVideoEnded(idx, filename)}
           {...handleVideoEvents(idx, filename)}
         />
+        {/* -- Overlay for replay-protection -- */}
+        {isOverlayShown && (
+          <div style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1002,
+          }}>
+            <div style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "12px",
+              minWidth: "260px",
+              minHeight: "92px",
+              background: "rgba(30,30,38,0.41)",
+              borderRadius: "16px",
+              boxShadow: "0 8px 32px 0 rgba(12,16,30,0.21), 0 1.5px 11px #0004",
+              backdropFilter: "blur(14px) saturate(160%)",
+              border: "1.6px solid rgba(80,80,86,0.16)",
+              padding: "24px 26px 18px 26px",
+              animation: "glassRise .36s cubic-bezier(.61,2,.22,1.02)"
+            }}>
+              <span style={{
+                color: "#fff",
+                fontSize: "1.11rem",
+                fontWeight: 600,
+                letterSpacing: "0.01em",
+                whiteSpace: "nowrap",
+                marginBottom: "6px",
+                fontFamily: "inherit"
+              }}>
+                Continue watching?
+              </span>
+              <button onClick={() => handleOverlayContinue(idx, filename)} style={{
+                background: "rgba(0,0,0,0.30)",
+                color: "#fff",
+                fontFamily: "inherit",
+                padding: "8px 28px",
+                fontSize: "1rem",
+                fontWeight: 500,
+                borderRadius: "12px",
+                border: "1.1px solid rgba(255,255,255,0.085)",
+                boxShadow: "0 1.5px 8px #0004",
+                outline: "none",
+                marginTop: "1px",
+                cursor: "pointer",
+                letterSpacing: "0.01em"
+              }}>
+                Continue
+              </button>
+            </div>
+            <style>{`
+              @keyframes glassRise {
+                from { opacity: 0; transform: translateY(60px) scale(1.07);}
+                to   { opacity: 1; transform: translateY(0) scale(1);}
+              }
+            `}</style>
+          </div>
+        )}
         {/* Mute/Unmute Button */}
         {(inFeed ? isCurrent : true) && (
           <button
