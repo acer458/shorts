@@ -1,8 +1,8 @@
-// AdminDashboard.js
+import React, { useState } from "react";
+import Sidebar from "./components/Sidebar";
 
-import React, { useEffect, useState } from "react";
+// ============= REUSE YOUR ORIGINAL LOGIC STARTS HERE =============
 import axios from "axios";
-
 const HOST = "https://shorts-t2dk.onrender.com";
 
 // ============= LOGIN FORM COMPONENT =============
@@ -41,8 +41,8 @@ function bytesToSize(bytes) {
   return Math.round((bytes / Math.pow(1024, i)) * 10) / 10 + " " + sizes[i];
 }
 
-// ============= MAIN DASHBOARD =============
-export default function AdminDashboard() {
+// ============= VIDEO UPLOAD/EDIT COMPONENT =============
+function VideoUploadTab() {
   const [shorts, setShorts] = useState([]);
   const [video, setVideo] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
       .catch(() => {});
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (loggedIn) refreshShorts();
     // eslint-disable-next-line
   }, [loggedIn]);
@@ -548,6 +548,43 @@ export default function AdminDashboard() {
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ============= USER AND STORAGE SECTIONS =============
+function UserStatsTab() {
+  return (
+    <div style={{padding: 32}}>
+      <h2>User Analytics (Coming Soon)</h2>
+      <p>Number of users and watcher leaderboard will appear here.</p>
+    </div>
+  );
+}
+function StorageStatsTab() {
+  return (
+    <div style={{padding: 32}}>
+      <h2>Storage Usage (Coming Soon)</h2>
+      <p>Storage and bandwidth data will appear here.</p>
+    </div>
+  );
+}
+
+// ============= MAIN DASHBOARD (SIDEBAR + CONTENT TABS) =============
+export default function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState('upload');
+
+  let mainContent;
+  if (activeTab === "upload") mainContent = <VideoUploadTab />;
+  else if (activeTab === "users") mainContent = <UserStatsTab />;
+  else if (activeTab === "storage") mainContent = <StorageStatsTab />;
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', background: '#f6fafe', fontFamily: "Inter,sans-serif" }}>
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <main style={{ flexGrow: 1, padding: 0, overflowY: 'auto' }}>
+        {mainContent}
+      </main>
     </div>
   );
 }
