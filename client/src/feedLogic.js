@@ -1,9 +1,10 @@
+// feedLogic.js
 import axios from "axios";
 
-// --------- CONFIG
+// ---- CONFIG ----
 export const HOST = "https://shorts-t2dk.onrender.com";
 
-// --------- CAPTION TRUNCATE
+// ---- String helpers ----
 export function truncateString(str, maxLen = 90) {
   if (!str) return '';
   if (str.length <= maxLen) return str;
@@ -12,7 +13,7 @@ export function truncateString(str, maxLen = 90) {
   return str.substring(0, nextSpace) + '…';
 }
 
-// -------- Fisher-Yates SHUFFLE ---------
+// Fisher-Yates shuffle
 export function shuffleArray(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -22,7 +23,7 @@ export function shuffleArray(arr) {
   return a;
 }
 
-// Like status (localStorage)
+// ---- Likes (localStorage) ----
 export function isLiked(filename) {
   return localStorage.getItem("like_" + filename) === "1";
 }
@@ -31,38 +32,50 @@ export function setLiked(filename, yes) {
   else localStorage.removeItem("like_" + filename);
 }
 
-// Avatars and time helpers
+// ---- Profile Avatars ----
 export function getProfilePic(v) {
   return v.avatar || v.profilePic ||
     `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author || "anonymous")}`;
 }
+
+// ---- Fake Data For UI preview ----
 export function fakeAvatar(i) {
-  const urls = [
-    "https://randomuser.me/api/portraits/men/32.jpg",
-    "https://randomuser.me/api/portraits/women/63.jpg",
-    "https://randomuser.me/api/portraits/men/75.jpg",
-    "https://randomuser.me/api/portraits/women/22.jpg",
-    "https://randomuser.me/api/portraits/men/18.jpg"
-  ];
-  return urls[i % urls.length];
+  // Provide a unique avatar per index
+  return `https://api.dicebear.com/8.x/thumbs/svg?seed=User${i}`;
 }
 export function fakeTime(i) {
-  return ["2h ago", "1h ago", "45m ago", "30m ago", "15m ago", "Just now"][i % 6] || "Just now";
+  // Return friendly time strings
+  if (i === 0) return "just now";
+  if (i === 1) return "2 min ago";
+  if (i === 2) return "15 min ago";
+  return (6 * i + 4) + " min ago";
 }
 
-// API helpers
+// ---- API: Feed ----
 export async function fetchFeed() {
   const res = await axios.get(HOST + "/shorts");
+  // Optionally shuffle or sort newest first, etc.
   return shuffleArray(res.data);
 }
 export async function fetchSingle(filename) {
   const res = await axios.get(`${HOST}/shorts/${filename}`);
-  return { ...res.data, url: res.data.url || `/shorts/${filename}` };
-}
-export async function serverLike(filename) {
-  await axios.post(`${HOST}/shorts/${filename}/like`);
-}
-export async function serverAddComment(filename, comment) {
-  await axios.post(`${HOST}/shorts/${filename}/comment`, comment);
+  // Normalize .url always present:
+  return { ...res.data, url: res.data.url || `${HOST}/shorts/${filename}` };
 }
 
+// ---- API LIKE/COMMENT STUBS (extend for real backend as needed) ----
+export async function serverLike(filename, like = true) {
+  // Example payload: { like: true/false }
+  try {
+    await axios.post(`${HOST}/shorts/${filename}/like`, { like });
+  } catch (e) {
+    // Optionally swallow (for demo), or handle error gracefully
+  }
+}
+export async function serverAddComment(filename, { name, text }) {
+  try {
+    await axios.post(`${HOST}/shorts/${filename}/comment`, { name, text });
+  } catch (e) {
+    // Optionally show error
+  }
+}
