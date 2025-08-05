@@ -2,23 +2,21 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const HOST = "https://shorts-t2dk.onrender.com";
-
-// --- Font, Styles, Anti-inspect injection ONCE
+// --- GLOBAL FONT+ANTI-INSPECT INJECT ---
 if (!window.__FEED_ROOT_STYLES__) {
   window.__FEED_ROOT_STYLES__ = true;
-  const fontLink = document.createElement("link");
-  fontLink.rel = "stylesheet";
-  fontLink.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap";
-  document.head.appendChild(fontLink);
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap";
+  document.head.appendChild(link);
   const style = document.createElement("style");
   style.innerHTML = `
     html, body, #root, #app, #__next {
       font-family: 'Inter', Arial, sans-serif !important;
-      background: #090b10;
+      background: #0b0b10;
     }
     * { font-family: inherit !important; }
-    .feed-btn-anim:active, .feed-btn-anim:focus { transform: scale(.97); }
+    .feed-btn-anim:active, .feed-btn-anim:focus { transform: scale(.965); }
   `;
   document.head.appendChild(style);
   window.addEventListener("contextmenu", e => e.preventDefault(), true);
@@ -26,17 +24,17 @@ if (!window.__FEED_ROOT_STYLES__) {
     if (
       e.key === "F12" ||
       (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) ||
-      (e.ctrlKey && ["U"].includes(e.key.toUpperCase()))
+      (e.ctrlKey && e.key.toLowerCase() === "u")
     ) { e.preventDefault(); e.stopPropagation(); return false; }
-    if ((e.metaKey && e.altKey && ["I", "J"].includes(e.key.toUpperCase()))) { e.preventDefault(); return false; }
+    if (e.metaKey && e.altKey && ["I", "J"].includes(e.key.toUpperCase())) { e.preventDefault(); return false; }
     if (e.ctrlKey && e.shiftKey && e.key.toUpperCase() === "K") { e.preventDefault(); return false; }
-    return undefined;
   }, true);
 }
 
+// --- SVG Components ---
 function HeartSVG({ filled, size = 25 }) {
   return (
-    <svg aria-label={filled ? "Unlike" : "Like"} height={size} width={size} viewBox="0 0 48 48">
+    <svg height={size} width={size} viewBox="0 0 48 48">
       <path
         fill={filled ? "#ed4956" : "none"}
         stroke={filled ? "#ed4956" : "#fff"}
@@ -74,10 +72,9 @@ function DoubleTapHeart({ visible, x, y }) {
     <div
       style={{
         pointerEvents:"none", position:"fixed",
-        left: x, top: y, zIndex:200,
-        transform: "translate(-50%, -50%)",
-        opacity: 1,
-        animation: "doubleHeartScale .66s cubic-bezier(.1,1.4,.28,1) forwards"
+        left:x, top:y, zIndex:300,
+        transform: "translate(-50%, -50%)", opacity: 1,
+        animation: "doubleHeartScale .66s cubic-bezier(.1,1.5,.28,1) forwards"
       }}
     >
       <svg viewBox="0 0 96 96" width={86} height={86}>
@@ -91,11 +88,11 @@ function DoubleTapHeart({ visible, x, y }) {
       <style>
         {`
         @keyframes doubleHeartScale {
-          0% { opacity: 0; transform:translate(-50%,-50%) scale(.48);}
-          6% { opacity: 1; transform:translate(-50%,-60%) scale(1.3);}
-          46% { opacity:1; transform:translate(-50%,-50%) scale(1);}
-          80%{ opacity:.92; }
-          100%{ opacity:0;transform:translate(-50%,-50%) scale(0.8);}
+          0% { opacity: 0; transform:translate(-50%,-50%) scale(0.4);}
+          10% { opacity: 1; transform:translate(-50%,-55%) scale(1.4);}
+          40% { opacity:1; transform:translate(-50%,-50%) scale(1);}
+          85%{ opacity:.92;}
+          100%{ opacity:0;transform:translate(-50%,-50%) scale(0.82);}
         }
         `}
       </style>
@@ -107,13 +104,11 @@ function PauseOverlay({ visible }) {
     <div style={{
       position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 110, background: 'rgba(0,0,0,.14)', pointerEvents: "none",
+      zIndex: 260, background: 'rgba(0,0,0,.16)', pointerEvents: "none",
       animation:"pauseFadeIn .28s"
     }}>
       <PauseIcon />
-      <style>{`
-        @keyframes pauseFadeIn { from {opacity:0; transform:scale(.92);} to {opacity:1; transform:scale(1);} }
-      `}</style>
+      <style>{`@keyframes pauseFadeIn { from {opacity:0; transform:scale(.92);} to {opacity:1; transform:scale(1);} }`}</style>
     </div>
   ) : null;
 }
@@ -125,20 +120,15 @@ function ContinueOverlay({ onContinue }) {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      zIndex: 99,
+      zIndex: 299,
       pointerEvents: "auto",
-      background: "rgba(0,0,0,0.0)"
+      background: "rgba(0,0,0,0.05)"
     }}>
       <div className="continue-card"
         style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 12,
-          minWidth: 260,
-          minHeight: 92,
-          background: "rgba(30,30,38,0.44)",
-          borderRadius: 16,
+          display: "flex", flexDirection: "column", alignItems: "center",
+          gap: 12, minWidth: 260, minHeight: 92,
+          background: "rgba(30,30,38,0.44)", borderRadius: 16,
           boxShadow: "0 8px 32px 0 rgba(12,16,30,0.21), 0 1.5px 11px #0004",
           backdropFilter: "blur(14px) saturate(160%)",
           border: "1.6px solid rgba(80,80,86,0.16)",
@@ -147,63 +137,26 @@ function ContinueOverlay({ onContinue }) {
         }}>
         <span className="continue-title"
           style={{
-            color: "#fff",
-            fontSize: "1.11rem",
-            fontWeight: 600,
-            letterSpacing: "0.01em",
-            whiteSpace: "nowrap",
-            marginBottom: 6,
-            fontFamily: "inherit"
-          }}>
-          Continue watching?
-        </span>
+            color: "#fff", fontSize: "1.11rem", fontWeight: 600,letterSpacing:"0.01em",
+            whiteSpace: "nowrap", marginBottom: 6,fontFamily:"inherit"
+          }}>Continue watching?</span>
         <button className="feed-btn-anim"
           style={{
-            background: "rgba(0,0,0, 0.30)",
-            color: "#fff",
-            fontFamily: "inherit",
-            padding: "8px 28px",
-            fontSize: "1rem",
-            fontWeight: 500,
-            borderRadius: 12,
-            border: "1.1px solid rgba(255,255,255,0.085)",
-            boxShadow: "0 1.5px 8px #0004",
-            outline: "none",
-            marginTop: 3,
-            cursor: "pointer",
-            letterSpacing: "0.01em",
-            transition: "background 0.18s, border 0.14s, box-shadow .16s, transform .1s",
-            backdropFilter: "blur(4.5px)"
+            background: "rgba(0,0,0, 0.30)", color: "#fff", fontFamily: "inherit",
+            padding: "8px 28px", fontSize: "1rem", fontWeight: 500, borderRadius: 12, border: "1.1px solid rgba(255,255,255,0.085)",
+            boxShadow: "0 1.5px 8px #0004", outline: "none", marginTop: 3, cursor: "pointer", letterSpacing: "0.01em",
+            transition: "background 0.18s, border 0.14s, box-shadow .16s, transform .1s", backdropFilter: "blur(4.5px)"
           }}
           onClick={onContinue}
         >Continue</button>
-        <style>{`
-          @keyframes glassRise { from { opacity: 0; transform: translateY(60px) scale(1.07);} to   { opacity: 1; transform: translateY(0) scale(1);} }
-          .continue-btn:active { transform:scale(0.984);}
-        `}</style>
+        <style>{`@keyframes glassRise { from { opacity: 0; transform: translateY(60px) scale(1.07);} to   { opacity: 1; transform: translateY(0) scale(1);} }`}</style>
       </div>
     </div>
   );
 }
-function SkeletonShort() {
-  return (
-    <div
-      style={{
-        width: "100vw", height: "100dvh",
-        scrollSnapAlign: "start",
-        position: "relative",
-        background: "#161618"
-      }}>
-      <div style={{
-        width: "100vw", height: "100dvh",
-        background: "linear-gradient(90deg,#191a22 0%, #24263c 100%)",
-        animation: "skelAnim 1.3s infinite linear", position: "absolute", top: 0, left: 0, zIndex: 1
-      }}/>
-      <style>{`@keyframes skelAnim { 0% { filter:brightness(1); } 55% { filter: brightness(1.07); } 100% { filter:brightness(1);} }`}</style>
-    </div>
-  );
-}
 
+// ... Utilities, comments modal, and rest of Feed.js logic continue in part 2 ...
+// --- Utilities ---
 function truncateString(str, maxLen = 90) {
   if (!str) return '';
   if (str.length <= maxLen) return str;
@@ -211,20 +164,38 @@ function truncateString(str, maxLen = 90) {
   if (nextSpace === -1) nextSpace = str.length;
   return str.substring(0, nextSpace) + '…';
 }
-function shuffleArray(arr) { const a = [...arr]; for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a; }
-function fakeAvatar(i) { const urls = [
-  "https://randomuser.me/api/portraits/men/32.jpg","https://randomuser.me/api/portraits/women/63.jpg","https://randomuser.me/api/portraits/men/75.jpg","https://randomuser.me/api/portraits/women/22.jpg","https://randomuser.me/api/portraits/men/18.jpg"
-]; return urls[i % urls.length]; }
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function fakeAvatar(i) {
+  const urls = [
+    "https://randomuser.me/api/portraits/men/32.jpg",
+    "https://randomuser.me/api/portraits/women/63.jpg",
+    "https://randomuser.me/api/portraits/men/75.jpg",
+    "https://randomuser.me/api/portraits/women/22.jpg",
+    "https://randomuser.me/api/portraits/men/18.jpg"
+  ];
+  return urls[i % urls.length];
+}
 function fakeTime(i) { return ["2h ago","1h ago","45m ago","30m ago","15m ago","Just now"][i % 6] || "Just now"; }
-function getProfilePic(v) {return v.avatar || v.profilePic || `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author||"anonymous")}`; }
+function getProfilePic(v) {
+  return v.avatar || v.profilePic || `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author||"anonymous")}`;
+}
 function commentLikeKey(fname, i) { return `commentlike_${fname}_${i}`; }
 function commentReplyKey(fname, i) { return `commentreply_${fname}_${i}`; }
 
-// === MAIN FEED COMPONENT ===
+const HOST = "https://shorts-t2dk.onrender.com";
+
 export default function Feed() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // FEED/UI state
   const [shorts, setShorts] = useState([]);
   const [aloneVideo, setAloneVideo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -241,24 +212,28 @@ export default function Feed() {
   const [videoProgress, setVideoProgress] = useState({});
   const [showPause, setShowPause] = useState(false);
   const [showPauseAnim, setShowPauseAnim] = useState(false);
-  // continue overlay
+  const [expandedCaptions, setExpandedCaptions] = useState({});
+  const [tick, setTick] = useState(0);
+  // Continue overlay / 3-play control
   const [playCounts, setPlayCounts] = useState({});
   const [blockPlayback, setBlockPlayback] = useState({});
   const playEndTimestamps = useRef({});
+  // Heart Animation
+  const [heartAnim, setHeartAnim] = useState({ visible: false, x: 0, y: 0 });
+  // Comments Modal Drag
+  const [modalDragY, setModalDragY] = useState(0);
+  const [isDraggingModal, setIsDraggingModal] = useState(false);
+  const dragStartY = useRef(0);
+  // Comment Reply State
+  const [activeReply, setActiveReply] = useState([null,null]);
+  const showActiveReply = activeReply && activeReply[0] && typeof activeReply[1] === 'number';
 
-  // double tap heart animation
-  const [heartAnim, setHeartAnim] = useState({visible:false,x:0,y:0});
-  function triggerHeartAnim(e, idx, filename, handleLike) {
-    let x = window.innerWidth/2, y=window.innerHeight/2;
-    if (e && e.touches && e.touches.length) { x=e.touches[0].clientX;y=e.touches[0].clientY; }
-    else if (e && e.clientX!==undefined) { x=e.clientX;y=e.clientY; }
-    setHeartAnim({visible:true,x,y});
-    setTimeout(()=>setHeartAnim({visible:false,x:0,y:0}),660);
-    handleLike(idx, filename, true);
-  }
-
+  // --- Data load
   useEffect(() => {
-    setLoading(true); setNotFound(false); setAloneVideo(null); setShorts([]);
+    setLoading(true);
+    setNotFound(false);
+    setAloneVideo(null);
+    setShorts([]);
     const params = new URLSearchParams(location.search);
     const filename = params.get("v");
     if (filename) {
@@ -267,9 +242,12 @@ export default function Feed() {
         .catch(() => setNotFound(true))
         .finally(() => setLoading(false));
     } else {
-      axios.get(HOST + "/shorts").then(res => setShorts(shuffleArray(res.data))).finally(() => setLoading(false));
+      axios.get(HOST + "/shorts")
+        .then(res => setShorts(shuffleArray(res.data)))
+        .finally(() => setLoading(false));
     }
   }, [location.search]);
+
   useEffect(() => {
     if (aloneVideo) return;
     const observer = new window.IntersectionObserver(
@@ -299,19 +277,18 @@ export default function Feed() {
         if (!blockPlayback[fname]) vid.play().catch(()=>{});
       } else { vid.pause(); vid.currentTime = 0; vid.muted = true; }
     });
-    setShowPause(false); setShowPauseAnim(false);
+    setShowPause(false);
+    setShowPauseAnim(false);
   }, [currentIdx, muted, aloneVideo, blockPlayback, shorts]);
 
-  // Bandwidth-control
+  // Bandwidth-control (3-plays per video)
   function handleTimeUpdate(idx, filename) {
     const vid = videoRefs.current[idx];
-    if (!vid) return;
-    setVideoProgress((p) => ({
-      ...p,
+    setVideoProgress((prev) => ({
+      ...prev,
       [filename]: vid && vid.duration && isFinite(vid.duration)
         ? vid.currentTime / vid.duration : 0,
     }));
-    // Play complete: count only once
     if (vid?.duration && vid.duration > 3 && vid.currentTime !== undefined) {
       if (vid.currentTime > vid.duration - 0.15) {
         if (playEndTimestamps.current[filename] !== Math.floor(vid.currentTime)) {
@@ -338,7 +315,7 @@ export default function Feed() {
     if (vref) vref.play().catch(()=>{});
   }
 
-  // Like logic/feed
+  // Like logic
   function isLiked(filename) { return localStorage.getItem("like_" + filename) === "1"; }
   function setLiked(filename, yes) {
     if (yes) localStorage.setItem("like_" + filename, "1");
@@ -381,12 +358,8 @@ export default function Feed() {
         clickTimer = setTimeout(() => {
           const vid = videoRefs.current[idx];
           if (!vid) return;
-          if (vid.paused) {
-            vid.play(); setShowPauseAnim(false); setShowPause(false);
-          } else {
-            vid.pause(); setShowPauseAnim(true); setShowPause(true);
-            setTimeout(()=>setShowPauseAnim(false),690);
-          }
+          if (vid.paused) { vid.play(); setShowPauseAnim(false); setShowPause(false);}
+          else { vid.pause(); setShowPauseAnim(true); setShowPause(true); setTimeout(()=>setShowPauseAnim(false),690);}
         }, 180);
         resetPlayCounterOnSeekOrUser(filename);
       },
@@ -405,6 +378,14 @@ export default function Feed() {
       onSeeked: ()=> resetPlayCounterOnSeekOrUser(filename)
     };
   }
+  function triggerHeartAnim(e, idx, filename, handleLike) {
+    let x = window.innerWidth/2, y=window.innerHeight/2;
+    if (e && e.touches && e.touches.length) { x=e.touches[0].clientX;y=e.touches[0].clientY; }
+    else if (e && e.clientX!==undefined) { x=e.clientX;y=e.clientY; }
+    setHeartAnim({visible:true,x,y});
+    setTimeout(()=>setHeartAnim({visible:false,x:0,y:0}),660);
+    handleLike(idx, filename, true);
+  }
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -422,15 +403,9 @@ export default function Feed() {
       vid.currentTime = Math.max(0, Math.min(percent, 1)) * vid.duration;
     }
   }
-  // ---- expanded captions
-  const [expandedCaptions, setExpandedCaptions] = useState({});
-  const handleCaptionExpand = (filename) => {
-    setExpandedCaptions(prev => ({ ...prev, [filename]: !prev[filename] }));
-  };
-  // Comments modal drag
-  const [modalDragY, setModalDragY] = useState(0);
-  const [isDraggingModal, setIsDraggingModal] = useState(false);
-  const dragStartY = useRef(0);
+  // Caption expand
+  const handleCaptionExpand = (filename) => setExpandedCaptions(prev => ({ ...prev, [filename]: !prev[filename] }));
+  // Comments drag
   function handleModalTouchStart(e) {
     if (!e.touches || e.touches.length !== 1) return;
     dragStartY.current = e.touches[0].clientY;
@@ -442,9 +417,11 @@ export default function Feed() {
     if (dy > 0) setModalDragY(dy);
   }
   function handleModalTouchEnd() {
-    setIsDraggingModal(false); if (modalDragY > 65) { setShowComments(null); } setModalDragY(0);
+    setIsDraggingModal(false);
+    if (modalDragY > 65) { setShowComments(null); }
+    setModalDragY(0);
   }
-  // Like/reply per comment
+  // Per-comment like/reply
   function isCommentLiked(fname, i) { return localStorage.getItem(commentLikeKey(fname, i)) === "1"; }
   function toggleCommentLike(fname, i) {
     const key = commentLikeKey(fname, i);
@@ -463,10 +440,7 @@ export default function Feed() {
     setActiveReply([null, null]);
     setTick(t=>t+1);
   }
-  const [tick, setTick] = useState(0);
-  const [activeReply, setActiveReply] = useState([null,null]);
-  const showActiveReply = activeReply && activeReply[0] && typeof activeReply[1] === 'number';
-
+  // Comments modal helper
   function renderComments({ comments, filename, idx }) {
     return (comments || []).map((c, i) => {
       const liked = isCommentLiked(filename, i);
@@ -562,7 +536,7 @@ export default function Feed() {
     });
   }
 
-  // ---- RENDER LOGIC
+  // -- UI RENDER
   if (notFound) return (<div style={{color:"#e26666",textAlign:"center",marginTop:150,fontSize:22}}>Video not found.<br/><button onClick={()=>navigate("/",{replace:true})} style={{marginTop:18,fontWeight:600,fontSize:17,padding:"8px 28px",borderRadius:12,background:"#1c45f7",color:"#fff",border:"none",cursor:"pointer"}}>Back to Feed</button></div>);
   if (loading) return <>{Array.from({ length: 2 }).map((_, idx) => <SkeletonShort key={idx}/>)}</>;
 
@@ -591,11 +565,7 @@ export default function Feed() {
         <button
           onClick={() => navigate("/", { replace: true })}
           className="feed-btn-anim"
-          style={{
-            position: "absolute", top: 20, left: 16, zIndex: 100,
-            background: "#222f", color: "#fff", fontWeight: 600, fontSize: 16, padding: "6px 19px",
-            borderRadius: 16, border: "none", cursor: "pointer", fontFamily:'inherit'
-          }}>
+          style={{position:"absolute",top:20,left:16,zIndex:100,background:"#222f",color:"#fff",fontWeight:600,fontSize:16,padding:"6px 19px",borderRadius:16,border:"none",cursor:"pointer",fontFamily:'inherit'}}>
           ← Feed
         </button>
         <video
@@ -619,26 +589,16 @@ export default function Feed() {
           onClick={e => { e.stopPropagation(); setMuted(m => !m); setMutePulse(true); setTimeout(() => setMutePulse(false), 350); }}
           aria-label={muted ? "Unmute" : "Mute"}
           className="feed-btn-anim"
-          style={{
-            position: "absolute", top: 20, right: 20, zIndex: 60,
-            background: "rgba(28,29,34,0.65)", border: "none", borderRadius: 16,
-            width: 39, height: 39, display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", boxShadow: "0 2px 6px #0002", outline: "none"
-          }}
+          style={{position:"absolute",top:20,right:20,zIndex:60,background:"rgba(28,29,34,0.65)",border:"none",borderRadius:16,width:39,height:39,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",boxShadow:"0 2px 6px #0002",outline:"none"}}
         ><MuteMicIcon muted={muted}/></button>
         <div style={{
-          position: "absolute", left: 0, right: 0, bottom: 0,
-          height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32,
-          borderRadius: 2, overflow: "hidden", cursor: "pointer"
+          position: "absolute", left: 0, right: 0, bottom: 0, height: 4,
+          background: "rgba(255,255,255,0.18)", zIndex: 32,borderRadius: 2, overflow: "hidden", cursor: "pointer"
         }}
           onClick={e => handleSeek(0, e, false)}
           onTouchStart={e => handleSeek(0, e, true)}>
           <div style={{
-            width: `${Math.min(prog * 100, 100)}%`,
-            height: "100%",
-            background: "rgb(42, 131, 254)",
-            transition: "width 0.22s cubic-bezier(.4,1,.5,1)",
-            pointerEvents: "none"
+            width: `${Math.min(prog * 100, 100)}%`,height:"100%",background:"rgb(42, 131, 254)",transition:"width 0.22s cubic-bezier(.4,1,.5,1)",pointerEvents:"none"
           }} />
         </div>
         <div style={{
@@ -694,20 +654,17 @@ export default function Feed() {
             }}>
               <div style={{
                 fontWeight:400,fontSize:16,color:"#fff",lineHeight:1.4,maxHeight:showFull?"none":"2.8em",overflow:showFull?"visible":"hidden",
-                textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:showFull?"unset":2,WebkitBoxOrient:"vertical",
-                wordBreak:"break-word",marginRight:isTruncated?10:0,whiteSpace:"pre-line"
+                textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:showFull?"unset":2,WebkitBoxOrient:"vertical",wordBreak:"break-word",marginRight:isTruncated?10:0,whiteSpace:"pre-line"
               }}>{displayedCaption}</div>
               {isTruncated && (
-                <button style={{background:"none",border:"none",color:"#33b6ff",fontWeight:600,fontSize:15,cursor:"pointer",
-                  marginLeft:2,padding:0,lineHeight:1.3,textDecoration:"underline",transition:"color .15s"}}
+                <button style={{background:"none",border:"none",color:"#33b6ff",fontWeight:600,fontSize:15,cursor:"pointer",marginLeft:2,padding:0,lineHeight:1.3,textDecoration:"underline",transition:"color .15s"}}
                   onClick={()=>handleCaptionExpand(filename)} tabIndex={0}>
                   {showFull ? "less" : "more"}
                 </button>
               )}
             </div>
           )}
-          <div
-            style={{color:"#b2bec3",fontSize:15,marginTop:3,cursor:"pointer",fontWeight:500}}
+          <div style={{color:"#b2bec3",fontSize:15,marginTop:3,cursor:"pointer",fontWeight:500}}
             onClick={()=>setShowComments(filename)}
           >View all {v.comments?v.comments.length:0} comments</div>
         </div>
@@ -744,7 +701,7 @@ export default function Feed() {
                   style={{ flex:1, backgroundColor:"#23263a",border:"none",borderRadius:20,padding:"10px 15px",color:"white",fontSize:14 }}
                   value={commentInputs[filename]||""}
                   onChange={e=>setCommentInputs(prev=>({...prev,[filename]:e.target.value}))}
-                  onKeyDown={e=>e.key==="Enter"&&(commentInputs[filename]||"").trim()!==""&&(()=>(axios.post(`${HOST}/shorts/${filename}/comment`,{name:"You",text:commentInputs[filename].trim()}).then(()=>{setAloneVideo(prev=>prev?{...prev,comments:[...(prev.comments||[]),{name:"You",text:commentInputs[filename].trim()}]}:prev);setCommentInputs(prev=>({...prev,[filename]:""}));})))()}
+                  onKeyDown={e=>e.key==="Enter"&&(commentInputs[filename]||"").trim()!==""&&(()=>axios.post(`${HOST}/shorts/${filename}/comment`,{name:"You",text:commentInputs[filename].trim()}).then(()=>{setAloneVideo(prev=>prev?{...prev,comments:[...(prev.comments||[]),{name:"You",text:commentInputs[filename].trim()}]}:prev);setCommentInputs(prev=>({...prev,[filename]:""}));})))()}
                 />
                 <button className="feed-btn-anim"
                   style={{
@@ -762,10 +719,11 @@ export default function Feed() {
     );
   }
 
-  // -------- FEED MODE --------
+  // --- FEED MODE
   if (!loading && shorts.length === 0) return (
     <div style={{ color: "#bbb", textAlign: "center", marginTop: 120, fontSize: 20 }}>No shorts uploaded yet.</div>
   );
+
   return (
     <div style={{ minHeight: "100dvh", width: "100vw", background: "#090b10", margin: 0, padding: 0, overflow: "hidden",fontFamily:"inherit" }}>
       <DoubleTapHeart {...heartAnim}/>
@@ -820,20 +778,13 @@ export default function Feed() {
                   }}
                   aria-label={muted ? "Unmute" : "Mute"}
                   className="feed-btn-anim"
-                  style={{
-                    position: "absolute", top: 20, right: 20, zIndex: 60, background: "rgba(28,29,34,0.65)",
-                    border: "none", borderRadius: 16, width: 39, height: 39,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    cursor: "pointer", boxShadow: "0 2px 6px #0002", outline: "none"
-                  }}
-                >
-                  <MuteMicIcon muted={muted}/>
-                </button>
+                  style={{position:"absolute",top:20,right:20,zIndex:60,background:"rgba(28,29,34,0.65)",border:"none",borderRadius:16,width:39,height:39,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",boxShadow:"0 2px 6px #0002",outline:"none"}}
+                ><MuteMicIcon muted={muted}/></button>
               )}
               <div style={{
                 position: "absolute", left: 0, right: 0, bottom: 0,
-                height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32,
-                borderRadius: 2, overflow: "hidden", cursor: "pointer"
+                height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32,borderRadius: 2,
+                overflow: "hidden", cursor: "pointer"
               }}
                 onClick={e => handleSeek(idx, e, false)}
                 onTouchStart={e => handleSeek(idx, e, true)}>
