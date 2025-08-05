@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -36,11 +36,10 @@ function fakeTime(i) {
   return ["2h ago", "1h ago", "45m ago", "30m ago", "15m ago", "Just now"][i % 6] || "Just now";
 }
 
-// --- SVG ICONS unchanged ... HeartSVG, PauseIcon, PulseHeart, MuteMicIcon ---
-
-function HeartSVG({ filled }) {
+// ==== SVG ICONS ====
+function HeartSVG({ filled, size = 28 }) {
   return (
-    <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
+    <svg aria-label={filled ? "Unlike" : "Like"} height={size} width={size} viewBox="0 0 48 48">
       <path
         fill={filled ? "#ed4956" : "none"}
         stroke={filled ? "#ed4956" : "#fff"}
@@ -105,7 +104,7 @@ function MuteMicIcon({ muted }) {
   );
 }
 
-// ---- SkeletonShort same as before ----
+// ---- SkeletonShort (unchanged) ----
 function SkeletonShort() {
   return (
     <div
@@ -188,8 +187,42 @@ function useAntiInspect() {
   }, []);
 }
 
-// ---- MAIN FEED COMPONENT ----
+// ---- COMMENT LIKE HELPER ----
+function useCommentLikes(videoFilename, comments) {
+  const [likeMap, setLikeMap] = useState({}); // key: idx, value: true/false
+  const [likeCounts, setLikeCounts] = useState({});
 
+  useEffect(() => {
+    // Load likes & counts from localStorage once
+    let m = {}, c = {};
+    (comments || []).forEach((cmt, idx) => {
+      const key = `comment_like_${videoFilename}_${idx}`;
+      m[idx] = localStorage.getItem(key) === "1";
+      c[idx] = cmt.likes || 0;
+    });
+    setLikeMap(m);
+    setLikeCounts(c);
+    // eslint-disable-next-line
+  }, [videoFilename, comments && comments.length]);
+
+  function toggleLike(idx) {
+    const key = `comment_like_${videoFilename}_${idx}`;
+    setLikeMap(likeMap => ({
+      ...likeMap,
+      [idx]: !likeMap[idx]
+    }));
+    setLikeCounts(counts => ({
+      ...counts,
+      [idx]: (counts[idx] || 0) + (!likeMap[idx] ? 1 : -1)
+    }));
+    // Save in localStorage
+    if (!likeMap[idx]) localStorage.setItem(key, "1");
+    else localStorage.removeItem(key);
+  }
+  return { likeMap, likeCounts, toggleLike };
+}
+
+// ---- MAIN FEED COMPONENT ----
 export default function Feed() {
   useAntiInspect();
   const location = useLocation();
@@ -204,7 +237,7 @@ export default function Feed() {
   const [muted, setMuted] = useState(true);
   const [mutePulse, setMutePulse] = useState(false);
   const [likePending, setLikePending] = useState({});
-  const [showComments, setShowComments] = useState(null);
+  const [showComments, setShowComments] = useState(null); // string: filename or null
   const [commentInputs, setCommentInputs] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
   const [showPause, setShowPause] = useState(false);
@@ -219,10 +252,8 @@ export default function Feed() {
   const [replayCounts, setReplayCounts] = useState({});
   const [overlayShown, setOverlayShown] = useState({});
 
-  // ========== CLEAN, FAST, SNAP SCROLL HANDLING ========== //
-  // CSS: will pin scrolling to only one video per flick, no skipping!
+  // ========== SMOOTH, ENFORCED, SNAP SCROLL ========== //
   const containerRef = useRef();
-  // For tightly debounce scroll snappings
   const scrollTimeoutRef = useRef(null);
 
   // --- FEED/SINGLE-VIDEO FETCH ---
@@ -243,7 +274,46 @@ export default function Feed() {
     }
   }, [location.search]);
 
-  // --- INTERSECTION OBSERVER for "which video in focus/playing" ---
+  // ---- ENFORCED SNAP SCROLL ----
+  useEffect(() => {
+    if (aloneVideo || !shorts.length) return;
+    const container = containerRef.current;
+    if (!container) return;
+    function nearestSnapIdx() {
+      let best = 0, bestY = 1e10;
+      wrapperRefs.current.forEach((el, idx) => {
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const contRect = container.getBoundingClientRect();
+        const y = Math.abs(rect.top - contRect.top);
+        if (y < bestY) { bestY = y; best = idx; }
+      });
+      return best;
+    }
+    let lastScrollTop = 0;
+    let lock = false;
+    function handleScroll() {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
+        if (lock) return; // already fixing
+        lock = true;
+        const idx = nearestSnapIdx();
+        // Animate to nearest card (block multiple skippings in a flick)
+        if (wrapperRefs.current[idx]) {
+          wrapperRefs.current[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        setTimeout(() => { lock = false; }, 480); // don't re-trigger in between
+        setCurrentIdx(idx);
+      }, 44);
+    }
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, [shorts.length, aloneVideo]);
+
+  // ---- Intersection Observer for focus ----
   useEffect(() => {
     if (aloneVideo) return;
     const observer = new window.IntersectionObserver(
@@ -261,54 +331,14 @@ export default function Feed() {
     );
     wrapperRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
-    // eslint-disable-next-line
   }, [shorts.length, aloneVideo]);
 
-  // Force the refs to match number of shorts
   useEffect(() => {
     videoRefs.current = Array(shorts.length);
     wrapperRefs.current = Array(shorts.length);
   }, [shorts.length]);
 
-  // --- FAST SMOOTH SNAP: ON SCROLL, auto-fix position to nearest short ---
-  useEffect(() => {
-    if (aloneVideo || !shorts.length) return;
-    const container = containerRef.current;
-    if (!container) return;
-
-    function nearestSnapIdx() {
-      let best = 0, bestY = 1e10;
-      wrapperRefs.current.forEach((el, idx) => {
-        if (!el) return;
-        // Get vertical distance to container's top
-        const rect = el.getBoundingClientRect();
-        const contRect = container.getBoundingClientRect();
-        const y = Math.abs(rect.top - contRect.top);
-        if (y < bestY) { bestY = y; best = idx; }
-      });
-      return best;
-    }
-    const handleScroll = () => {
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-      scrollTimeoutRef.current = setTimeout(() => {
-        const idx = nearestSnapIdx();
-        setCurrentIdx(idx);
-        // Snap to the short nicely
-        if (wrapperRefs.current[idx]) {
-          wrapperRefs.current[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 54); // tight debounce
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => {
-      container.removeEventListener('scroll', handleScroll);
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-    };
-    // eslint-disable-next-line
-  }, [shorts.length, aloneVideo]);
-
-  // --- Mute/play/pause for focused video
+  // --- Video play/pause state for focused video & pausing on modal open ----
   useEffect(() => {
     if (aloneVideo) return;
     videoRefs.current.forEach((vid, idx) => {
@@ -316,13 +346,30 @@ export default function Feed() {
       if (idx === currentIdx) {
         vid.muted = muted;
         const filename = (shorts[idx] && shorts[idx].url.split('/').pop()) || "";
-        if (!overlayShown[filename]) {
+        // Pause if comment modal is up for this video
+        if (showComments === filename) {
+          vid.pause();
+        } else if (!overlayShown[filename]) {
           vid.play().catch(()=>{});
         }
       } else { vid.pause(); vid.muted = true; }
     });
     setShowPause(false); setShowPulseHeart(false);
-  }, [currentIdx, muted, aloneVideo, shorts, overlayShown]);
+    // eslint-disable-next-line
+  }, [currentIdx, muted, aloneVideo, shorts, overlayShown, showComments]);
+
+  // --- If showComments is closed, resume video if it was focused and not paused by user ----
+  useEffect(() => {
+    if (!shorts.length || aloneVideo) return;
+    if (showComments === null && typeof currentIdx === 'number') {
+      const filename = shorts[currentIdx].url.split('/').pop();
+      const v = videoRefs.current[currentIdx];
+      if (v && !overlayShown[filename]) {
+        v.play().catch(()=>{});
+      }
+    }
+    // eslint-disable-next-line
+  }, [showComments])
 
   useEffect(() => {
     function visibilityHandler() {
@@ -388,7 +435,7 @@ export default function Feed() {
         setShorts(prev =>
           prev.map((v, i) =>
             i === idx
-              ? { ...v, comments: [...(v.comments || []), { name: "You", text }] }
+              ? { ...v, comments: [...(v.comments || []), { name: "You", text, likes: 0 }] }
               : v
           )
         );
@@ -396,7 +443,7 @@ export default function Feed() {
           prev && prev.url && prev.url.endsWith(filename)
             ? {
               ...prev,
-              comments: [...(prev.comments || []), { name: "You", text }]
+              comments: [...(prev.comments || []), { name: "You", text, likes: 0 }]
             }
             : prev
         );
@@ -422,20 +469,23 @@ export default function Feed() {
     setModalDragY(0);
   }
 
-  // ---- Video Events: tap/dbltap/touch ----
+  // ---- Video Events: Tap/DoubleTap ----
   function handleVideoEvents(idx, filename) {
+    let lastTap = null;
     let tapTimeout = null;
     return {
-      onClick: () => {
-        if (tapTimeout) clearTimeout(tapTimeout);
+      onClick: e => {
+        if (tapTimeout) return; // double tap handler will handle it
         tapTimeout = setTimeout(() => {
           const vid = videoRefs.current[idx];
           if (!vid) return;
           if (vid.paused) { vid.play(); setShowPause(false); }
           else { vid.pause(); setShowPause(true); }
-        }, 240);
+          tapTimeout = null;
+        }, 250);
       },
-      onDoubleClick: () => {
+      onDoubleClick: e => {
+        // Prevent pause/play on double click
         if (tapTimeout) { clearTimeout(tapTimeout); tapTimeout = null; }
         if (!isLiked(filename)) handleLike(idx, filename, true);
         setShowPulseHeart(true);
@@ -443,12 +493,16 @@ export default function Feed() {
       },
       onTouchEnd: e => {
         if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
-        if (tapTimeout) {
-          clearTimeout(tapTimeout); tapTimeout = null;
+        const now = Date.now();
+        if (lastTap && now - lastTap < 350) {
+          // DOUBLE TAP (within 350ms): like, not pause/play
+          if (tapTimeout) { clearTimeout(tapTimeout); tapTimeout = null; }
           if (!isLiked(filename)) handleLike(idx, filename, true);
           setShowPulseHeart(true);
           setTimeout(() => setShowPulseHeart(false), 700);
+          lastTap = null;
         } else {
+          // Single tap candidate, wait a bit for possible 2nd tap
           tapTimeout = setTimeout(() => {
             const vid = videoRefs.current[idx];
             if (vid) {
@@ -456,8 +510,9 @@ export default function Feed() {
               else { vid.pause(); setShowPause(true); }
             }
             tapTimeout = null;
-          }, 250);
-        }
+          }, 290);
+          lastTap = now;
+        } 
       }
     };
   }
@@ -515,12 +570,15 @@ export default function Feed() {
     }
   }
 
-  // ---- SHARED VIDEO UI LOGIC ----
+  // ---- ==== SHARED VIDEO UI LOGIC ==== ----
   function renderVideo({
     v, idx, filename, prog, liked, isCurrent, allComments,
     caption, showFull, isTruncated, displayedCaption, inFeed
   }) {
     const isOverlayShown = overlayShown[filename];
+    const showCommentsModal = showComments === filename;
+    const { likeMap, likeCounts, toggleLike } = useCommentLikes(filename, allComments);
+
     return (
       <div key={filename} data-idx={idx}
         ref={el => inFeed && (wrapperRefs.current[idx] = el)}
@@ -530,7 +588,6 @@ export default function Feed() {
           display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
         }}
       >
-        {/* VIDEO */}
         <video
           ref={el => (videoRefs.current[idx] = el)}
           src={HOST + v.url}
@@ -542,7 +599,6 @@ export default function Feed() {
           onEnded={() => handleVideoEnded(idx, filename)}
           {...handleVideoEvents(idx, filename)}
         />
-        {/* -- Overlay for replay-protection -- */}
         {isOverlayShown && (
           <div style={{
             position: "absolute",
@@ -604,7 +660,6 @@ export default function Feed() {
             `}</style>
           </div>
         )}
-        {/* Mute/Unmute Button */}
         {(inFeed ? isCurrent : true) && (
           <button
             onClick={e => { e.stopPropagation(); setMuted(m => !m); setMutePulse(true); setTimeout(() => setMutePulse(false), 350); }}
@@ -644,7 +699,6 @@ export default function Feed() {
           </div>
         )}
         {(inFeed ? isCurrent : true) && <PulseHeart visible={showPulseHeart} />}
-        {/* Progress Bar */}
         <div style={{
           position: "absolute", left: 0, right: 0, bottom: 0,
           height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32, borderRadius: 2, overflow: "hidden", cursor: "pointer"
@@ -709,7 +763,7 @@ export default function Feed() {
             <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
           </div>
         </div>
-        {/* BOTTOM CAPTION (NO first comment here!) */}
+        {/* Caption (no first comment shown) */}
         <div style={{
           position: "absolute", left: 0, right: 0, bottom: 0,
           background: "linear-gradient(0deg,#000e 88%,transparent 100%)",
@@ -746,14 +800,13 @@ export default function Feed() {
               )}
             </div>
           )}
-          {/* NO first comment below the caption */}
           <div
             style={{ color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer" }}
             onClick={() => setShowComments(filename)}
           >View all {v.comments ? v.comments.length : 0} comments</div>
         </div>
-        {/* COMMENTS MODAL, NO Like/Reply in comments */}
-        {showComments === filename &&
+        {/* === COMMENTS MODAL with comment like logic === */}
+        {showCommentsModal &&
           <div
             style={{
               position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.91)",
@@ -796,7 +849,7 @@ export default function Feed() {
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
                 ) : (
                   allComments.map((c, i) => (
-                    <div className="comment" style={{ display: 'flex', marginBottom: 15 }} key={i}>
+                    <div className="comment" style={{ display: 'flex', marginBottom: 18, alignItems: "center" }} key={i}>
                       <img
                         src={c.avatar}
                         className="comment-avatar"
@@ -804,16 +857,29 @@ export default function Feed() {
                         style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
                       />
                       <div className="comment-content" style={{ flex: 1 }}>
-                        <div>
+                        <div style={{ display:"flex", alignItems:"center" }}>
                           <span className="comment-username" style={{
                             fontWeight: 600, fontSize: 14, marginRight: 5, color: "#fff"
                           }}>{c.name}</span>
                           <span className="comment-text" style={{ fontSize: 14, color: "#fff" }}>{c.text}</span>
                         </div>
-                        <div className="comment-time" style={{
-                          fontSize: 12, color: "#a8a8a8", marginTop: 2
-                        }}>{c.time}</div>
-                        {/* No Like/Reply lines */}
+                        <div style={{ display: 'flex', alignItems: 'center',  marginTop: 6, gap:8 }}>
+                          <span className="comment-time" style={{
+                            fontSize: 12, color: "#a8a8a8"
+                          }}>{c.time}</span>
+                          <button
+                            aria-label={likeMap[i] ? "Unlike comment" : "Like comment"}
+                            onClick={()=>toggleLike(i)}
+                            style={{
+                              background:"none", border:"none", padding:"3px 5px 3px 2px", cursor:"pointer",
+                              marginLeft:5, display:"flex", alignItems:"center"
+                            }}>
+                            <HeartSVG filled={likeMap[i]} size={20}/>
+                            <span style={{color: likeMap[i] ? "#ed4956" : "#fff", fontSize:13, fontWeight:500, marginLeft:3}}>
+                              {likeCounts[i] || 0}
+                            </span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))
@@ -932,7 +998,7 @@ export default function Feed() {
       </div>
     );
   }
-  // --- NORMAL FEED (all videos, with smooth snap fix) ---
+  // --- NORMAL FEED (all videos) ---
   return (
     <div style={{
       minHeight: "100dvh", width: "100vw", background: "black", margin: 0, padding: 0, overflow: "hidden",
@@ -971,7 +1037,6 @@ export default function Feed() {
           });
         })}
       </div>
-      {/* Smooth vertical snap correction for iOS */}
       <style>{`
         html,body {
           overscroll-behavior-y: contain;
