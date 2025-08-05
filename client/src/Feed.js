@@ -153,7 +153,7 @@ export default function Feed() {
       }
     };
   }
-
+ 
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
