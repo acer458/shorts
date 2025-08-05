@@ -5,7 +5,6 @@ export const HOST = "https://shorts-t2dk.onrender.com";
 
 // --------- CAPTION TRUNCATE
 // Paste these directly below import axios at the top
-export const HOST = "https://shorts-t2dk.onrender.com";
 
 export function truncateString(str, maxLen = 90) {
   if (!str) return '';
