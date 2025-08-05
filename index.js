@@ -235,3 +235,6 @@ app.delete('/delete/:filename', adminJwtAuth, (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+full index.js add in this bro and give full index.js
