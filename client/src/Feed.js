@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -36,10 +36,10 @@ function fakeTime(i) {
   return ["2h ago", "1h ago", "45m ago", "30m ago", "15m ago", "Just now"][i % 6] || "Just now";
 }
 
-// ==== SVG ICONS ====
-function HeartSVG({ filled, size = 28 }) {
+// ---- SVG ICONS ----
+function HeartSVG({ filled }) {
   return (
-    <svg aria-label={filled ? "Unlike" : "Like"} height={size} width={size} viewBox="0 0 48 48">
+    <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
       <path
         fill={filled ? "#ed4956" : "none"}
         stroke={filled ? "#ed4956" : "#fff"}
@@ -104,7 +104,7 @@ function MuteMicIcon({ muted }) {
   );
 }
 
-// ---- SkeletonShort (unchanged) ----
+// ---- SKELETON SHORT ----
 function SkeletonShort() {
   return (
     <div
@@ -141,9 +141,9 @@ function SkeletonShort() {
         position: 'absolute', right: '12px', bottom: '100px', zIndex: 10,
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '25px'
       }}>
-        {Array.from({ length: 3 }).map((_, i) => (
+        {Array.from({length:3}).map((_,i) => (
           <div key={i} style={{
-            width: 46, height: 49, marginBottom: i === 0 ? 6 : 0, borderRadius: 16,
+            width: 46, height: 49, marginBottom: i===0?6:0, borderRadius: 16,
             background: "linear-gradient(90deg,#20212c 30%,#292a37 60%,#20212c 100%)"
           }} />
         ))}
@@ -154,15 +154,14 @@ function SkeletonShort() {
         color: "#fff", padding: "22px 18px 33px 18px", zIndex: 6,
         display: "flex", flexDirection: "column", userSelect: "none"
       }}>
-        <div style={{
-          width: 110, height: 17, marginBottom: 10, borderRadius: 7,
+        <div style={{width: 110, height: 17, marginBottom: 10, borderRadius: 7,
           background: "linear-gradient(90deg,#21243a 30%,#393b56 60%,#21243a 100%)", marginLeft: 2
         }} />
         <div style={{
           height: 15, width: "70%", borderRadius: 5,
           background: "linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"
-        }} />
-        <div style={{ marginTop: 8, width: 76, height: 14, borderRadius: 6, background: "linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)" }} />
+        }}/>
+        <div style={{marginTop:8, width:76, height:14, borderRadius:6, background:"linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"}}/>
       </div>
     </div>
   );
@@ -187,41 +186,6 @@ function useAntiInspect() {
   }, []);
 }
 
-// ---- COMMENT LIKE HELPER ----
-function useCommentLikes(videoFilename, comments) {
-  const [likeMap, setLikeMap] = useState({}); // key: idx, value: true/false
-  const [likeCounts, setLikeCounts] = useState({});
-
-  useEffect(() => {
-    // Load likes & counts from localStorage once
-    let m = {}, c = {};
-    (comments || []).forEach((cmt, idx) => {
-      const key = `comment_like_${videoFilename}_${idx}`;
-      m[idx] = localStorage.getItem(key) === "1";
-      c[idx] = cmt.likes || 0;
-    });
-    setLikeMap(m);
-    setLikeCounts(c);
-    // eslint-disable-next-line
-  }, [videoFilename, comments && comments.length]);
-
-  function toggleLike(idx) {
-    const key = `comment_like_${videoFilename}_${idx}`;
-    setLikeMap(likeMap => ({
-      ...likeMap,
-      [idx]: !likeMap[idx]
-    }));
-    setLikeCounts(counts => ({
-      ...counts,
-      [idx]: (counts[idx] || 0) + (!likeMap[idx] ? 1 : -1)
-    }));
-    // Save in localStorage
-    if (!likeMap[idx]) localStorage.setItem(key, "1");
-    else localStorage.removeItem(key);
-  }
-  return { likeMap, likeCounts, toggleLike };
-}
-
 // ---- MAIN FEED COMPONENT ----
 export default function Feed() {
   useAntiInspect();
@@ -237,7 +201,7 @@ export default function Feed() {
   const [muted, setMuted] = useState(true);
   const [mutePulse, setMutePulse] = useState(false);
   const [likePending, setLikePending] = useState({});
-  const [showComments, setShowComments] = useState(null); // string: filename or null
+  const [showComments, setShowComments] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
   const [showPause, setShowPause] = useState(false);
@@ -248,13 +212,10 @@ export default function Feed() {
   const [isDraggingModal, setIsDraggingModal] = useState(false);
   const dragStartY = useRef(0);
 
-  // Replay Protection
+  // ---- Replay Protection State ----
+  // Map: filename -> playCount (0,1,2,...), overlayShown (true/false)
   const [replayCounts, setReplayCounts] = useState({});
-  const [overlayShown, setOverlayShown] = useState({});
-
-  // ========== SMOOTH, ENFORCED, SNAP SCROLL ========== //
-  const containerRef = useRef();
-  const scrollTimeoutRef = useRef(null);
+  const [overlayShown, setOverlayShown] = useState({}); // filename -> true/false
 
   // --- FEED/SINGLE-VIDEO FETCH ---
   useEffect(() => {
@@ -274,58 +235,19 @@ export default function Feed() {
     }
   }, [location.search]);
 
-  // ---- ENFORCED SNAP SCROLL ----
-  useEffect(() => {
-    if (aloneVideo || !shorts.length) return;
-    const container = containerRef.current;
-    if (!container) return;
-    function nearestSnapIdx() {
-      let best = 0, bestY = 1e10;
-      wrapperRefs.current.forEach((el, idx) => {
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        const contRect = container.getBoundingClientRect();
-        const y = Math.abs(rect.top - contRect.top);
-        if (y < bestY) { bestY = y; best = idx; }
-      });
-      return best;
-    }
-    let lastScrollTop = 0;
-    let lock = false;
-    function handleScroll() {
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-      scrollTimeoutRef.current = setTimeout(() => {
-        if (lock) return; // already fixing
-        lock = true;
-        const idx = nearestSnapIdx();
-        // Animate to nearest card (block multiple skippings in a flick)
-        if (wrapperRefs.current[idx]) {
-          wrapperRefs.current[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-        setTimeout(() => { lock = false; }, 480); // don't re-trigger in between
-        setCurrentIdx(idx);
-      }, 44);
-    }
-    container.addEventListener('scroll', handleScroll);
-    return () => {
-      container.removeEventListener('scroll', handleScroll);
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-    };
-  }, [shorts.length, aloneVideo]);
-
-  // ---- Intersection Observer for focus ----
+  // --- INTERSECTION OBSERVER for "which video in focus" ----
   useEffect(() => {
     if (aloneVideo) return;
     const observer = new window.IntersectionObserver(
       entries => {
-        let maxRatio = 0, visibleIdx = currentIdx;
+        let maxRatio = 0, visibleIdx = 0;
         entries.forEach(entry => {
           if (entry.intersectionRatio > maxRatio) {
             maxRatio = entry.intersectionRatio;
             visibleIdx = Number(entry.target.dataset.idx);
           }
         });
-        if (maxRatio > 0.7 && visibleIdx !== currentIdx) setCurrentIdx(visibleIdx);
+        if (maxRatio > 0.7) setCurrentIdx(visibleIdx);
       },
       { threshold: [0, 0.5, 0.7, 1] }
     );
@@ -333,44 +255,30 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length, aloneVideo]);
 
+  // Ensure refs stay in sync with number of shorts
   useEffect(() => {
     videoRefs.current = Array(shorts.length);
     wrapperRefs.current = Array(shorts.length);
   }, [shorts.length]);
 
-  // --- Video play/pause state for focused video & pausing on modal open ----
+  // --- Mute/play/pause for focused video
   useEffect(() => {
     if (aloneVideo) return;
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
       if (idx === currentIdx) {
         vid.muted = muted;
+        // If overlay is up for this video, do NOT auto-play.
         const filename = (shorts[idx] && shorts[idx].url.split('/').pop()) || "";
-        // Pause if comment modal is up for this video
-        if (showComments === filename) {
-          vid.pause();
-        } else if (!overlayShown[filename]) {
+        if (!overlayShown[filename]) {
           vid.play().catch(()=>{});
         }
       } else { vid.pause(); vid.muted = true; }
     });
     setShowPause(false); setShowPulseHeart(false);
-    // eslint-disable-next-line
-  }, [currentIdx, muted, aloneVideo, shorts, overlayShown, showComments]);
+  }, [currentIdx, muted, aloneVideo, shorts, overlayShown]);
 
-  // --- If showComments is closed, resume video if it was focused and not paused by user ----
-  useEffect(() => {
-    if (!shorts.length || aloneVideo) return;
-    if (showComments === null && typeof currentIdx === 'number') {
-      const filename = shorts[currentIdx].url.split('/').pop();
-      const v = videoRefs.current[currentIdx];
-      if (v && !overlayShown[filename]) {
-        v.play().catch(()=>{});
-      }
-    }
-    // eslint-disable-next-line
-  }, [showComments])
-
+  // --- Prevent videos playing on visibility loss (battery/UX)
   useEffect(() => {
     function visibilityHandler() {
       if (document.visibilityState !== "visible") {
@@ -381,7 +289,7 @@ export default function Feed() {
     return () => document.removeEventListener("visibilitychange", visibilityHandler);
   }, []);
 
-  // --- LIKE, COMMENT, SHARE LOGIC as before...
+  // --- LIKE, COMMENT, SHARE LOGIC ---
   function isLiked(filename) { return localStorage.getItem("like_" + filename) === "1"; }
   function setLiked(filename, yes) {
     if (yes) localStorage.setItem("like_" + filename, "1");
@@ -420,6 +328,7 @@ export default function Feed() {
       navigator.share({ url, title: "Watch this short!" });
     } else {
       navigator.clipboard.writeText(url);
+      // Prefer a quick non-blocking feedback over alert
       const temp = document.createElement('div');
       temp.innerText = "Link copied!";
       temp.style = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222c;padding:8px 26px;border-radius:17px;color:white;font-weight:600;z-index:9999;font-size:15px;box-shadow:0 4px 16px #0004";
@@ -435,16 +344,16 @@ export default function Feed() {
         setShorts(prev =>
           prev.map((v, i) =>
             i === idx
-              ? { ...v, comments: [...(v.comments || []), { name: "You", text, likes: 0 }] }
+              ? { ...v, comments: [...(v.comments || []), { name: "You", text }] }
               : v
           )
         );
         setAloneVideo(prev =>
           prev && prev.url && prev.url.endsWith(filename)
             ? {
-              ...prev,
-              comments: [...(prev.comments || []), { name: "You", text, likes: 0 }]
-            }
+                ...prev,
+                comments: [...(prev.comments || []), { name: "You", text }]
+              }
             : prev
         );
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
@@ -469,23 +378,20 @@ export default function Feed() {
     setModalDragY(0);
   }
 
-  // ---- Video Events: Tap/DoubleTap ----
+  // ---- Video Events: tap/dbltap/touch ----
   function handleVideoEvents(idx, filename) {
-    let lastTap = null;
     let tapTimeout = null;
     return {
-      onClick: e => {
-        if (tapTimeout) return; // double tap handler will handle it
+      onClick: () => {
+        if (tapTimeout) clearTimeout(tapTimeout);
         tapTimeout = setTimeout(() => {
           const vid = videoRefs.current[idx];
           if (!vid) return;
           if (vid.paused) { vid.play(); setShowPause(false); }
           else { vid.pause(); setShowPause(true); }
-          tapTimeout = null;
-        }, 250);
+        }, 240);
       },
-      onDoubleClick: e => {
-        // Prevent pause/play on double click
+      onDoubleClick: () => {
         if (tapTimeout) { clearTimeout(tapTimeout); tapTimeout = null; }
         if (!isLiked(filename)) handleLike(idx, filename, true);
         setShowPulseHeart(true);
@@ -493,16 +399,12 @@ export default function Feed() {
       },
       onTouchEnd: e => {
         if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
-        const now = Date.now();
-        if (lastTap && now - lastTap < 350) {
-          // DOUBLE TAP (within 350ms): like, not pause/play
-          if (tapTimeout) { clearTimeout(tapTimeout); tapTimeout = null; }
+        if (tapTimeout) {
+          clearTimeout(tapTimeout); tapTimeout = null;
           if (!isLiked(filename)) handleLike(idx, filename, true);
           setShowPulseHeart(true);
           setTimeout(() => setShowPulseHeart(false), 700);
-          lastTap = null;
         } else {
-          // Single tap candidate, wait a bit for possible 2nd tap
           tapTimeout = setTimeout(() => {
             const vid = videoRefs.current[idx];
             if (vid) {
@@ -510,9 +412,8 @@ export default function Feed() {
               else { vid.pause(); setShowPause(true); }
             }
             tapTimeout = null;
-          }, 290);
-          lastTap = now;
-        } 
+          }, 250);
+        }
       }
     };
   }
@@ -547,20 +448,24 @@ export default function Feed() {
     setReplayCounts(prev => {
       const prevCount = prev[filename] || 0;
       if (prevCount < 2) {
+        // Allow auto replay (playCount goes 0->1->2 for 3 "plays")
+        // If overlay is shown, don't auto-replay.
         if (videoRefs.current[idx]) {
           videoRefs.current[idx].currentTime = 0;
           videoRefs.current[idx].play().catch(()=>{});
         }
         return { ...prev, [filename]: prevCount + 1 };
       } else {
+        // 3rd time ended: show overlay, pause video, disallow loop
         setOverlayShown(prevOverlay => ({ ...prevOverlay, [filename]: true }));
         if (videoRefs.current[idx]) {
           videoRefs.current[idx].pause();
         }
-        return { ...prev, [filename]: prevCount + 1 };
+        return { ...prev, [filename]: prevCount + 1 }; // goes to 3
       }
     });
   }
+
   function handleOverlayContinue(idx, filename) {
     setReplayCounts(prev => ({ ...prev, [filename]: 0 }));
     setOverlayShown(prev => ({ ...prev, [filename]: false }));
@@ -570,15 +475,12 @@ export default function Feed() {
     }
   }
 
-  // ---- ==== SHARED VIDEO UI LOGIC ==== ----
+  // ---- SHARED VIDEO UI LOGIC ----
   function renderVideo({
     v, idx, filename, prog, liked, isCurrent, allComments,
     caption, showFull, isTruncated, displayedCaption, inFeed
   }) {
     const isOverlayShown = overlayShown[filename];
-    const showCommentsModal = showComments === filename;
-    const { likeMap, likeCounts, toggleLike } = useCommentLikes(filename, allComments);
-
     return (
       <div key={filename} data-idx={idx}
         ref={el => inFeed && (wrapperRefs.current[idx] = el)}
@@ -588,6 +490,7 @@ export default function Feed() {
           display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
         }}
       >
+        {/* VIDEO */}
         <video
           ref={el => (videoRefs.current[idx] = el)}
           src={HOST + v.url}
@@ -599,6 +502,7 @@ export default function Feed() {
           onEnded={() => handleVideoEnded(idx, filename)}
           {...handleVideoEvents(idx, filename)}
         />
+        {/* -- Overlay for replay-protection -- */}
         {isOverlayShown && (
           <div style={{
             position: "absolute",
@@ -660,6 +564,7 @@ export default function Feed() {
             `}</style>
           </div>
         )}
+        {/* Mute/Unmute Button */}
         {(inFeed ? isCurrent : true) && (
           <button
             onClick={e => { e.stopPropagation(); setMuted(m => !m); setMutePulse(true); setTimeout(() => setMutePulse(false), 350); }}
@@ -687,6 +592,7 @@ export default function Feed() {
             `}</style>
           </button>
         )}
+        {/* Pause Animation */}
         {(inFeed ? isCurrent : true) && showPause && (
           <div style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -698,7 +604,9 @@ export default function Feed() {
             <style>{`@keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }`}</style>
           </div>
         )}
+        {/* Heart Pulse */}
         {(inFeed ? isCurrent : true) && <PulseHeart visible={showPulseHeart} />}
+        {/* Progress Bar */}
         <div style={{
           position: "absolute", left: 0, right: 0, bottom: 0,
           height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32, borderRadius: 2, overflow: "hidden", cursor: "pointer"
@@ -713,7 +621,7 @@ export default function Feed() {
             transition: "width 0.22s cubic-bezier(.4,1,.5,1)", pointerEvents: "none"
           }} />
         </div>
-        {/* ACTIONS */}
+        {/* ACTIONS (Profile, Like, Comment, Share) */}
         <div style={{
           position: 'absolute', right: '12px', bottom: '100px',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', zIndex: 10
@@ -763,7 +671,7 @@ export default function Feed() {
             <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
           </div>
         </div>
-        {/* Caption (no first comment shown) */}
+        {/* BOTTOM CAPTION */}
         <div style={{
           position: "absolute", left: 0, right: 0, bottom: 0,
           background: "linear-gradient(0deg,#000e 88%,transparent 100%)",
@@ -800,13 +708,22 @@ export default function Feed() {
               )}
             </div>
           )}
+          {v.comments && v.comments.length > 0 && (
+            <div style={{ fontSize: 14, color: "#bae6fd" }}>
+              {v.comments[0].name === "You" ? (
+                <>{v.comments[0].text}</>
+              ) : (
+                <><b>{v.comments[0].name}:</b> {v.comments[0].text}</>
+              )}
+            </div>
+          )}
           <div
             style={{ color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer" }}
             onClick={() => setShowComments(filename)}
           >View all {v.comments ? v.comments.length : 0} comments</div>
         </div>
-        {/* === COMMENTS MODAL with comment like logic === */}
-        {showCommentsModal &&
+        {/* COMMENTS MODAL */}
+        {showComments === filename &&
           <div
             style={{
               position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.91)",
@@ -849,7 +766,7 @@ export default function Feed() {
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
                 ) : (
                   allComments.map((c, i) => (
-                    <div className="comment" style={{ display: 'flex', marginBottom: 18, alignItems: "center" }} key={i}>
+                    <div className="comment" style={{ display: 'flex', marginBottom: 15 }} key={i}>
                       <img
                         src={c.avatar}
                         className="comment-avatar"
@@ -857,28 +774,18 @@ export default function Feed() {
                         style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
                       />
                       <div className="comment-content" style={{ flex: 1 }}>
-                        <div style={{ display:"flex", alignItems:"center" }}>
+                        <div>
                           <span className="comment-username" style={{
-                            fontWeight: 600, fontSize: 14, marginRight: 5, color: "#fff"
+                            fontWeight: 600, fontSize: 14, marginRight: 5, color:"#fff"
                           }}>{c.name}</span>
-                          <span className="comment-text" style={{ fontSize: 14, color: "#fff" }}>{c.text}</span>
+                          <span className="comment-text" style={{ fontSize: 14, color:"#fff" }}>{c.text}</span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center',  marginTop: 6, gap:8 }}>
-                          <span className="comment-time" style={{
-                            fontSize: 12, color: "#a8a8a8"
-                          }}>{c.time}</span>
-                          <button
-                            aria-label={likeMap[i] ? "Unlike comment" : "Like comment"}
-                            onClick={()=>toggleLike(i)}
-                            style={{
-                              background:"none", border:"none", padding:"3px 5px 3px 2px", cursor:"pointer",
-                              marginLeft:5, display:"flex", alignItems:"center"
-                            }}>
-                            <HeartSVG filled={likeMap[i]} size={20}/>
-                            <span style={{color: likeMap[i] ? "#ed4956" : "#fff", fontSize:13, fontWeight:500, marginLeft:3}}>
-                              {likeCounts[i] || 0}
-                            </span>
-                          </button>
+                        <div className="comment-time" style={{
+                          fontSize: 12, color: "#a8a8a8", marginTop: 2
+                        }}>{c.time}</div>
+                        <div className="comment-actions" style={{ display: 'flex', marginTop: 5 }}>
+                          <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", userSelect:"none" }}>Reply</span>
+                          <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", userSelect:"none" }}>Like</span>
                         </div>
                       </div>
                     </div>
@@ -944,7 +851,7 @@ export default function Feed() {
         color: "#ca7979", textAlign: "center", marginTop: 120, fontSize: 22,
         background: "#000", minHeight: "100dvh"
       }}>
-        <div style={{ marginBottom: 12 }}>Video not found.</div>
+        <div style={{marginBottom:12}}>Video not found.</div>
         <button
           onClick={() => navigate("/", { replace: true })}
           style={{
@@ -992,7 +899,7 @@ export default function Feed() {
       <div style={{
         fontFamily: "Inter, Arial,sans-serif",
         color: "#bbb", textAlign: "center", marginTop: 120, fontSize: 20,
-        background: "#0a0a0c", minHeight: "100dvh", letterSpacing: ".01em"
+        background:"#0a0a0c", minHeight:"100dvh", letterSpacing:".01em"
       }}>
         No shorts uploaded yet.
       </div>
@@ -1004,19 +911,10 @@ export default function Feed() {
       minHeight: "100dvh", width: "100vw", background: "black", margin: 0, padding: 0, overflow: "hidden",
       fontFamily: "Inter, Arial,sans-serif"
     }}>
-      <div
-        ref={containerRef}
-        style={{
-          width: "100vw",
-          height: "100dvh",
-          overflowY: "scroll",
-          overflowX: "hidden",
-          scrollSnapType: "y mandatory",
-          overscrollBehavior: "contain",
-          WebkitOverflowScrolling: "touch",
-          background: "#000"
-        }}
-      >
+      <div style={{
+        width: "100vw", height: "100dvh", overflowY: "scroll", overflowX: "hidden",
+        scrollSnapType: "y mandatory", background: "#000"
+      }}>
         {shorts.map((v, idx) => {
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
@@ -1037,14 +935,6 @@ export default function Feed() {
           });
         })}
       </div>
-      <style>{`
-        html,body {
-          overscroll-behavior-y: contain;
-        }
-        [data-idx] {
-          scroll-snap-align: start;
-        }
-      `}</style>
     </div>
   );
 }
