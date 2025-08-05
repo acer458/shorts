@@ -1,6 +1,9 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+// src/Feed.js
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "./components/Auth/useAuth";
+import SignInModal from "./components/Auth/SignInModal";
 
 // ---- CONFIG ----
 const HOST = "https://shorts-t2dk.onrender.com";
@@ -189,6 +192,37 @@ function useAntiInspect() {
 // ---- MAIN FEED COMPONENT ----
 export default function Feed() {
   useAntiInspect();
+
+  // ---- AUTH GATE ----
+  const { auth, showModal, setShowModal } = useAuth();
+  const interactionRecorded = useRef(false);
+
+  useEffect(() => {
+    function handleUserInteraction() {
+      if (
+        !interactionRecorded.current &&
+        !(auth.isSignedIn && auth.isGmailVerified)
+      ) {
+        setShowModal(true);
+        interactionRecorded.current = true;
+      }
+    }
+    window.addEventListener("scroll", handleUserInteraction, { passive: true });
+    window.addEventListener("keydown", handleUserInteraction);
+    window.addEventListener("touchstart", handleUserInteraction);
+    return () => {
+      window.removeEventListener("scroll", handleUserInteraction);
+      window.removeEventListener("keydown", handleUserInteraction);
+      window.removeEventListener("touchstart", handleUserInteraction);
+    };
+  }, [auth.isSignedIn, auth.isGmailVerified, setShowModal]);
+
+  // Block feed if modal shown or not verified
+  if (showModal || !(auth.isSignedIn && auth.isGmailVerified)) {
+    return <SignInModal />;
+  }
+
+  // ---- FEED STATE ----
   const location = useLocation();
   const navigate = useNavigate();
   const [shorts, setShorts] = useState([]);
@@ -207,20 +241,20 @@ export default function Feed() {
   const [showPause, setShowPause] = useState(false);
   const [showPulseHeart, setShowPulseHeart] = useState(false);
   const [expandedCaptions, setExpandedCaptions] = useState({});
-  // Modal drag-to-close states
   const [modalDragY, setModalDragY] = useState(0);
   const [isDraggingModal, setIsDraggingModal] = useState(false);
   const dragStartY = useRef(0);
-
-  // ---- Replay Protection State ----
-  // Map: filename -> playCount (0,1,2,...), overlayShown (true/false)
   const [replayCounts, setReplayCounts] = useState({});
-  const [overlayShown, setOverlayShown] = useState({}); // filename -> true/false
+  const [overlayShown, setOverlayShown] = useState({});
 
   // --- FEED/SINGLE-VIDEO FETCH ---
   useEffect(() => {
-    setLoading(true); setNotFound(false); setAloneVideo(null); setShorts([]);
-    setReplayCounts({}); setOverlayShown({});
+    setLoading(true);
+    setNotFound(false);
+    setAloneVideo(null);
+    setShorts([]);
+    setReplayCounts({});
+    setOverlayShown({});
     const params = new URLSearchParams(location.search);
     const filename = params.get("v");
     if (filename) {
@@ -235,7 +269,7 @@ export default function Feed() {
     }
   }, [location.search]);
 
-  // --- INTERSECTION OBSERVER for "which video in focus" ----
+  // --- INTERSECTION OBSERVER ----
   useEffect(() => {
     if (aloneVideo) return;
     const observer = new window.IntersectionObserver(
@@ -255,7 +289,7 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length, aloneVideo]);
 
-  // Ensure refs stay in sync with number of shorts
+  // Keep refs in sync
   useEffect(() => {
     videoRefs.current = Array(shorts.length);
     wrapperRefs.current = Array(shorts.length);
@@ -268,7 +302,6 @@ export default function Feed() {
       if (!vid) return;
       if (idx === currentIdx) {
         vid.muted = muted;
-        // If overlay is up for this video, do NOT auto-play.
         const filename = (shorts[idx] && shorts[idx].url.split('/').pop()) || "";
         if (!overlayShown[filename]) {
           vid.play().catch(()=>{});
@@ -278,7 +311,7 @@ export default function Feed() {
     setShowPause(false); setShowPulseHeart(false);
   }, [currentIdx, muted, aloneVideo, shorts, overlayShown]);
 
-  // --- Prevent videos playing on visibility loss (battery/UX)
+  // Battery/Tab UX: pause all on background
   useEffect(() => {
     function visibilityHandler() {
       if (document.visibilityState !== "visible") {
@@ -328,7 +361,6 @@ export default function Feed() {
       navigator.share({ url, title: "Watch this short!" });
     } else {
       navigator.clipboard.writeText(url);
-      // Prefer a quick non-blocking feedback over alert
       const temp = document.createElement('div');
       temp.innerText = "Link copied!";
       temp.style = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222c;padding:8px 26px;border-radius:17px;color:white;font-weight:600;z-index:9999;font-size:15px;box-shadow:0 4px 16px #0004";
@@ -443,29 +475,25 @@ export default function Feed() {
     }));
   }
 
-  // ---- ============= REPLAY PROTECTION =============== ----
+  // ---- REPLAY PROTECTION ----
   function handleVideoEnded(idx, filename) {
     setReplayCounts(prev => {
       const prevCount = prev[filename] || 0;
       if (prevCount < 2) {
-        // Allow auto replay (playCount goes 0->1->2 for 3 "plays")
-        // If overlay is shown, don't auto-replay.
         if (videoRefs.current[idx]) {
           videoRefs.current[idx].currentTime = 0;
           videoRefs.current[idx].play().catch(()=>{});
         }
         return { ...prev, [filename]: prevCount + 1 };
       } else {
-        // 3rd time ended: show overlay, pause video, disallow loop
         setOverlayShown(prevOverlay => ({ ...prevOverlay, [filename]: true }));
         if (videoRefs.current[idx]) {
           videoRefs.current[idx].pause();
         }
-        return { ...prev, [filename]: prevCount + 1 }; // goes to 3
+        return { ...prev, [filename]: prevCount + 1 };
       }
     });
   }
-
   function handleOverlayContinue(idx, filename) {
     setReplayCounts(prev => ({ ...prev, [filename]: 0 }));
     setOverlayShown(prev => ({ ...prev, [filename]: false }));
@@ -755,7 +783,6 @@ export default function Feed() {
               }}>
                 <h2 style={{ fontSize: 16, fontWeight: 600, color: "#fff" }}>Comments</h2>
                 <span
-                  className="fas fa-times"
                   style={{ fontSize: 22, color: "#fff", cursor: "pointer" }}
                   onClick={() => setShowComments(null)}
                   tabIndex={0}
@@ -842,7 +869,6 @@ export default function Feed() {
       </div>
     );
   }
-
   // ---- NOT FOUND (bad ?v) ----
   if (notFound) {
     return (
@@ -905,7 +931,7 @@ export default function Feed() {
       </div>
     );
   }
-  // --- NORMAL FEED (all videos) ---
+  // --- NORMAL FEED ---
   return (
     <div style={{
       minHeight: "100dvh", width: "100vw", background: "black", margin: 0, padding: 0, overflow: "hidden",
