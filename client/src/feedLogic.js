@@ -4,6 +4,39 @@ import axios from "axios";
 export const HOST = "https://shorts-t2dk.onrender.com";
 
 // --------- CAPTION TRUNCATE
+// Paste these directly below import axios at the top
+export const HOST = "https://shorts-t2dk.onrender.com";
+
+export function truncateString(str, maxLen = 90) {
+  if (!str) return '';
+  if (str.length <= maxLen) return str;
+  let nextSpace = str.indexOf(' ', maxLen);
+  if (nextSpace === -1) nextSpace = str.length;
+  return str.substring(0, nextSpace) + '…';
+}
+
+export function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+export function isLiked(filename) {
+  return localStorage.getItem("like_" + filename) === "1";
+}
+
+export function setLiked(filename, yes) {
+  if (yes) localStorage.setItem("like_" + filename, "1");
+  else localStorage.removeItem("like_" + filename);
+}
+
+// Add any other helpers like fetchFeed, fetchSingle, serverLike, serverAddComment below
+
+// --------- CAPTION TRUNCAT
+
 export function truncateString(str, maxLen = 90) {
   if (!str) return '';
   if (str.length <= maxLen) return str;
