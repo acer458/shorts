@@ -1,15 +1,26 @@
 // src/components/Auth/SignInModal.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "./useAuth";
 import axios from "axios";
 
 export default function SignInModal() {
   const { startAuthSession, markGmailVerified } = useAuth();
+
+  // Form state
   const [form, setForm] = useState({ username: "", gmail: "", password: "" });
   const [gmailValid, setGmailValid] = useState(null);
   const [submissionStage, setSubmissionStage] = useState("form"); // "form" | "wait" | "success" | "error"
   const [error, setError] = useState("");
 
+  // Add scroll lock to body when modal is open
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []); // Only runs on mount/unmount
+
+  // Live Gmail validation
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -18,12 +29,12 @@ export default function SignInModal() {
     }
   }
 
+  // Submit handler
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
     setSubmissionStage("wait");
     try {
-      // 1. Send registration & request Gmail verif (adapt URL to your backend)
       await axios.post("/api/register", {
         username: form.username,
         gmail: form.gmail,
@@ -33,13 +44,14 @@ export default function SignInModal() {
       setSubmissionStage("success");
     } catch (err) {
       setError(
-        err.response?.data?.message || "Error! Try again or use a different Gmail."
+        err.response?.data?.message ||
+          "Error! Try again or use a different Gmail."
       );
       setSubmissionStage("error");
     }
   }
 
-  // 2. Poll for Gmail verification, or use a "Check Verified" button.
+  // Checking for Gmail verification
   async function checkVerification() {
     try {
       const res = await axios.get("/api/check-gmail-verified", {
@@ -60,7 +72,7 @@ export default function SignInModal() {
     <div className="modal-overlay">
       <div className="modal-box">
         {submissionStage === "form" && (
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} autoComplete="off">
             <h2>Sign In to Continue</h2>
             <input
               name="username"
@@ -68,6 +80,7 @@ export default function SignInModal() {
               onChange={handleChange}
               placeholder="Username"
               required
+              autoFocus
             />
             <input
               name="gmail"
@@ -93,26 +106,32 @@ export default function SignInModal() {
             />
             <button
               type="submit"
-              disabled={!gmailValid || !form.username || !form.password}
+              disabled={
+                !gmailValid || !form.username || !form.password
+              }
             >
-              Sign In & Verify Gmail
+              Sign In &amp; Verify Gmail
             </button>
             {error && <div className="error-msg">{error}</div>}
           </form>
         )}
 
-        {submissionStage === "wait" && <p>Sending verification email to {form.gmail}...</p>}
+        {submissionStage === "wait" && (
+          <p>Sending verification email to <b>{form.gmail}</b>...</p>
+        )}
 
         {submissionStage === "success" && (
           <>
             <p>
-              Please check your Gmail (<b>{form.gmail}</b>) and click the verification link.<br />
+              Please check your Gmail (<b>{form.gmail}</b>) and click the verification link.
+              <br /><br />
               Once done, click below:
             </p>
             <button onClick={checkVerification}>I Verified My Gmail</button>
             {error && <div className="error-msg">{error}</div>}
           </>
         )}
+
         {submissionStage === "error" && (
           <div>
             <p style={{ color: "red" }}>{error}</p>
