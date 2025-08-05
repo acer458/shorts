@@ -1,123 +1,36 @@
-/* === MODERN ADMIN DASHBOARD WHITE + BLUE THEME === */
-
-/* Sidebar */
-.admin-sidebar {
-  background: #2563eb;
-  color: #fff;
-  min-width: 210px;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  padding-top: 35px;
-  font-family: 'Inter', Arial, sans-serif;
-}
-/* Sidebar tab button */
-.admin-sidebar button {
-  width: 100%;
-  background: transparent;
-  color: #fff;
-  border: none;
-  font-size: 18px;
-  padding: 18px 28px;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.14s;
-  font-weight: 400;
-}
-.admin-sidebar button.active,
-.admin-sidebar button:active {
-  font-weight: 700;
-  background: #1e40af;
+html, body, #root {
+background: #000 !important;
+margin: 0 !important;
+padding: 0 !important;
+min-height: 100dvh;
+min-width: 100vw;
+width: 100vw;
+height: 100dvh;
+box-sizing: border-box;
+overflow-x: hidden;
+-webkit-tap-highlight-color: transparent;
+touch-action: manipulation;
 }
 
-/* Main dashboard area */
-.admin-main-content {
-  background: #f6fafe;
-  flex: 1;
-  min-height: 100vh;
-  padding: 0;
-  overflow-y: auto;
+/* Universal box-sizing and tap highlight removal */
+* {
+box-sizing: border-box;
+-webkit-tap-highlight-color: transparent;
+outline: none;
 }
 
-/* Card-like blocks for dashboard sections */
-.admin-section {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 3px 16px #2563eb12;
-  margin: 34px auto 24px auto;
-  padding: 36px 30px 28px 30px;
-  max-width: 720px;
+button, input, textarea, select, svg, video {
+-webkit-tap-highlight-color: transparent !important;
+background: none;
+outline: none;
+border: none;
 }
 
-/* Headings and accent */
-.admin-section h2 {
-  color: #2563eb;
-  font-weight: 700;
+button:focus, input:focus {
+outline: none;
+box-shadow: none;
 }
 
-/* Upload button and progress bar */
-.admin-upload-btn {
-  background: #2563eb;
-  color: #fff;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 16px;
-  padding: 8px 26px;
-  cursor: pointer;
-  margin-left: 6px;
-  transition: background 0.17s;
-}
-.admin-upload-btn:hover { background: #1748a6; }
-
-.admin-progress-bar-container {
-  margin-top: 12px;
-  background: #f3f3ff;
-  border-radius: 8px;
-  height: 13px;
-  width: 100%;
-  box-shadow: 0 1px 2px #2563eb22;
-}
-.admin-progress-bar {
-  height: 100%;
-  background: #2563eb;
-  border-radius: 8px;
-  transition: width 0.16s;
-}
-
-/* Uploaded videos list */
-.admin-videolist {
-  background: #f5f7fc;
-  border-radius: 8px;
-  padding: 14px 18px;
-  min-height: 60px;
-  margin-top: 18px;
-}
-.admin-videolist li {
-  padding: 7px 0;
-  border-bottom: 1px solid #e8e8fa;
-  color: #223;
-  font-size: 16px;
-}
-.admin-videolist li:last-child { border-bottom: none; }
-
-.admin-stat-label {
-  color: #2563eb;
-  font-weight: 600;
-}
-
-.admin-leaderboard li {
-  padding: 7px 0;
-  border-bottom: 1px solid #e8e8fa;
-}
-
-@media (max-width: 750px) {
-  .admin-section {
-    padding: 17px 10px 13px 10px;
-    max-width: 100vw;
-  }
-  .admin-sidebar {
-    min-width: 140px;
-    font-size: 12px;
-    padding-top: 14px;
-  }
-}
+/* Hide ALL scrollbars */
+::-webkit-scrollbar { display: none; }
+body { scrollbar-width: none; }
