@@ -21,10 +21,25 @@ import {
   EmptyFeedBlock,
   FeedList,
   MainWrapper,
-  AppFont,
   BlockContextMenu,
   AntiInspectScript,
 } from "./FeedUI";
+
+// --- Scoped Font Injection ---
+function AppFont() {
+  return (
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+      html, body {
+        font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+        background: #000;
+        margin: 0; padding: 0;
+        color: #fff;
+        -webkit-font-smoothing: antialiased;
+      }
+    `}</style>
+  );
+}
 
 export default function Feed() {
   // State
