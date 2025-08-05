@@ -73,8 +73,13 @@ export default function Feed() {
     videoRefs.current.forEach((vid, idx) => {
       if (!vid) return;
       if (idx === currentIdx) {
-        vid.muted = muted; vid.play().catch(()=>{});
+        // GLASS OVERLAY LOGIC
+        if (!showContinue[shorts[idx]?.url?.split("/").pop()]) {
+          vid.muted = muted;
+          vid.play().catch(()=>{});
+        }
       }
+
       else { vid.pause(); vid.currentTime = 0; vid.muted = true; }
     });
     setShowPause(false); setShowPulseHeart(false);
