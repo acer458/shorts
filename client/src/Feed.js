@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
 // ---- CONFIG ----
 const HOST = "https://shorts-t2dk.onrender.com";
 
-// ---- UTILITIES ----
+// ===== UTILITIES =====
 function truncateString(str, maxLen = 90) {
   if (!str) return "";
   if (str.length <= maxLen) return str;
@@ -32,8 +32,19 @@ function fakeAvatar(i) {
   ];
   return urls[i % urls.length];
 }
-function fakeTime(i) {
-  return ["2h ago", "1h ago", "45m ago", "30m ago", "15m ago", "Just now"][i % 6] || "Just now";
+function nowDateString() {
+  return new Date().toISOString();
+}
+function getDisplayTime(dateStr) {
+  if (!dateStr) return "Just now";
+  const d = new Date(dateStr);
+  const now = new Date();
+  const seconds = Math.floor((now - d) / 1000);
+  if (seconds < 2) return "Just now";
+  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  return d.toLocaleDateString();
 }
 
 // ---- SVG ICONS ----
@@ -104,89 +115,220 @@ function MuteMicIcon({ muted }) {
   );
 }
 
-// ---- SKELETON SHORT ----
-function SkeletonShort() {
+// ---- Skeleton ----
+function SkeletonShort() { /* ...Same as before... */ }
+
+// ---- DEV TOOL BLOCK ----
+function useAntiInspect() { /* ...Same as before... */ }
+
+// ====== COMMENT COMPONENTS =======
+
+function useUniqueList(arr, keyGetter) {
+  const map = new Map();
+  arr.forEach(item => {
+    const k = keyGetter(item);
+    if (!map.has(k)) map.set(k, item);
+  });
+  return Array.from(map.values());
+}
+
+function CommentLikeButton({liked,count,onToggle}) {
   return (
-    <div
+    <button
+      onClick={onToggle}
       style={{
-        width: "100vw", height: "100dvh",
-        scrollSnapAlign: "start",
-        position: "relative",
-        background: "#111",
-        display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
+        background:"none",border:"none",color:liked?"#ed4956":"#aaa",display:"inline-flex",alignItems:"center",gap:4,
+        fontSize:13,marginLeft:4,cursor:"pointer"
       }}
+      aria-label={liked ? "Unlike comment" : "Like comment"}
     >
+      <svg height={16} width={16} viewBox="0 0 48 48">
+        <path
+          fill={liked ? "#ed4956" : "none"}
+          stroke={liked ? "#ed4956" : "#aaa"}
+          strokeWidth="2.1"
+          d="M34.3 7.8c-3.4 0-6.5 1.7-8.3 4.4-1.8-2.7-4.9-4.4-8.3-4.4C11 7.8 7 12 7 17.2c0 3.7 2.6 7 6.6 11.1 3.1 3.1 9.3 8.6 10.1 9.3.6.5 1.5.5 2.1 0 .8-.7 7-6.2 10.1-9.3 4-4.1 6.6-7.4 6.6-11.1 0-5.2-4-9.4-8.6-9.4z"
+        />
+      </svg>
+      {count>0 && <span style={{fontSize:13,fontWeight:500}}>{count}</span>}
+    </button>
+  );
+}
+
+function CommentItem({
+  comment,
+  onLike,
+  onReply,
+  replyingTo,
+  replyInput,
+  setReplyInput,
+  onSubmitReply,
+  onLikeReply
+}) {
+  return (
+    <div>
       <div style={{
-        width: "100vw", height: "100dvh",
-        background: "linear-gradient(90deg,#16181f 0%,#212332 50%,#181924 100%)",
-        animation: "skelAnim 1.3s infinite linear",
-        position: "absolute", top: 0, left: 0, zIndex: 1
-      }} />
-      <style>{`
-        @keyframes skelAnim { 0% { filter:brightness(1);} 55% { filter:brightness(1.07);} 100% { filter:brightness(1);}}
-      `}</style>
-      <div style={{
-        position: "absolute", top: 20, right: 20, zIndex: 20,
-        background: "rgba(28,29,34,0.65)",
-        borderRadius: 16, width: 39, height: 39,
-        display: "flex", alignItems: "center", justifyContent: "center",
+        display:"flex", gap:10, alignItems:"flex-start", marginBottom:5, minHeight:34
       }}>
-        <div style={{
-          width: 24, height: 24,
-          background: "linear-gradient(90deg,#222 30%,#333 60%,#222 100%)",
-          borderRadius: "50%"
-        }} />
-      </div>
-      <div style={{
-        position: 'absolute', right: '12px', bottom: '100px', zIndex: 10,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '25px'
-      }}>
-        {Array.from({length:3}).map((_,i) => (
-          <div key={i} style={{
-            width: 46, height: 49, marginBottom: i===0?6:0, borderRadius: 16,
-            background: "linear-gradient(90deg,#20212c 30%,#292a37 60%,#20212c 100%)"
-          }} />
-        ))}
-      </div>
-      <div style={{
-        position: "absolute", left: 0, right: 0, bottom: 0,
-        background: "linear-gradient(0deg,#151721 88%,transparent 100%)",
-        color: "#fff", padding: "22px 18px 33px 18px", zIndex: 6,
-        display: "flex", flexDirection: "column", userSelect: "none"
-      }}>
-        <div style={{width: 110, height: 17, marginBottom: 10, borderRadius: 7,
-          background: "linear-gradient(90deg,#21243a 30%,#393b56 60%,#21243a 100%)", marginLeft: 2
-        }} />
-        <div style={{
-          height: 15, width: "70%", borderRadius: 5,
-          background: "linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"
+        <img alt="" src={comment.avatar} style={{
+          width:30, height:30, borderRadius:19,objectFit:"cover", background:"#232"
         }}/>
-        <div style={{marginTop:8, width:76, height:14, borderRadius:6, background:"linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"}}/>
+        <div style={{flex:1}}>
+          <div style={{display:"flex", alignItems:"center",gap:7}}>
+            <span style={{color:"#fff",fontWeight:600, fontSize:14}}>{comment.name}</span>
+            <span style={{color:"#b8b8b8", fontSize:12}}>{getDisplayTime(comment.date)}</span>
+          </div>
+          <div style={{color:"#eee", fontSize:15,lineHeight:"1.4",marginTop:1,whiteSpace:"pre-line"}}>
+            {comment.text}
+          </div>
+          <div style={{display:"flex",alignItems:"center",marginTop:4,gap:2}}>
+            <span
+              onClick={onReply}
+              style={{
+                fontSize:12,color:"#6cb2ff",cursor:"pointer",padding:"0 7px 0 0",userSelect:"none"
+              }}>
+              Reply
+            </span>
+            <CommentLikeButton liked={!!comment.liked} count={comment.likes||0} onToggle={onLike}/>
+          </div>
+        </div>
       </div>
+      {
+        replyingTo===comment.localId && (
+          <div style={{marginLeft:40,marginBottom:10}}>
+            <input
+              type="text"
+              placeholder="Write a reply..."
+              style={{
+                width:"85%", fontSize:14, borderRadius:18, border:"none",
+                padding:"6px 14px", outline:"none",background:"#16181f",color:"#fff"
+              }}
+              value={replyInput||""}
+              onChange={e=>setReplyInput(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&onSubmitReply()}
+              autoFocus
+            />
+            <button
+              onClick={onSubmitReply}
+              disabled={!(replyInput||"").trim()}
+              style={{
+                background:"#3c74e5",border:"none",borderRadius:12,color:"#fff",
+                padding:"4px 15px",marginLeft:8,fontSize:13, fontWeight:600,opacity:!!(replyInput||"").trim()?1:0.55,
+                cursor:!!(replyInput||"").trim()?"pointer":"default"
+              }}>
+              Post
+            </button>
+          </div>
+        )
+      }
+      {/* REPLIES */}
+      {(comment.replies||[]).length>0 && (
+        <div style={{marginLeft:44,marginTop:2}}>
+          {comment.replies.map(r=>(
+            <div key={r.localId} style={{display:"flex",alignItems:"flex-start",marginBottom:6}}>
+              <img alt="" src={r.avatar} style={{
+                width:24,height:24,borderRadius:12, objectFit:"cover",background:"#242"
+              }}/>
+              <div style={{marginLeft:7,flex:1}}>
+                <div style={{display:"flex",alignItems:"center",gap:5}}>
+                  <span style={{color:"#e3e3e3",fontWeight:600,fontSize:13}}>{r.name}</span>
+                  <span style={{color:"#999",fontSize:11}}>{getDisplayTime(r.date)}</span>
+                </div>
+                <div style={{color:"#ddd",fontSize:14,marginTop:1,whiteSpace:"pre-line"}}>
+                  {r.text}
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:2,marginTop:2}}>
+                  <CommentLikeButton liked={!!r.liked} count={r.likes||0} onToggle={onLikeReply}/>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-// ---- ANTI-INSPECT (DEV TOOL BLOCK) ----
-function useAntiInspect() {
-  useEffect(() => {
-    const blockDevtools = e => {
-      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase()))) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-    const preventRightClick = e => e.preventDefault();
-    window.addEventListener('contextmenu', preventRightClick);
-    window.addEventListener('keydown', blockDevtools);
-    return () => {
-      window.removeEventListener('contextmenu', preventRightClick);
-      window.removeEventListener('keydown', blockDevtools);
-    };
-  }, []);
+// --- MAIN COMMENTS MODAL ---
+function CommentsModal({
+  open, onClose, comments, onAdd, onLike, onReplyClick, replyingTo, replyInput,
+  setReplyInput, onSubmitReply, onLikeReply, input, setInput, posting
+}) {
+  return open?(
+    <div
+      style={{
+        position:"fixed",inset:0,background:"rgba(5,8,16,0.93)",zIndex:500,display:"flex",flexDirection:"column",justifyContent:"flex-end"
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          backgroundColor:"#090a13",borderTopLeftRadius:15,borderTopRightRadius:15,padding:15,
+          minHeight:'38vh',height:'69vh',maxWidth:440,width:"99vw",margin:"0 auto",
+          border:'1px solid #23232b',display:'flex',flexDirection:'column',
+          boxShadow:"0 0 48px #000c",touchAction:"none",overflow:"hidden"
+        }}
+        onClick={e=>e.stopPropagation()}
+      >
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:9,borderBottom:'1.1px solid #191925'}}>
+          <h2 style={{fontSize:16,fontWeight:700,color:"#fff",letterSpacing:"0.02em"}}>Comments</h2>
+          <span style={{fontSize:30,lineHeight:"22px",color:"#dde",cursor:"pointer",userSelect:"none",marginRight:1}}
+            onClick={onClose}
+            tabIndex={0}
+          >×</span>
+        </div>
+        <div style={{flex:1,overflowY:'auto',padding:"10px 0",marginTop:4}}>
+          {!!comments.length?
+          comments.map((c)=>(
+            <CommentItem
+              comment={c}
+              key={c.localId}
+              onLike={()=>onLike(c)}
+              onReply={()=>onReplyClick(c)}
+              replyingTo={replyingTo}
+              replyInput={replyInput}
+              setReplyInput={setReplyInput}
+              onSubmitReply={()=>onSubmitReply(c)}
+              onLikeReply={r=>onLikeReply(c,r)}
+            />
+          ))
+          :<div style={{color:"#bbb",textAlign:"center",padding:"38px 0",fontSize:16}}>No comments yet.</div>
+          }
+        </div>
+        {/* Add Comment Input */}
+        <div style={{
+          display:'flex',alignItems:'center',paddingTop:10, borderTop:'1px solid #15151b'
+        }}>
+          <input
+            type="text"
+            placeholder="Add a comment..."
+            style={{
+              flex: 1, backgroundColor: "#15151a", border: "none", borderRadius: 20,
+              padding: "10px 15px", color: "white", fontSize: 14, outline:"none"
+            }}
+            value={input}
+            onChange={e=>setInput(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&(input||"").trim()!==""&&!posting&&onAdd()}
+            autoFocus
+          />
+          <button
+            style={{
+              color: "#2986e2", fontWeight: 700, marginLeft: 10, fontSize: 15,
+              background: "none", border: "none",padding:"5px 9px",
+              cursor:(input||"").trim()!==""&&!posting? "pointer":"default",
+              opacity:(input||"").trim()!==""?1:0.54,transition:'opacity .16s'
+            }}
+            disabled={(input||"").trim()===""||posting}
+            onClick={onAdd}
+          >Post</button>
+        </div>
+      </div>
+    </div>
+  ):null;
 }
 
-// ---- MAIN FEED COMPONENT ----
+// =========== SNAP SCROLL LOGIC MAIN COMPONENT ==========
+
 export default function Feed() {
   useAntiInspect();
   const location = useLocation();
@@ -195,9 +337,15 @@ export default function Feed() {
   const [aloneVideo, setAloneVideo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+
+  // scroll/snap state
+  const [currentIdx, setCurrentIdx] = useState(0);
   const videoRefs = useRef([]);
   const wrapperRefs = useRef([]);
-  const [currentIdx, setCurrentIdx] = useState(0);
+  const scrollContainerRef = useRef();
+  const scrolling = useRef(false);
+
+  // mute, pause, UI
   const [muted, setMuted] = useState(true);
   const [mutePulse, setMutePulse] = useState(false);
   const [likePending, setLikePending] = useState({});
@@ -207,634 +355,614 @@ export default function Feed() {
   const [showPause, setShowPause] = useState(false);
   const [showPulseHeart, setShowPulseHeart] = useState(false);
   const [expandedCaptions, setExpandedCaptions] = useState({});
-  // Modal drag-to-close states
+  // comments state (threaded, likes etc)
+  const [globalComments, setGlobalComments] = useState({});
+  const [commentLikes, setCommentLikes] = useState({}); // {filename:{[cid]:1}}
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyInput, setReplyInput] = useState("");
+  const [replyPending, setReplyPending] = useState(false);
+  const [commentPosting, setCommentPosting] = useState(false);
+
+  // Modal drag-to-close
   const [modalDragY, setModalDragY] = useState(0);
   const [isDraggingModal, setIsDraggingModal] = useState(false);
   const dragStartY = useRef(0);
 
-  // ---- Replay Protection State ----
-  // Map: filename -> playCount (0,1,2,...), overlayShown (true/false)
+  // Replay overlay
   const [replayCounts, setReplayCounts] = useState({});
-  const [overlayShown, setOverlayShown] = useState({}); // filename -> true/false
+  const [overlayShown, setOverlayShown] = useState({});
 
-  // --- FEED/SINGLE-VIDEO FETCH ---
-  useEffect(() => {
+  // ===== FETCH / LOAD =====
+  useEffect(()=>{
     setLoading(true); setNotFound(false); setAloneVideo(null); setShorts([]);
     setReplayCounts({}); setOverlayShown({});
     const params = new URLSearchParams(location.search);
     const filename = params.get("v");
-    if (filename) {
+    if(filename){
       axios.get(`${HOST}/shorts/${filename}`)
-        .then(res => setAloneVideo({ ...res.data, url: res.data.url || `/shorts/${filename}` }))
-        .catch(() => setNotFound(true))
-        .finally(() => setLoading(false));
-    } else {
+        .then(res=>setAloneVideo({...res.data,url:res.data.url||`/shorts/${filename}`}))
+        .catch(()=>setNotFound(true))
+        .finally(()=>setLoading(false));
+    }else{
       axios.get(HOST + "/shorts")
-        .then(res => setShorts(shuffleArray(res.data)))
-        .finally(() => setLoading(false));
+        .then(res=>setShorts(shuffleArray(res.data)))
+        .finally(()=>setLoading(false));
     }
-  }, [location.search]);
+  },[location.search]);
 
-  // --- INTERSECTION OBSERVER for "which video in focus" ----
-  useEffect(() => {
-    if (aloneVideo) return;
-    const observer = new window.IntersectionObserver(
-      entries => {
-        let maxRatio = 0, visibleIdx = 0;
-        entries.forEach(entry => {
-          if (entry.intersectionRatio > maxRatio) {
-            maxRatio = entry.intersectionRatio;
-            visibleIdx = Number(entry.target.dataset.idx);
-          }
-        });
-        if (maxRatio > 0.7) setCurrentIdx(visibleIdx);
-      },
-      { threshold: [0, 0.5, 0.7, 1] }
-    );
-    wrapperRefs.current.forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, [shorts.length, aloneVideo]);
-
-  // Ensure refs stay in sync with number of shorts
-  useEffect(() => {
+  // -- Prepare refs
+  useEffect(()=>{
     videoRefs.current = Array(shorts.length);
     wrapperRefs.current = Array(shorts.length);
-  }, [shorts.length]);
+  },[shorts.length]);
 
-  // --- Mute/play/pause for focused video
-  useEffect(() => {
-    if (aloneVideo) return;
-    videoRefs.current.forEach((vid, idx) => {
-      if (!vid) return;
-      if (idx === currentIdx) {
-        vid.muted = muted;
-        // If overlay is up for this video, do NOT auto-play.
-        const filename = (shorts[idx] && shorts[idx].url.split('/').pop()) || "";
-        if (!overlayShown[filename]) {
-          vid.play().catch(()=>{});
-        }
-      } else { vid.pause(); vid.muted = true; }
+  // ===== MODERN SNAP-SCROLL (one at a time) =====
+  // Handles mouse wheel, trackpad, keyboard, mobile swipe/drag. 1 video at a time.
+  useEffect(()=>{
+    if(aloneVideo) return;
+    const container = scrollContainerRef.current;
+    if(!container) return;
+
+    let lastTouchY=null, dragStartIdx=0, velocity=0, lastScroll=0;
+    let scrollingFlag=false;
+    let frame=0, wheelTimeout=0;
+    // Snap handler
+    function goTo(idx){
+      idx = Math.max(0, Math.min(idx, shorts.length-1));
+      setCurrentIdx(idx);
+      const el = wrapperRefs.current[idx];
+      if(el){
+        el.scrollIntoView({behavior:'smooth',block:"start"});
+      }
+    }
+    // Wheel for desktop (one at a time, not multiple!)
+    function handleWheel(e){
+      if(scrolling.current) return;
+      if(Math.abs(e.deltaY)<32) return;
+      e.preventDefault();
+      scrolling.current=true;
+      if(e.deltaY>0 && currentIdx<shorts.length-1) goTo(currentIdx+1);
+      else if(e.deltaY<0 && currentIdx>0) goTo(currentIdx-1);
+      setTimeout(()=>{scrolling.current=false;},410);
+    }
+    // Key: arrows
+    function handleKey(e){
+      if(document.activeElement.tagName==="INPUT") return;
+      if(e.key==="ArrowDown") { goTo(currentIdx+1); e.preventDefault();}
+      else if(e.key==="ArrowUp") { goTo(currentIdx-1); e.preventDefault();}
+    }
+    // TOUCH snap
+    function handleTouchStart(e){
+      if(e.touches.length!==1) return;
+      lastTouchY = e.touches[0].clientY;
+      dragStartIdx = currentIdx;
+      velocity=0;
+      lastScroll = performance.now();
+    }
+    function handleTouchMove(e){
+      if(lastTouchY==null) return;
+      velocity=e.touches[0].clientY-lastTouchY;
+    }
+    function handleTouchEnd(e){
+      if(lastTouchY==null) return;
+      // Fast downward swipe = next
+      if(velocity<-39 && currentIdx<shorts.length-1) goTo(currentIdx+1);
+      // Fast upward swipe = prev
+      else if(velocity>39 && currentIdx>0) goTo(currentIdx-1);
+      lastTouchY=null;
+    }
+    container.addEventListener("wheel",handleWheel,{passive:false});
+    container.addEventListener("keydown",handleKey);
+    container.addEventListener("touchstart",handleTouchStart,{passive:true});
+    container.addEventListener("touchmove",handleTouchMove,{passive:true});
+    container.addEventListener("touchend",handleTouchEnd,{passive:true});
+    return ()=>{
+      container.removeEventListener("wheel",handleWheel);
+      container.removeEventListener("keydown",handleKey);
+      container.removeEventListener("touchstart",handleTouchStart);
+      container.removeEventListener("touchmove",handleTouchMove);
+      container.removeEventListener("touchend",handleTouchEnd);
+    };
+  },[currentIdx,shorts.length,aloneVideo]);
+
+  // --- Intersection observer fallback for visible focus
+  useEffect(()=>{
+    if(aloneVideo) return;
+    let running=false;
+    const observer = new window.IntersectionObserver(
+      entries => {
+        if(running) return;
+        let maxRatio=0,visibleIdx=0;
+        entries.forEach(entry=>{
+          if(entry.intersectionRatio>maxRatio){
+            maxRatio=entry.intersectionRatio;
+            visibleIdx=Number(entry.target.dataset.idx);
+          }
+        });
+        if(maxRatio>0.7 && currentIdx!==visibleIdx) setCurrentIdx(visibleIdx);
+      },
+      { threshold: [0,0.6,1] }
+    );
+    wrapperRefs.current.forEach((el,i)=>el&&observer.observe(el));
+    return ()=>observer.disconnect();
+  },[shorts.length,aloneVideo,currentIdx]);
+
+  // --- Only one video plays, rest paused
+  useEffect(()=>{
+    if(aloneVideo) return;
+    videoRefs.current.forEach((vid,idx)=>{
+      if(!vid) return;
+      if(idx===currentIdx){
+        vid.muted=muted;
+        const filename = (shorts[idx]&&shorts[idx].url.split('/').pop())||"";
+        if(!overlayShown[filename]) { vid.play().catch(()=>{});}
+      } else { vid.pause(); vid.muted=true; }
     });
     setShowPause(false); setShowPulseHeart(false);
-  }, [currentIdx, muted, aloneVideo, shorts, overlayShown]);
+  },[currentIdx,muted,aloneVideo,shorts,overlayShown]);
 
-  // --- Prevent videos playing on visibility loss (battery/UX)
-  useEffect(() => {
-    function visibilityHandler() {
-      if (document.visibilityState !== "visible") {
-        videoRefs.current.forEach((vid) => vid && vid.pause());
+  useEffect(()=>{
+    function visibilityHandler(){
+      if(document.visibilityState!=="visible"){
+        videoRefs.current.forEach((vid)=>vid&&vid.pause());
       }
     }
-    document.addEventListener("visibilitychange", visibilityHandler);
-    return () => document.removeEventListener("visibilitychange", visibilityHandler);
-  }, []);
+    document.addEventListener("visibilitychange",visibilityHandler);
+    return ()=>document.removeEventListener("visibilitychange",visibilityHandler);
+  },[]);
 
   // --- LIKE, COMMENT, SHARE LOGIC ---
-  function isLiked(filename) { return localStorage.getItem("like_" + filename) === "1"; }
-  function setLiked(filename, yes) {
-    if (yes) localStorage.setItem("like_" + filename, "1");
-    else localStorage.removeItem("like_" + filename);
+  function isLiked(filename){ return localStorage.getItem("like_"+filename)==="1";}
+  function setLiked(filename,yes){
+    if(yes) localStorage.setItem("like_"+filename,"1");
+    else localStorage.removeItem("like_"+filename);
   }
-  function handleLike(idx, filename, wantPulse = false) {
-    if (likePending[filename]) return;
+  function handleLike(idx,filename,wantPulse=false){
+    if(likePending[filename]) return;
     const liked = isLiked(filename);
-    setLikePending(l => ({ ...l, [filename]: true }));
-    if (!liked) {
-      axios.post(`${HOST}/shorts/${filename}/like`).then(() => {
-        setShorts(prev => prev.map((v, i) => i === idx ? { ...v, likes: (v.likes || 0) + 1 } : v));
-        setAloneVideo(prev => prev && prev.url && prev.url.endsWith(filename) ? { ...prev, likes: (prev.likes || 0) + 1 } : prev);
-        setLiked(filename, true);
-        setLikePending(l => ({ ...l, [filename]: false }));
+    setLikePending(l=>({...l,[filename]:true}));
+    if(!liked){
+      axios.post(`${HOST}/shorts/${filename}/like`).then(()=>{
+        setShorts(prev=>prev.map((v,i)=>i===idx?{...v,likes:(v.likes||0)+1}:v));
+        setAloneVideo(prev=>prev&&prev.url&&prev.url.endsWith(filename)?{...prev,likes:(prev.likes||0)+1}:prev);
+        setLiked(filename,true);
+        setLikePending(l=>({...l,[filename]:false}));
       });
-      if (wantPulse) {
-        setShowPulseHeart(true);
-        setTimeout(() => setShowPulseHeart(false), 720);
-      }
-    } else {
-      setShorts(prev => prev.map((v, i) =>
-        i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v
-      ));
-      setAloneVideo(prev => prev && prev.url && prev.url.endsWith(filename) && (prev.likes || 0) > 0
-        ? { ...prev, likes: prev.likes - 1 }
-        : prev
-      );
-      setLiked(filename, false);
-      setLikePending(l => ({ ...l, [filename]: false }));
+      if(wantPulse){setShowPulseHeart(true);setTimeout(()=>setShowPulseHeart(false),720);}
+    }else{
+      setShorts(prev=>prev.map((v,i)=>i===idx&&(v.likes||0)>0?{...v,likes:v.likes-1}:v));
+      setAloneVideo(prev=>prev&&prev.url&&prev.url.endsWith(filename)&&(prev.likes||0)>0
+        ?{...prev,likes:prev.likes-1}:prev);
+      setLiked(filename,false);
+      setLikePending(l=>({...l,[filename]:false}));
     }
   }
-  function handleShare(filename) {
-    const url = window.location.origin + "/?v=" + filename;
-    if (navigator.share) {
-      navigator.share({ url, title: "Watch this short!" });
-    } else {
+  function handleShare(filename){
+    const url=window.location.origin + "/?v=" + filename;
+    if(navigator.share){
+      navigator.share({url,title:"Watch this short!"});
+    }else{
       navigator.clipboard.writeText(url);
-      // Prefer a quick non-blocking feedback over alert
       const temp = document.createElement('div');
-      temp.innerText = "Link copied!";
-      temp.style = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222c;padding:8px 26px;border-radius:17px;color:white;font-weight:600;z-index:9999;font-size:15px;box-shadow:0 4px 16px #0004";
-      document.body.appendChild(temp);
-      setTimeout(() => document.body.removeChild(temp), 1200);
+      temp.innerText="Link copied!";
+      temp.style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222c;padding:8px 26px;border-radius:17px;color:white;font-weight:600;z-index:9999;font-size:15px;box-shadow:0 4px 16px #0004";
+      document.body.appendChild(temp); setTimeout(()=>document.body.removeChild(temp),1200);
     }
   }
-  function handleAddComment(idx, filename) {
-    const text = (commentInputs[filename] || "").trim();
-    if (!text) return;
-    axios.post(`${HOST}/shorts/${filename}/comment`, { name: "You", text })
-      .then(() => {
-        setShorts(prev =>
-          prev.map((v, i) =>
-            i === idx
-              ? { ...v, comments: [...(v.comments || []), { name: "You", text }] }
-              : v
-          )
-        );
-        setAloneVideo(prev =>
-          prev && prev.url && prev.url.endsWith(filename)
-            ? {
-                ...prev,
-                comments: [...(prev.comments || []), { name: "You", text }]
-              }
-            : prev
-        );
-        setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
-      });
-  }
-  const handleCaptionExpand = (filename) => setExpandedCaptions(prev => ({ ...prev, [filename]: !prev[filename] }));
 
-  // ---- Modal Drag handlers ----
-  function handleModalTouchStart(e) {
-    if (!e.touches || e.touches.length !== 1) return;
+  // --------- COMMENTS (threaded, like, reply, real time, dedup) -------------
+  function getThreadedComments(short, filename){
+    let base = (globalComments[filename]||short.comments||[]) ?? [];
+    // comment shape: {id?,localId:string, name, text, date, likes, liked, replies:[]}
+    // Always assign a localId to each comment for dedup-client.
+    const withId = base.map((c,i)=>({
+      ...c, localId: c.localId||(c.id?(""+c.id):filename+"_"+i), avatar:c.avatar||fakeAvatar(i),
+      date: c.date||c.time||nowDateString(), replies:(c.replies||[]).map((r,j)=>({
+        ...r, localId: r.localId||(r.id?(""+r.id):c.localId+"_r"+j), avatar: r.avatar||fakeAvatar(i*3+j+11), date:r.date||nowDateString()
+      }))
+    }));
+    // Deduplicate by localId (prevents duplicates after quick posts)
+    return useUniqueList(withId,c=>c.localId);
+  }
+  // Like comment or reply (by updating globalComments!)
+  function likeComment(filename, comment, parentLocalId){
+    setGlobalComments(prev=>{
+      let list = [...(prev[filename]||[])];
+      if(parentLocalId){
+        // Reply like
+        list = list.map(c=>
+          c.localId===parentLocalId
+          ?{
+            ...c,
+            replies: c.replies.map(r=>r.localId===comment.localId
+              ? {...r, liked:!r.liked, likes:(r.likes||0)+(r.liked?-1:1)}
+              :r
+            )
+          }
+          :c
+        );
+      }else{
+        // Top comment like
+        list = list.map(c=>
+          c.localId===comment.localId
+            ?{...c, liked:!c.liked, likes:(c.likes||0)+(c.liked?-1:1)}
+            :c
+        );
+      }
+      return {...prev,[filename]:list};
+    });
+  }
+  // Add top-level comment
+  async function handleAddComment(idx,filename){
+    const text = (commentInputs[filename]||"").trim();
+    if(!text||commentPosting) return;
+    setCommentPosting(true);
+    const commentObj={
+      name:"You", text, date:nowDateString(),
+      avatar:fakeAvatar(333), likes:0, liked:false, replies:[],
+      localId:filename+"_"+nowDateString()+Math.floor(Math.random()*100000)
+    };
+    setGlobalComments(prev=>{
+      const curr=useUniqueList([...(prev[filename]||[]), commentObj],c=>c.localId);
+      return {...prev,[filename]:curr};
+    });
+    setCommentInputs(p=>({...p,[filename]:""}));
+    try{
+      await axios.post(`${HOST}/shorts/${filename}/comment`, { name: "You", text });
+    }catch(e){}
+    setCommentPosting(false);
+  }
+  // Add a reply, threaded (one level)
+  async function handleAddReply(filename, parentComment){
+    const reply = (replyInput||"").trim();
+    if(!reply||replyPending) return;
+    setReplyPending(true);
+    const replyObj={
+      name:"You", text:reply, date:nowDateString(),
+      avatar:fakeAvatar(77), likes:0, liked:false,
+      localId:parentComment.localId+"_reply_"+(Math.random()*100000)|0
+    };
+    setGlobalComments(prev=>{
+      const n = (prev[filename]||[]).map(c=>{
+        if(c.localId===parentComment.localId){
+          // dedupe too!
+          let newReplies = useUniqueList([...(c.replies||[]),replyObj],r=>r.localId);
+          return {...c,replies:newReplies};
+        }
+        return c;
+      });
+      return {...prev,[filename]:n};
+    });
+    setReplyingTo(null); setReplyInput("");
+    try{
+      await axios.post(`${HOST}/shorts/${filename}/comment/reply`, {
+        parentId:parentComment.localId, text:reply, name:"You"
+      });
+    }catch(e){}
+    setReplyPending(false);
+  }
+
+  // Caption expand
+  const handleCaptionExpand = (filename) =>
+    setExpandedCaptions(prev=>({...prev,[filename]:!prev[filename]}));
+
+  // Drag-close
+  function handleModalTouchStart(e){
+    if(!e.touches||e.touches.length!==1) return;
     dragStartY.current = e.touches[0].clientY;
     setIsDraggingModal(true);
   }
-  function handleModalTouchMove(e) {
-    if (!isDraggingModal || !e.touches || e.touches.length !== 1) return;
-    const dy = e.touches[0].clientY - dragStartY.current;
-    if (dy > 0) setModalDragY(dy);
+  function handleModalTouchMove(e){
+    if(!isDraggingModal||!e.touches||e.touches.length!==1) return;
+    const dy = e.touches[0].clientY-dragStartY.current;
+    if(dy>0) setModalDragY(dy);
   }
-  function handleModalTouchEnd() {
+  function handleModalTouchEnd(){
     setIsDraggingModal(false);
-    if (modalDragY > 65) setShowComments(null);
+    if(modalDragY>65) setShowComments(null);
     setModalDragY(0);
   }
-
-  // ---- Video Events: tap/dbltap/touch ----
-  function handleVideoEvents(idx, filename) {
-    let tapTimeout = null;
+  // Video UI
+  function handleVideoEvents(idx,filename){
+    let tapTimeout=null;
     return {
-      onClick: () => {
-        if (tapTimeout) clearTimeout(tapTimeout);
-        tapTimeout = setTimeout(() => {
-          const vid = videoRefs.current[idx];
-          if (!vid) return;
-          if (vid.paused) { vid.play(); setShowPause(false); }
-          else { vid.pause(); setShowPause(true); }
-        }, 240);
+      onClick:()=>{
+        if(tapTimeout) clearTimeout(tapTimeout);
+        tapTimeout = setTimeout(()=>{
+          const vid=videoRefs.current[idx];
+          if(!vid) return;
+          if(vid.paused) {vid.play(); setShowPause(false);}
+          else{ vid.pause(); setShowPause(true);}
+        },230);
       },
-      onDoubleClick: () => {
-        if (tapTimeout) { clearTimeout(tapTimeout); tapTimeout = null; }
-        if (!isLiked(filename)) handleLike(idx, filename, true);
+      onDoubleClick:()=>{
+        if(tapTimeout){clearTimeout(tapTimeout);tapTimeout=null;}
+        if(!isLiked(filename)) handleLike(idx,filename,true);
         setShowPulseHeart(true);
-        setTimeout(() => setShowPulseHeart(false), 700);
+        setTimeout(()=>setShowPulseHeart(false),660);
       },
-      onTouchEnd: e => {
-        if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
-        if (tapTimeout) {
-          clearTimeout(tapTimeout); tapTimeout = null;
-          if (!isLiked(filename)) handleLike(idx, filename, true);
+      onTouchEnd:e=>{
+        if(!e||!e.changedTouches||e.changedTouches.length!==1) return;
+        if(tapTimeout){
+          clearTimeout(tapTimeout);tapTimeout=null;
+          if(!isLiked(filename)) handleLike(idx,filename,true);
           setShowPulseHeart(true);
-          setTimeout(() => setShowPulseHeart(false), 700);
-        } else {
-          tapTimeout = setTimeout(() => {
-            const vid = videoRefs.current[idx];
-            if (vid) {
-              if (vid.paused) { vid.play(); setShowPause(false); }
-              else { vid.pause(); setShowPause(true); }
+          setTimeout(()=>setShowPulseHeart(false),660);
+        }else{
+          tapTimeout=setTimeout(()=>{
+            const vid=videoRefs.current[idx];
+            if(vid){
+              if(vid.paused){ vid.play(); setShowPause(false);}
+              else{ vid.pause(); setShowPause(true);}
             }
-            tapTimeout = null;
-          }, 250);
+            tapTimeout=null;
+          },250);
         }
       }
     };
   }
-  function handleSeek(idx, e, isTouch = false) {
+  function handleSeek(idx,e,isTouch=false){
     let clientX;
-    if (isTouch) {
-      if (!e.touches || e.touches.length !== 1) return;
+    if(isTouch){
+      if(!e.touches||e.touches.length!==1) return;
       clientX = e.touches[0].clientX;
-    } else {
+    }else{
       clientX = e.clientX;
     }
     const target = e.currentTarget;
     const rect = target.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const percent = x / rect.width;
+    const x = clientX-rect.left;
+    const percent = x/rect.width;
     const vid = videoRefs.current[idx];
-    if (vid && vid.duration && isFinite(vid.duration)) {
-      vid.currentTime = Math.max(0, Math.min(percent, 1)) * vid.duration;
+    if(vid&&vid.duration&&isFinite(vid.duration)){
+      vid.currentTime = Math.max(0,Math.min(percent,1))*vid.duration;
     }
   }
-  function handleTimeUpdate(idx, filename) {
+  function handleTimeUpdate(idx,filename){
     const vid = videoRefs.current[idx];
-    setVideoProgress((prev) => ({
+    setVideoProgress((prev)=>({
       ...prev,
-      [filename]: vid && vid.duration && isFinite(vid.duration)
-        ? vid.currentTime / vid.duration : 0,
+      [filename]:vid&&vid.duration&&isFinite(vid.duration)?
+        vid.currentTime/vid.duration:0
     }));
   }
-
-  // ---- ============= REPLAY PROTECTION =============== ----
-  function handleVideoEnded(idx, filename) {
-    setReplayCounts(prev => {
-      const prevCount = prev[filename] || 0;
-      if (prevCount < 2) {
-        // Allow auto replay (playCount goes 0->1->2 for 3 "plays")
-        // If overlay is shown, don't auto-replay.
-        if (videoRefs.current[idx]) {
-          videoRefs.current[idx].currentTime = 0;
+  // Replay overlay
+  function handleVideoEnded(idx,filename){
+    setReplayCounts(prev=>{
+      const prevCount = prev[filename]||0;
+      if(prevCount<2){
+        if(videoRefs.current[idx]){
+          videoRefs.current[idx].currentTime=0;
           videoRefs.current[idx].play().catch(()=>{});
         }
-        return { ...prev, [filename]: prevCount + 1 };
-      } else {
-        // 3rd time ended: show overlay, pause video, disallow loop
-        setOverlayShown(prevOverlay => ({ ...prevOverlay, [filename]: true }));
-        if (videoRefs.current[idx]) {
-          videoRefs.current[idx].pause();
-        }
-        return { ...prev, [filename]: prevCount + 1 }; // goes to 3
+        return {...prev,[filename]:prevCount+1};
+      }else{
+        setOverlayShown(ov=>({...ov,[filename]:true}));
+        if(videoRefs.current[idx]) videoRefs.current[idx].pause();
+        return {...prev,[filename]:prevCount+1};
       }
     });
   }
-
-  function handleOverlayContinue(idx, filename) {
-    setReplayCounts(prev => ({ ...prev, [filename]: 0 }));
-    setOverlayShown(prev => ({ ...prev, [filename]: false }));
-    if (videoRefs.current[idx]) {
-      videoRefs.current[idx].currentTime = 0;
-      videoRefs.current[idx].play().catch(()=>{});
+  function handleOverlayContinue(idx,filename){
+    setReplayCounts(prev=>({...prev,[filename]:0}));
+    setOverlayShown(prev=>({...prev,[filename]:false}));
+    if(videoRefs.current[idx]){
+      videoRefs.current[idx].currentTime=0; videoRefs.current[idx].play().catch(()=>{});
     }
   }
 
-  // ---- SHARED VIDEO UI LOGIC ----
+  // ---- MAIN RENDER UI ----
   function renderVideo({
-    v, idx, filename, prog, liked, isCurrent, allComments,
-    caption, showFull, isTruncated, displayedCaption, inFeed
+    v, idx, filename, prog, liked, isCurrent, inFeed, commentList, caption,showFull,isTruncated,displayedCaption
   }) {
-    const isOverlayShown = overlayShown[filename];
+    const isOverlayShown=overlayShown[filename];
     return (
       <div key={filename} data-idx={idx}
         ref={el => inFeed && (wrapperRefs.current[idx] = el)}
         style={{
-          width: "100vw", height: "100dvh", scrollSnapAlign: "start",
-          position: "relative", background: "black",
-          display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
+          width:"100vw",height:"100dvh",scrollSnapAlign:"start",
+          position:"relative",background:"black",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"
         }}
       >
         {/* VIDEO */}
         <video
-          ref={el => (videoRefs.current[idx] = el)}
-          src={HOST + v.url}
+          ref={el => (videoRefs.current[idx]=el)}
+          src={HOST+v.url}
           loop={false} playsInline
-          style={{ width: "100vw", height: "100dvh", objectFit: "contain", background: "#000", cursor: "pointer", display: "block" }}
+          style={{width:"100vw",height:"100dvh",objectFit:"contain",background:"#111",cursor:"pointer",display:"block"}}
           muted={muted}
           autoPlay
-          onTimeUpdate={() => handleTimeUpdate(idx, filename)}
-          onEnded={() => handleVideoEnded(idx, filename)}
-          {...handleVideoEvents(idx, filename)}
+          onTimeUpdate={()=>handleTimeUpdate(idx,filename)}
+          onEnded={()=>handleVideoEnded(idx,filename)}
+          {...handleVideoEvents(idx,filename)}
         />
-        {/* -- Overlay for replay-protection -- */}
+        {/* Replay overlay */}
         {isOverlayShown && (
           <div style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1002,
+            position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1002,
           }}>
             <div style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "12px",
-              minWidth: "260px",
-              minHeight: "92px",
-              background: "rgba(30,30,38,0.41)",
-              borderRadius: "16px",
-              boxShadow: "0 8px 32px 0 rgba(12,16,30,0.21), 0 1.5px 11px #0004",
-              backdropFilter: "blur(14px) saturate(160%)",
-              border: "1.6px solid rgba(80,80,86,0.16)",
-              padding: "24px 26px 18px 26px",
-              animation: "glassRise .36s cubic-bezier(.61,2,.22,1.02)"
+              display:"flex",flexDirection:"column",alignItems:"center",gap:"12px",
+              minWidth:"260px",minHeight:"92px",background:"rgba(30,30,38,0.41)",borderRadius:"16px",
+              boxShadow:"0 8px 32px 0 rgba(12,16,30,0.21), 0 1.5px 11px #0004",
+              backdropFilter:"blur(14px) saturate(160%)",border:"1.6px solid rgba(80,80,86,0.16)",
+              padding:"24px 26px 18px 26px"
             }}>
               <span style={{
-                color: "#fff",
-                fontSize: "1.11rem",
-                fontWeight: 600,
-                letterSpacing: "0.01em",
-                whiteSpace: "nowrap",
-                marginBottom: "6px",
-                fontFamily: "inherit"
-              }}>
-                Continue watching?
-              </span>
-              <button onClick={() => handleOverlayContinue(idx, filename)} style={{
-                background: "rgba(0,0,0,0.30)",
-                color: "#fff",
-                fontFamily: "inherit",
-                padding: "8px 28px",
-                fontSize: "1rem",
-                fontWeight: 500,
-                borderRadius: "12px",
-                border: "1.1px solid rgba(255,255,255,0.085)",
-                boxShadow: "0 1.5px 8px #0004",
-                outline: "none",
-                marginTop: "1px",
-                cursor: "pointer",
-                letterSpacing: "0.01em"
+                color:"#fff",fontSize:"1.11rem",fontWeight:600,letterSpacing:"0.01em",marginBottom:"6px"
+              }}>Continue watching?</span>
+              <button onClick={()=>handleOverlayContinue(idx,filename)} style={{
+                background:"rgba(0,0,0,0.30)",color:"#fff",fontFamily:"inherit",
+                padding:"8px 28px",fontSize:"1rem",fontWeight:500,borderRadius:"12px",border:"1.1px solid rgba(255,255,255,0.085)",
+                boxShadow:"0 1.5px 8px #0004",marginTop:"1px",cursor:"pointer"
               }}>
                 Continue
               </button>
             </div>
-            <style>{`
-              @keyframes glassRise {
-                from { opacity: 0; transform: translateY(60px) scale(1.07);}
-                to   { opacity: 1; transform: translateY(0) scale(1);}
-              }
-            `}</style>
           </div>
         )}
-        {/* Mute/Unmute Button */}
-        {(inFeed ? isCurrent : true) && (
+        {/* Mute/Unmute */}
+        {(inFeed?isCurrent:true)&&(
           <button
-            onClick={e => { e.stopPropagation(); setMuted(m => !m); setMutePulse(true); setTimeout(() => setMutePulse(false), 350); }}
-            aria-label={muted ? "Unmute" : "Mute"}
+            onClick={e=>{e.stopPropagation();setMuted(m=>!m);setMutePulse(true);setTimeout(()=>setMutePulse(false),350);}}
+            aria-label={muted?"Unmute":"Mute"}
             tabIndex={0}
             style={{
-              position: "absolute", top: 20, right: 20, zIndex: 60,
-              background: "rgba(28,29,34,0.65)", border: "none",
-              borderRadius: 16, width: 39, height: 39,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", boxShadow: "0 2px 6px #0002", outline: "none",
-              transition: "box-shadow .22s,ease",
+              position:"absolute",top:20,right:20,zIndex:60,background:"rgba(28,29,34,0.61)",
+              border:"none",borderRadius:16,width:39,height:39,display:"flex",alignItems:"center",justifyContent:"center",
+              cursor:"pointer",boxShadow:"0 2px 6px #0002",outline:"none",
+              transition:"box-shadow .22s,ease",
               ...(mutePulse
-                ? { animation: "mutepulseanim 0.38s cubic-bezier(.3,1.5,.65,1.05)", boxShadow: "0 0 0 9px #33b6ff27" }
-                : {})
-            }}
-          >
-            <MuteMicIcon muted={muted} />
-            <style>{`
-              @keyframes mutepulseanim {
-                0% { box-shadow: 0 0 0 0 #33b6ff88; transform: scale(1.09);}
-                75%{ box-shadow:0 0 0 13px #33b6ff22; transform: scale(1.13);}
-                100% { box-shadow: 0 0 0 0 #33b6ff00; transform: scale(1);}
-              }
-            `}</style>
+                ?{animation:"mutepulseanim .38s cubic-bezier(.3,1.5,.65,1.05)",boxShadow:"0 0 0 9px #33b6ff27"}
+                :{})
+            }}>
+            <MuteMicIcon muted={muted}/>
+            <style>{`@keyframes mutepulseanim{0%{box-shadow:0 0 0 0 #33b6ff88;transform:scale(1.09);}75%{box-shadow:0 0 0 13px #33b6ff22;transform:scale(1.13);}100%{box-shadow:0 0 0 0 #33b6ff00;transform:scale(1);}}`}</style>
           </button>
         )}
-        {/* Pause Animation */}
-        {(inFeed ? isCurrent : true) && showPause && (
+        {/* Pause + Heart */}
+        {(inFeed?isCurrent:true)&&showPause &&
           <div style={{
-            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 105, background: 'rgba(0,0,0,0.26)', pointerEvents: "none",
-            animation: 'fadeInPause .29s'
+            position:'absolute',top:0,left:0,width:'100%',height:'100%',
+            display:'flex',alignItems:'center',justifyContent:'center',
+            zIndex:105,background:'rgba(0,0,0,0.26)',pointerEvents:"none"
           }}>
-            <PauseIcon />
-            <style>{`@keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }`}</style>
+            <PauseIcon/>
           </div>
-        )}
-        {/* Heart Pulse */}
-        {(inFeed ? isCurrent : true) && <PulseHeart visible={showPulseHeart} />}
+        }
+        {(inFeed?isCurrent:true)&&<PulseHeart visible={showPulseHeart}/>}
         {/* Progress Bar */}
         <div style={{
-          position: "absolute", left: 0, right: 0, bottom: 0,
-          height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32, borderRadius: 2, overflow: "hidden", cursor: "pointer"
-        }}
-          onClick={e => handleSeek(idx, e, false)}
-          onTouchStart={e => handleSeek(idx, e, true)}
-          role="progressbar" aria-valuenow={Math.round(prog * 100)}
+            position:"absolute",left:0,right:0,bottom:0,height:4,background:"rgba(255,255,255,0.18)",
+            zIndex:32,borderRadius:2,overflow:"hidden",cursor:"pointer"
+          }}
+            onClick={e=>handleSeek(idx,e,false)}
+            onTouchStart={e=>handleSeek(idx,e,true)}
+            role="progressbar" aria-valuenow={Math.round(prog*100)}
         >
           <div style={{
-            width: `${Math.min(prog * 100, 100)}%`,
-            height: "100%", background: "rgb(42, 131, 254)",
-            transition: "width 0.22s cubic-bezier(.4,1,.5,1)", pointerEvents: "none"
-          }} />
+            width:`${Math.min(prog*100,100)}%`,height:"100%",background:"rgb(42, 131, 254)",
+            transition:"width 0.22s cubic-bezier(.4,1,.5,1)"
+          }}/>
         </div>
-        {/* ACTIONS (Profile, Like, Comment, Share) */}
+        {/* ACTIONS */}
         <div style={{
-          position: 'absolute', right: '12px', bottom: '100px',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', zIndex: 10
+          position:'absolute',right:'12px',bottom:'100px',display:'flex',flexDirection:'column',alignItems:'center',
+          gap:'24px',zIndex:10
         }}>
-          <div style={{
-            marginBottom: 6, width: 48, height: 48,
-            borderRadius: "50%", overflow: "hidden"
-          }}>
-            <img src={getProfilePic(v)} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+          <div style={{marginBottom:6,width:48,height:48,borderRadius:"50%",overflow:"hidden"}}>
+            <img src={getProfilePic(v)} alt="" style={{width:"100%",height:"100%",borderRadius:"50%",objectFit:"cover"}}/>
           </div>
           {/* Like */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
             <button
-              aria-label={liked ? "Unlike" : "Like"}
+              aria-label={liked?"Unlike":"Like"}
               disabled={likePending[filename]}
-              onClick={e => { e.stopPropagation(); handleLike(idx, filename, !liked); }}
-              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', outline: 0 }}
+              onClick={e=>{e.stopPropagation();handleLike(idx,filename,!liked);}}
+              style={{background:'none',border:'none',padding:0,cursor:'pointer',outline:0}}
             >
-              <HeartSVG filled={liked} />
+              <HeartSVG filled={liked}/>
             </button>
-            <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px' }}>{v.likes || 0}</span>
+            <span style={{color:liked?'#ed4956':'#fff',fontSize:'13px',marginTop:'4px'}}>{v.likes||0}</span>
           </div>
           {/* Comment */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
             <button
               aria-label="Comment"
-              onClick={e => { e.stopPropagation(); setShowComments(filename); }}
-              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              onClick={e=>{e.stopPropagation();setShowComments(filename);}}
+              style={{background:'none',border:'none',padding:0,cursor:'pointer'}}
             >
               <svg aria-label="Comment" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
                 <path d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z" fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
               </svg>
             </button>
-            <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>{v.comments?.length || 0}</span>
+            <span style={{color:'#fff',fontSize:'13px',marginTop:'4px'}}>{(commentList||[]).length}</span>
           </div>
           {/* Share */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
             <button
               aria-label="Share"
-              onClick={() => handleShare(filename)}
-              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+              onClick={()=>handleShare(filename)}
+              style={{background:'none',border:'none',padding:0,cursor:'pointer'}}
+            >
               <svg aria-label="Share Post" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
                 <line fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="3" y2="10.083"/>
                 <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="#fff" strokeLinejoin="round" strokeWidth="2"/>
               </svg>
             </button>
-            <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
+            <span style={{color:'#fff',fontSize:'13px',marginTop:'4px'}}>Share</span>
           </div>
         </div>
-        {/* BOTTOM CAPTION */}
+        {/* Bottom Caption + "View all N comments" only! */}
         <div style={{
-          position: "absolute", left: 0, right: 0, bottom: 0,
-          background: "linear-gradient(0deg,#000e 88%,transparent 100%)",
-          color: "#fff", padding: "20px 18px 28px 18px", zIndex: 6,
-          display: "flex", flexDirection: "column", userSelect: "none"
+          position:"absolute",left:0,right:0,bottom:0,
+          background:"linear-gradient(0deg,#000e 88%,transparent 100%)",
+          color:"#fff",padding:"20px 18px 28px 18px",zIndex:6,
+          display:"flex",flexDirection:"column",userSelect:"none"
         }}>
-          <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
-            @{v.author || "anonymous"}
+          <div style={{fontWeight:600,fontSize:16,marginBottom:2}}>
+            @{v.author||"anonymous"}
           </div>
-          {caption && (
-            <div style={{
-              display: "flex", alignItems: "flex-end", minHeight: "26px", maxWidth: 500
-            }}>
+          {caption&&(
+            <div style={{display:"flex",alignItems:"flex-end",minHeight:"26px",maxWidth:500}}>
               <div
                 style={{
-                  fontWeight: 400, fontSize: 16, color: "#fff", lineHeight: 1.4,
-                  maxHeight: showFull ? "none" : "2.8em",
-                  overflow: showFull ? "visible" : "hidden", textOverflow: "ellipsis",
-                  display: "-webkit-box", WebkitLineClamp: showFull ? "unset" : 2,
-                  WebkitBoxOrient: "vertical", wordBreak: "break-word", marginRight: isTruncated ? 10 : 0,
-                  whiteSpace: "pre-line"
+                  fontWeight:400,fontSize:16,color:"#fff",lineHeight:1.4,
+                  maxHeight:showFull?"none":"2.8em",
+                  overflow:showFull?"visible":"hidden",
+                  textOverflow:"ellipsis",display:"-webkit-box",
+                  WebkitLineClamp:showFull?"unset":2,WebkitBoxOrient:"vertical",
+                  wordBreak:"break-word",marginRight:isTruncated?10:0,whiteSpace:"pre-line"
                 }}
               >
                 {displayedCaption}
               </div>
-              {isTruncated && (
+              {isTruncated&&(
                 <button
                   style={{
-                    background: "none", border: "none", color: "#33b6ff", fontWeight: 600, fontSize: 15,
-                    cursor: "pointer", marginLeft: 2, padding: 0, lineHeight: 1.3, textDecoration: "underline"
+                    background:"none",border:"none",color:"#33b6ff",fontWeight:600,fontSize:15,
+                    cursor:"pointer",marginLeft:2,padding:0,lineHeight:1.3,textDecoration:"underline"
                   }}
-                  tabIndex={0} onClick={() => handleCaptionExpand(filename)}
-                >{showFull ? "less" : "more"}</button>
+                  tabIndex={0} onClick={()=>handleCaptionExpand(filename)}
+                >{showFull?"less":"more"}</button>
               )}
             </div>
           )}
-          {v.comments && v.comments.length > 0 && (
-            <div style={{ fontSize: 14, color: "#bae6fd" }}>
-              {v.comments[0].name === "You" ? (
-                <>{v.comments[0].text}</>
-              ) : (
-                <><b>{v.comments[0].name}:</b> {v.comments[0].text}</>
-              )}
-            </div>
-          )}
+          {/* NO first comment shown here! */}
           <div
-            style={{ color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer" }}
-            onClick={() => setShowComments(filename)}
-          >View all {v.comments ? v.comments.length : 0} comments</div>
+            style={{color:"#b2bec3",fontSize:15,marginTop:3,cursor:"pointer"}}
+            onClick={()=>setShowComments(filename)}
+          >View all {(commentList||[]).length} comments</div>
         </div>
-        {/* COMMENTS MODAL */}
-        {showComments === filename &&
-          <div
-            style={{
-              position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.91)",
-              display: "flex", flexDirection: "column", justifyContent: "flex-end"
-            }}
-            onClick={() => setShowComments(null)}
-          >
-            <div
-              className="comments-modal"
-              style={{
-                backgroundColor: "#000",
-                borderTopLeftRadius: 15, borderTopRightRadius: 15, padding: 15,
-                minHeight: '36vh', height: '70vh',
-                display: 'flex', flexDirection: 'column',
-                maxWidth: 500, width: "97vw", margin: "0 auto",
-                border: '1px solid #262626',
-                touchAction: "none",
-                transition: isDraggingModal ? "none" : "transform 0.22s cubic-bezier(.43,1.5,.48,1.16)",
-                transform: modalDragY ? `translateY(${Math.min(modalDragY, 144)}px)` : "translateY(0)"
-              }}
-              onTouchStart={handleModalTouchStart}
-              onTouchMove={handleModalTouchMove}
-              onTouchEnd={handleModalTouchEnd}
-              onClick={e => e.stopPropagation()}
-            >
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                paddingBottom: 15, borderBottom: '1px solid #262626'
-              }}>
-                <h2 style={{ fontSize: 16, fontWeight: 600, color: "#fff" }}>Comments</h2>
-                <span
-                  className="fas fa-times"
-                  style={{ fontSize: 22, color: "#fff", cursor: "pointer" }}
-                  onClick={() => setShowComments(null)}
-                  tabIndex={0}
-                >×</span>
-              </div>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}>
-                {allComments.length === 0 ? (
-                  <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
-                ) : (
-                  allComments.map((c, i) => (
-                    <div className="comment" style={{ display: 'flex', marginBottom: 15 }} key={i}>
-                      <img
-                        src={c.avatar}
-                        className="comment-avatar"
-                        alt=""
-                        style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
-                      />
-                      <div className="comment-content" style={{ flex: 1 }}>
-                        <div>
-                          <span className="comment-username" style={{
-                            fontWeight: 600, fontSize: 14, marginRight: 5, color:"#fff"
-                          }}>{c.name}</span>
-                          <span className="comment-text" style={{ fontSize: 14, color:"#fff" }}>{c.text}</span>
-                        </div>
-                        <div className="comment-time" style={{
-                          fontSize: 12, color: "#a8a8a8", marginTop: 2
-                        }}>{c.time}</div>
-                        <div className="comment-actions" style={{ display: 'flex', marginTop: 5 }}>
-                          <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", userSelect:"none" }}>Reply</span>
-                          <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", userSelect:"none" }}>Like</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-              {/* Add Comment */}
-              <div style={{
-                display: 'flex', alignItems: 'center',
-                paddingTop: 10, borderTop: '1px solid #262626'
-              }}>
-                <input
-                  type="text"
-                  placeholder="Add a comment..."
-                  style={{
-                    flex: 1, backgroundColor: "#262626", border: "none", borderRadius: 20,
-                    padding: "10px 15px", color: "white", fontSize: 14
-                  }}
-                  value={commentInputs[filename] || ""}
-                  onChange={e => setCommentInputs(prev => ({
-                    ...prev, [filename]: e.target.value
-                  }))}
-                  onKeyDown={e => e.key === "Enter" && (commentInputs[filename] || "").trim() !== "" && handleAddComment(idx, filename)}
-                />
-                <button
-                  style={{
-                    color: "#0095f6", fontWeight: 600, marginLeft: 10, fontSize: 14,
-                    background: "none", border: "none",
-                    cursor: (commentInputs[filename] || "").trim() !== "" ? "pointer" : "default",
-                    opacity: (commentInputs[filename] || "").trim() !== "" ? 1 : 0.5
-                  }}
-                  disabled={(commentInputs[filename] || "").trim() === ""}
-                  onClick={() => handleAddComment(idx, filename)}
-                >Post</button>
-              </div>
-            </div>
-          </div>
-        }
-        {/* Single video: extra back button */}
-        {!inFeed && (
+        {/* Modern Comments Modal */}
+        <CommentsModal
+          open={showComments===filename}
+          onClose={()=>setShowComments(null)}
+          comments={commentList}
+          input={commentInputs[filename]||""}
+          setInput={txt=>setCommentInputs(p=>({...p,[filename]:txt}))}
+          onAdd={()=>handleAddComment(idx,filename)}
+          onLike={c=>likeComment(filename,c)}
+          onReplyClick={c=>{
+            setReplyingTo(replyingTo===c.localId?null:c.localId);
+            setReplyInput("");
+          }}
+          replyingTo={replyingTo}
+          replyInput={replyInput}
+          setReplyInput={setReplyInput}
+          posting={commentPosting}
+          onSubmitReply={c=>{handleAddReply(filename,c);}}
+          onLikeReply={(parent,r)=>likeComment(filename,r,parent.localId)}
+        />
+        {/* Standalone Mode: Back Button */}
+        {!inFeed&&(
           <button
-            onClick={() => navigate("/", { replace: true })}
+            onClick={()=>navigate("/",{replace:true})}
             aria-label="Back to Feed"
             style={{
-              position: "absolute", top: 20, left: 16, zIndex: 100,
-              background: "#222f", color: "#fff",
-              fontWeight: 600, fontSize: 16, padding: "6px 17px",
-              borderRadius: 15, border: "none", cursor: "pointer", letterSpacing: ".02em",
-              boxShadow: "0 2px 10px #0003"
+              position:"absolute",top:20,left:16,zIndex:100,background:"#222f",color:"#fff",
+              fontWeight:600,fontSize:16,padding:"6px 17px",borderRadius:15,
+              border:"none",cursor:"pointer",letterSpacing:".02em",boxShadow:"0 2px 10px #0003"
             }}>
             ← Feed
           </button>
@@ -843,95 +971,82 @@ export default function Feed() {
     );
   }
 
-  // ---- NOT FOUND (bad ?v) ----
-  if (notFound) {
+  // --- NOT FOUND ----
+  if(notFound){
     return (
-      <div style={{
-        fontFamily: "Inter, Arial,sans-serif",
-        color: "#ca7979", textAlign: "center", marginTop: 120, fontSize: 22,
-        background: "#000", minHeight: "100dvh"
-      }}>
+      <div style={{fontFamily:"Inter,sans-serif",color:"#ca7979",textAlign:"center",marginTop:120,fontSize:22,background:"#000",minHeight:"100dvh"}}>
         <div style={{marginBottom:12}}>Video not found.</div>
         <button
-          onClick={() => navigate("/", { replace: true })}
-          style={{
-            color: "#fff", background: "#33b6ff",
-            border: "none", borderRadius: 10, fontWeight: 600,
-            fontSize: 16, padding: "8px 28px", cursor: "pointer"
-          }}>
+          onClick={()=>navigate("/",{replace:true})}
+          style={{color:"#fff",background:"#33b6ff",border:"none",borderRadius:10,fontWeight:600,fontSize:16,padding:"8px 28px",cursor:"pointer"}}>
           Back to Feed
         </button>
       </div>
     );
   }
-  // ---- LOADING SKELETON ----
-  if (loading) {
-    return (
-      <>
-        {Array.from({ length: 2 }).map((_, idx) => <SkeletonShort key={idx} />)}
-      </>
-    );
-  }
-  // --- SINGLE VIDEO MODE ---
-  if (aloneVideo) {
-    const v = aloneVideo;
-    const urlParts = (v.url || "").split("/");
-    const filename = urlParts[urlParts.length - 1];
-    const liked = isLiked(filename);
-    const prog = videoProgress[filename] || 0;
-    const allComments = (v.comments || []).map((c, i) => ({
-      ...c, avatar: fakeAvatar(i), time: fakeTime(i)
-    }));
-    const caption = v.caption || "";
-    const previewLimit = 90;
-    const isTruncated = caption && caption.length > previewLimit;
-    const showFull = expandedCaptions[filename];
-    const displayedCaption = !caption ? "" : showFull ? caption : truncateString(caption, previewLimit);
+  if(loading) return (
+    <>
+      {Array.from({length:2}).map((_,idx)=><SkeletonShort key={idx}/>)}
+    </>
+  );
 
+  // ---- STANDALONE MODE ----
+  if(aloneVideo){
+    const v=aloneVideo;
+    const urlParts=(v.url||"").split("/");
+    const filename = urlParts[urlParts.length-1];
+    const liked = isLiked(filename);
+    const prog = videoProgress[filename]||0;
+    const commentList = getThreadedComments(v,filename);
+    const caption = v.caption||"";
+    const previewLimit = 90;
+    const isTruncated = caption&&caption.length>previewLimit;
+    const showFull = expandedCaptions[filename];
+    const displayedCaption=!caption?"":showFull?caption:truncateString(caption,previewLimit);
     return renderVideo({
-      v, idx: 0, filename, prog, liked, isCurrent: true, allComments,
-      caption, showFull, isTruncated, displayedCaption, inFeed: false
+      v, idx:0, filename, prog, liked, isCurrent:true, commentList,
+      caption,showFull,isTruncated,displayedCaption,inFeed:false
     });
   }
-  // --- EMPTY FEED ---
-  if (!loading && shorts.length === 0) {
+
+  if(!loading&&shorts.length===0){
     return (
       <div style={{
-        fontFamily: "Inter, Arial,sans-serif",
-        color: "#bbb", textAlign: "center", marginTop: 120, fontSize: 20,
-        background:"#0a0a0c", minHeight:"100dvh", letterSpacing:".01em"
+        fontFamily:"Inter,Arial,sans-serif",color:"#bbb",textAlign:"center",
+        marginTop:120,fontSize:20,background:"#0a0a0c",minHeight:"100dvh",letterSpacing:".01em"
       }}>
         No shorts uploaded yet.
       </div>
     );
   }
-  // --- NORMAL FEED (all videos) ---
+
+  // ---- MAIN FEED (SNAP) ----
   return (
     <div style={{
-      minHeight: "100dvh", width: "100vw", background: "black", margin: 0, padding: 0, overflow: "hidden",
-      fontFamily: "Inter, Arial,sans-serif"
+      minHeight:"100dvh",width:"100vw",background:"black",margin:0,padding:0,overflow:"hidden",
+      fontFamily:"Inter,Arial,sans-serif"
     }}>
-      <div style={{
-        width: "100vw", height: "100dvh", overflowY: "scroll", overflowX: "hidden",
-        scrollSnapType: "y mandatory", background: "#000"
-      }}>
-        {shorts.map((v, idx) => {
+      <div ref={scrollContainerRef}
+        style={{
+          width:"100vw",height:"100dvh",overflowY:"scroll",overflowX:"hidden",
+          scrollSnapType:"y mandatory",background:"#000", outline:'none'
+        }}
+        tabIndex={0}
+      >
+        {shorts.map((v,idx)=>{
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
-          const prog = videoProgress[filename] || 0;
-          const allComments = (v.comments || []).map((c, i) => ({
-            ...c, avatar: fakeAvatar(i), time: fakeTime(i)
-          }));
-          const caption = v.caption || "";
+          const prog = videoProgress[filename]||0;
+          const commentList = getThreadedComments(v,filename);
+          const caption = v.caption||"";
           const previewLimit = 90;
-          const isTruncated = caption && caption.length > previewLimit;
+          const isTruncated = caption&&caption.length>previewLimit;
           const showFull = expandedCaptions[filename];
-          const displayedCaption = !caption ? "" : showFull ? caption : truncateString(caption, previewLimit);
-          const isCurrent = idx === currentIdx;
-
+          const displayedCaption = !caption?"":showFull?caption:truncateString(caption,previewLimit);
+          const isCurrent = idx===currentIdx;
           return renderVideo({
-            v, idx, filename, prog, liked, isCurrent, allComments,
-            caption, showFull, isTruncated, displayedCaption, inFeed: true
+            v,idx,filename,prog,liked,isCurrent,inFeed:true,
+            commentList,caption,showFull,isTruncated,displayedCaption
           });
         })}
       </div>
