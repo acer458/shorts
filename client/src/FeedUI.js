@@ -14,7 +14,7 @@ export function HeartSVG({ filled }) {
   );
 }
 
-// PAUSE
+// PAUS
 export function PauseIcon() {
   return (
     <svg width={82} height={82} viewBox="0 0 82 82">
