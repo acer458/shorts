@@ -46,9 +46,7 @@ export function PulseHeart({ visible }) {
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
         opacity: visible ? 1 : 0,
-        animation: visible
-          ? "heartPulseAnim .75s cubic-bezier(.1,1.6,.6,1)"
-          : "none"
+        animation: visible ? "heartPulseAnim .75s cubic-bezier(.1,1.6,.6,1)" : "none"
       }}
     >
       <svg viewBox="0 0 96 96" width={90} height={90} style={{ display: "block" }}>
@@ -250,7 +248,3 @@ export function SkeletonShort() {
     </div>
   );
 }
-
-// ------------------------------------------------------------------------
-// End of FeedUI.js
-// ------------------------------------------------------------------------
