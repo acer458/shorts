@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -10,7 +10,7 @@ function truncateString(str, maxLen = 90) {
   if (!str) return "";
   if (str.length <= maxLen) return str;
   const nextSpace = str.indexOf(" ", maxLen);
-  return str.substring(0, nextSpace === -1 ? str.length : nextSpace) + '…';
+  return str.substring(0, nextSpace === -1 ? str.length : nextSpace) + "…";
 }
 function shuffleArray(arr) {
   const a = [...arr];
@@ -21,22 +21,56 @@ function shuffleArray(arr) {
   return a;
 }
 function getProfilePic(v) {
-  return v.avatar || v.profilePic ||
-    `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(v.author || "anonymous")}`;
+  return (
+    v.avatar ||
+    v.profilePic ||
+    `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(
+      v.author || "anonymous"
+    )}`
+  );
 }
 function fakeAvatar(i) {
   const urls = [
-    "https://randomuser.me/api/portraits/men/32.jpg", "https://randomuser.me/api/portraits/women/63.jpg",
-    "https://randomuser.me/api/portraits/men/75.jpg", "https://randomuser.me/api/portraits/women/22.jpg",
+    "https://randomuser.me/api/portraits/men/32.jpg",
+    "https://randomuser.me/api/portraits/women/63.jpg",
+    "https://randomuser.me/api/portraits/men/75.jpg",
+    "https://randomuser.me/api/portraits/women/22.jpg",
     "https://randomuser.me/api/portraits/men/18.jpg"
   ];
   return urls[i % urls.length];
 }
 function fakeTime(i) {
-  return ["2h ago", "1h ago", "45m ago", "30m ago", "15m ago", "Just now"][i % 6] || "Just now";
+  return [
+    "2h ago",
+    "1h ago",
+    "45m ago",
+    "30m ago",
+    "15m ago",
+    "Just now"
+  ][i % 6] || "Just now";
+}
+function throttle(fn, wait) {
+  let inThrottle, lastFn, lastTime;
+  return function () {
+    const context = this,
+      args = arguments;
+    if (!inThrottle) {
+      fn.apply(context, args);
+      lastTime = Date.now();
+      inThrottle = true;
+    } else {
+      clearTimeout(lastFn);
+      lastFn = setTimeout(function () {
+        if (Date.now() - lastTime >= wait) {
+          fn.apply(context, args);
+          lastTime = Date.now();
+        }
+      }, Math.max(wait - (Date.now() - lastTime), 0));
+    }
+  };
 }
 
-// ---- SVG ICONS ----
+// ---- SVG ICONS (unchanged from your template) ----
 function HeartSVG({ filled }) {
   return (
     <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
@@ -171,17 +205,17 @@ function SkeletonShort() {
 function useAntiInspect() {
   useEffect(() => {
     const blockDevtools = e => {
-      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase()))) {
+      if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase()))) {
         e.preventDefault();
         e.stopPropagation();
       }
     };
     const preventRightClick = e => e.preventDefault();
-    window.addEventListener('contextmenu', preventRightClick);
-    window.addEventListener('keydown', blockDevtools);
+    window.addEventListener("contextmenu", preventRightClick);
+    window.addEventListener("keydown", blockDevtools);
     return () => {
-      window.removeEventListener('contextmenu', preventRightClick);
-      window.removeEventListener('keydown', blockDevtools);
+      window.removeEventListener("contextmenu", preventRightClick);
+      window.removeEventListener("keydown", blockDevtools);
     };
   }, []);
 }
@@ -207,17 +241,13 @@ export default function Feed() {
   const [showPause, setShowPause] = useState(false);
   const [showPulseHeart, setShowPulseHeart] = useState(false);
   const [expandedCaptions, setExpandedCaptions] = useState({});
-  // Modal drag-to-close states
   const [modalDragY, setModalDragY] = useState(0);
   const [isDraggingModal, setIsDraggingModal] = useState(false);
   const dragStartY = useRef(0);
-
-  // ---- Replay Protection State ----
-  // Map: filename -> playCount (0,1,2,...), overlayShown (true/false)
   const [replayCounts, setReplayCounts] = useState({});
-  const [overlayShown, setOverlayShown] = useState({}); // filename -> true/false
+  const [overlayShown, setOverlayShown] = useState({});
 
-  // --- FEED/SINGLE-VIDEO FETCH ---
+  // ---- FEED/SINGLE-VIDEO FETCH ----
   useEffect(() => {
     setLoading(true); setNotFound(false); setAloneVideo(null); setShorts([]);
     setReplayCounts({}); setOverlayShown({});
@@ -225,7 +255,12 @@ export default function Feed() {
     const filename = params.get("v");
     if (filename) {
       axios.get(`${HOST}/shorts/${filename}`)
-        .then(res => setAloneVideo({ ...res.data, url: res.data.url || `/shorts/${filename}` }))
+        .then(res =>
+          setAloneVideo({
+            ...res.data,
+            url: res.data.url || `/shorts/${filename}`,
+          })
+        )
         .catch(() => setNotFound(true))
         .finally(() => setLoading(false));
     } else {
@@ -255,7 +290,6 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [shorts.length, aloneVideo]);
 
-  // Ensure refs stay in sync with number of shorts
   useEffect(() => {
     videoRefs.current = Array(shorts.length);
     wrapperRefs.current = Array(shorts.length);
@@ -268,17 +302,19 @@ export default function Feed() {
       if (!vid) return;
       if (idx === currentIdx) {
         vid.muted = muted;
-        // If overlay is up for this video, do NOT auto-play.
         const filename = (shorts[idx] && shorts[idx].url.split('/').pop()) || "";
         if (!overlayShown[filename]) {
-          vid.play().catch(()=>{});
+          vid.play().catch(() => {});
         }
-      } else { vid.pause(); vid.muted = true; }
+      } else {
+        vid.pause();
+        vid.muted = true;
+      }
     });
-    setShowPause(false); setShowPulseHeart(false);
+    setShowPause(false);
+    setShowPulseHeart(false);
   }, [currentIdx, muted, aloneVideo, shorts, overlayShown]);
 
-  // --- Prevent videos playing on visibility loss (battery/UX)
   useEffect(() => {
     function visibilityHandler() {
       if (document.visibilityState !== "visible") {
@@ -289,8 +325,9 @@ export default function Feed() {
     return () => document.removeEventListener("visibilitychange", visibilityHandler);
   }, []);
 
-  // --- LIKE, COMMENT, SHARE LOGIC ---
-  function isLiked(filename) { return localStorage.getItem("like_" + filename) === "1"; }
+  function isLiked(filename) {
+    return localStorage.getItem("like_" + filename) === "1";
+  }
   function setLiked(filename, yes) {
     if (yes) localStorage.setItem("like_" + filename, "1");
     else localStorage.removeItem("like_" + filename);
@@ -298,28 +335,41 @@ export default function Feed() {
   function handleLike(idx, filename, wantPulse = false) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
-    setLikePending(l => ({ ...l, [filename]: true }));
+    setLikePending((l) => ({ ...l, [filename]: true }));
     if (!liked) {
       axios.post(`${HOST}/shorts/${filename}/like`).then(() => {
-        setShorts(prev => prev.map((v, i) => i === idx ? { ...v, likes: (v.likes || 0) + 1 } : v));
-        setAloneVideo(prev => prev && prev.url && prev.url.endsWith(filename) ? { ...prev, likes: (prev.likes || 0) + 1 } : prev);
+        setShorts((prev) =>
+          prev.map((v, i) =>
+            i === idx ? { ...v, likes: (v.likes || 0) + 1 } : v
+          )
+        );
+        setAloneVideo((prev) =>
+          prev && prev.url && prev.url.endsWith(filename)
+            ? { ...prev, likes: (prev.likes || 0) + 1 }
+            : prev
+        );
         setLiked(filename, true);
-        setLikePending(l => ({ ...l, [filename]: false }));
+        setLikePending((l) => ({ ...l, [filename]: false }));
       });
       if (wantPulse) {
         setShowPulseHeart(true);
         setTimeout(() => setShowPulseHeart(false), 720);
       }
     } else {
-      setShorts(prev => prev.map((v, i) =>
-        i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v
-      ));
-      setAloneVideo(prev => prev && prev.url && prev.url.endsWith(filename) && (prev.likes || 0) > 0
-        ? { ...prev, likes: prev.likes - 1 }
-        : prev
+      setShorts((prev) =>
+        prev.map((v, i) =>
+          i === idx && (v.likes || 0) > 0
+            ? { ...v, likes: v.likes - 1 }
+            : v
+        )
+      );
+      setAloneVideo((prev) =>
+        prev && prev.url && prev.url.endsWith(filename) && (prev.likes || 0) > 0
+          ? { ...prev, likes: prev.likes - 1 }
+          : prev
       );
       setLiked(filename, false);
-      setLikePending(l => ({ ...l, [filename]: false }));
+      setLikePending((l) => ({ ...l, [filename]: false }));
     }
   }
   function handleShare(filename) {
@@ -328,10 +378,10 @@ export default function Feed() {
       navigator.share({ url, title: "Watch this short!" });
     } else {
       navigator.clipboard.writeText(url);
-      // Prefer a quick non-blocking feedback over alert
-      const temp = document.createElement('div');
+      const temp = document.createElement("div");
       temp.innerText = "Link copied!";
-      temp.style = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222c;padding:8px 26px;border-radius:17px;color:white;font-weight:600;z-index:9999;font-size:15px;box-shadow:0 4px 16px #0004";
+      temp.style =
+        "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222c;padding:8px 26px;border-radius:17px;color:white;font-weight:600;z-index:9999;font-size:15px;box-shadow:0 4px 16px #0004";
       document.body.appendChild(temp);
       setTimeout(() => document.body.removeChild(temp), 1200);
     }
@@ -339,16 +389,20 @@ export default function Feed() {
   function handleAddComment(idx, filename) {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
-    axios.post(`${HOST}/shorts/${filename}/comment`, { name: "You", text })
+    axios
+      .post(`${HOST}/shorts/${filename}/comment`, { name: "You", text })
       .then(() => {
-        setShorts(prev =>
+        setShorts((prev) =>
           prev.map((v, i) =>
             i === idx
-              ? { ...v, comments: [...(v.comments || []), { name: "You", text }] }
+              ? {
+                  ...v,
+                  comments: [...(v.comments || []), { name: "You", text }]
+                }
               : v
           )
         );
-        setAloneVideo(prev =>
+        setAloneVideo((prev) =>
           prev && prev.url && prev.url.endsWith(filename)
             ? {
                 ...prev,
@@ -359,7 +413,11 @@ export default function Feed() {
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
       });
   }
-  const handleCaptionExpand = (filename) => setExpandedCaptions(prev => ({ ...prev, [filename]: !prev[filename] }));
+  const handleCaptionExpand = (filename) =>
+    setExpandedCaptions((prev) => ({
+      ...prev,
+      [filename]: !prev[filename]
+    }));
 
   // ---- Modal Drag handlers ----
   function handleModalTouchStart(e) {
@@ -377,8 +435,6 @@ export default function Feed() {
     if (modalDragY > 65) setShowComments(null);
     setModalDragY(0);
   }
-
-  // ---- Video Events: tap/dbltap/touch ----
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -387,20 +443,29 @@ export default function Feed() {
         tapTimeout = setTimeout(() => {
           const vid = videoRefs.current[idx];
           if (!vid) return;
-          if (vid.paused) { vid.play(); setShowPause(false); }
-          else { vid.pause(); setShowPause(true); }
+          if (vid.paused) {
+            vid.play();
+            setShowPause(false);
+          } else {
+            vid.pause();
+            setShowPause(true);
+          }
         }, 240);
       },
       onDoubleClick: () => {
-        if (tapTimeout) { clearTimeout(tapTimeout); tapTimeout = null; }
+        if (tapTimeout) {
+          clearTimeout(tapTimeout);
+          tapTimeout = null;
+        }
         if (!isLiked(filename)) handleLike(idx, filename, true);
         setShowPulseHeart(true);
         setTimeout(() => setShowPulseHeart(false), 700);
       },
-      onTouchEnd: e => {
+      onTouchEnd: (e) => {
         if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
         if (tapTimeout) {
-          clearTimeout(tapTimeout); tapTimeout = null;
+          clearTimeout(tapTimeout);
+          tapTimeout = null;
           if (!isLiked(filename)) handleLike(idx, filename, true);
           setShowPulseHeart(true);
           setTimeout(() => setShowPulseHeart(false), 700);
@@ -408,8 +473,13 @@ export default function Feed() {
           tapTimeout = setTimeout(() => {
             const vid = videoRefs.current[idx];
             if (vid) {
-              if (vid.paused) { vid.play(); setShowPause(false); }
-              else { vid.pause(); setShowPause(true); }
+              if (vid.paused) {
+                vid.play();
+                setShowPause(false);
+              } else {
+                vid.pause();
+                setShowPause(true);
+              }
             }
             tapTimeout = null;
           }, 250);
@@ -436,46 +506,135 @@ export default function Feed() {
   }
   function handleTimeUpdate(idx, filename) {
     const vid = videoRefs.current[idx];
-    setVideoProgress((prev) => ({
+    setVideoProgress(prev => ({
       ...prev,
-      [filename]: vid && vid.duration && isFinite(vid.duration)
-        ? vid.currentTime / vid.duration : 0,
+      [filename]:
+        vid && vid.duration && isFinite(vid.duration)
+          ? vid.currentTime / vid.duration
+          : 0
     }));
   }
 
   // ---- ============= REPLAY PROTECTION =============== ----
   function handleVideoEnded(idx, filename) {
-    setReplayCounts(prev => {
+    setReplayCounts((prev) => {
       const prevCount = prev[filename] || 0;
       if (prevCount < 2) {
-        // Allow auto replay (playCount goes 0->1->2 for 3 "plays")
-        // If overlay is shown, don't auto-replay.
         if (videoRefs.current[idx]) {
           videoRefs.current[idx].currentTime = 0;
-          videoRefs.current[idx].play().catch(()=>{});
+          videoRefs.current[idx].play().catch(() => {});
         }
         return { ...prev, [filename]: prevCount + 1 };
       } else {
-        // 3rd time ended: show overlay, pause video, disallow loop
-        setOverlayShown(prevOverlay => ({ ...prevOverlay, [filename]: true }));
+        setOverlayShown((prevOverlay) => ({
+          ...prevOverlay,
+          [filename]: true,
+        }));
         if (videoRefs.current[idx]) {
           videoRefs.current[idx].pause();
         }
-        return { ...prev, [filename]: prevCount + 1 }; // goes to 3
+        return { ...prev, [filename]: prevCount + 1 };
       }
     });
   }
-
   function handleOverlayContinue(idx, filename) {
-    setReplayCounts(prev => ({ ...prev, [filename]: 0 }));
-    setOverlayShown(prev => ({ ...prev, [filename]: false }));
+    setReplayCounts((prev) => ({ ...prev, [filename]: 0 }));
+    setOverlayShown((prev) => ({ ...prev, [filename]: false }));
     if (videoRefs.current[idx]) {
       videoRefs.current[idx].currentTime = 0;
-      videoRefs.current[idx].play().catch(()=>{});
+      videoRefs.current[idx].play().catch(() => {});
     }
   }
 
-  // ---- SHARED VIDEO UI LOGIC ----
+  // ---- SCROLL SNAP LOCK (prevents multiple rapid snaps) ---
+  const containerRef = useRef(null);
+  const isScrollLocked = useRef(false);
+
+  useEffect(() => {
+    if (aloneVideo) return;
+    const el = containerRef.current;
+    if (!el) return;
+
+    function getNextSnapIdx(dir) {
+      if (dir > 0 && currentIdx < shorts.length - 1) return currentIdx + 1;
+      if (dir < 0 && currentIdx > 0) return currentIdx - 1;
+      return currentIdx;
+    }
+
+    // Wheel/Touchpad scroll
+    const onWheel = throttle((e) => {
+      if (isScrollLocked.current) {
+        e.preventDefault();
+        return;
+      }
+      const deltaY = e.deltaY;
+      if (Math.abs(deltaY) < 10) return;
+      let newIdx = currentIdx;
+      if (deltaY > 0) newIdx = getNextSnapIdx(1);
+      else if (deltaY < 0) newIdx = getNextSnapIdx(-1);
+      if (newIdx !== currentIdx) {
+        isScrollLocked.current = true;
+        setCurrentIdx(newIdx);
+        if (containerRef.current && containerRef.current.children[newIdx]) {
+          containerRef.current.children[newIdx].scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }
+        setTimeout(() => { isScrollLocked.current = false; }, 520);
+      }
+      e.preventDefault();
+    }, 480);
+    el.addEventListener("wheel", onWheel, { passive: false });
+
+    // Touch (mobile swipe)
+    let lastTouchY = null;
+    let touchBlocked = false;
+    function onTouchStart(e) {
+      if (e.touches.length === 1) lastTouchY = e.touches[0].clientY;
+    }
+    function onTouchMove(e) {
+      if (lastTouchY !== null && !touchBlocked) {
+        const delta = e.touches[0].clientY - lastTouchY;
+        if (Math.abs(delta) > 38) {
+          let newIdx = currentIdx;
+          if (delta < 0) newIdx = getNextSnapIdx(1);
+          else newIdx = getNextSnapIdx(-1);
+          if (newIdx !== currentIdx) {
+            touchBlocked = true;
+            isScrollLocked.current = true;
+            setCurrentIdx(newIdx);
+            if (containerRef.current && containerRef.current.children[newIdx]) {
+              containerRef.current.children[newIdx].scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+              });
+            }
+            setTimeout(() => {
+              isScrollLocked.current = false;
+              touchBlocked = false;
+            }, 520);
+          }
+        }
+      }
+    }
+    function onTouchEnd() {
+      lastTouchY = null;
+    }
+    el.addEventListener("touchstart", onTouchStart);
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd);
+
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+    // eslint-disable-next-line
+  }, [currentIdx, shorts.length, aloneVideo]);
+
+  // ---- VIDEO UI LOGIC (unchanged) ----
   function renderVideo({
     v, idx, filename, prog, liked, isCurrent, allComments,
     caption, showFull, isTruncated, displayedCaption, inFeed
@@ -490,11 +649,11 @@ export default function Feed() {
           display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
         }}
       >
-        {/* VIDEO */}
         <video
           ref={el => (videoRefs.current[idx] = el)}
           src={HOST + v.url}
-          loop={false} playsInline
+          loop={false}
+          playsInline
           style={{ width: "100vw", height: "100dvh", objectFit: "contain", background: "#000", cursor: "pointer", display: "block" }}
           muted={muted}
           autoPlay
@@ -502,7 +661,6 @@ export default function Feed() {
           onEnded={() => handleVideoEnded(idx, filename)}
           {...handleVideoEvents(idx, filename)}
         />
-        {/* -- Overlay for replay-protection -- */}
         {isOverlayShown && (
           <div style={{
             position: "absolute",
@@ -564,7 +722,6 @@ export default function Feed() {
             `}</style>
           </div>
         )}
-        {/* Mute/Unmute Button */}
         {(inFeed ? isCurrent : true) && (
           <button
             onClick={e => { e.stopPropagation(); setMuted(m => !m); setMutePulse(true); setTimeout(() => setMutePulse(false), 350); }}
@@ -592,7 +749,6 @@ export default function Feed() {
             `}</style>
           </button>
         )}
-        {/* Pause Animation */}
         {(inFeed ? isCurrent : true) && showPause && (
           <div style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -604,9 +760,7 @@ export default function Feed() {
             <style>{`@keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }`}</style>
           </div>
         )}
-        {/* Heart Pulse */}
         {(inFeed ? isCurrent : true) && <PulseHeart visible={showPulseHeart} />}
-        {/* Progress Bar */}
         <div style={{
           position: "absolute", left: 0, right: 0, bottom: 0,
           height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32, borderRadius: 2, overflow: "hidden", cursor: "pointer"
@@ -621,7 +775,6 @@ export default function Feed() {
             transition: "width 0.22s cubic-bezier(.4,1,.5,1)", pointerEvents: "none"
           }} />
         </div>
-        {/* ACTIONS (Profile, Like, Comment, Share) */}
         <div style={{
           position: 'absolute', right: '12px', bottom: '100px',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', zIndex: 10
@@ -632,19 +785,15 @@ export default function Feed() {
           }}>
             <img src={getProfilePic(v)} alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
           </div>
-          {/* Like */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
               aria-label={liked ? "Unlike" : "Like"}
               disabled={likePending[filename]}
               onClick={e => { e.stopPropagation(); handleLike(idx, filename, !liked); }}
               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', outline: 0 }}
-            >
-              <HeartSVG filled={liked} />
-            </button>
+            ><HeartSVG filled={liked} /></button>
             <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px' }}>{v.likes || 0}</span>
           </div>
-          {/* Comment */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
               aria-label="Comment"
@@ -657,7 +806,6 @@ export default function Feed() {
             </button>
             <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>{v.comments?.length || 0}</span>
           </div>
-          {/* Share */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
               aria-label="Share"
@@ -671,7 +819,6 @@ export default function Feed() {
             <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
           </div>
         </div>
-        {/* BOTTOM CAPTION */}
         <div style={{
           position: "absolute", left: 0, right: 0, bottom: 0,
           background: "linear-gradient(0deg,#000e 88%,transparent 100%)",
@@ -722,7 +869,6 @@ export default function Feed() {
             onClick={() => setShowComments(filename)}
           >View all {v.comments ? v.comments.length : 0} comments</div>
         </div>
-        {/* COMMENTS MODAL */}
         {showComments === filename &&
           <div
             style={{
@@ -792,7 +938,6 @@ export default function Feed() {
                   ))
                 )}
               </div>
-              {/* Add Comment */}
               <div style={{
                 display: 'flex', alignItems: 'center',
                 paddingTop: 10, borderTop: '1px solid #262626'
@@ -824,7 +969,6 @@ export default function Feed() {
             </div>
           </div>
         }
-        {/* Single video: extra back button */}
         {!inFeed && (
           <button
             onClick={() => navigate("/", { replace: true })}
@@ -843,7 +987,7 @@ export default function Feed() {
     );
   }
 
-  // ---- NOT FOUND (bad ?v) ----
+  // ---- NOT FOUND ----
   if (notFound) {
     return (
       <div style={{
@@ -905,16 +1049,21 @@ export default function Feed() {
       </div>
     );
   }
-  // --- NORMAL FEED (all videos) ---
+  // --- NORMAL FEED (all videos, snap/lock enabled) ---
   return (
-    <div style={{
-      minHeight: "100dvh", width: "100vw", background: "black", margin: 0, padding: 0, overflow: "hidden",
-      fontFamily: "Inter, Arial,sans-serif"
-    }}>
-      <div style={{
-        width: "100vw", height: "100dvh", overflowY: "scroll", overflowX: "hidden",
-        scrollSnapType: "y mandatory", background: "#000"
-      }}>
+    <div
+      ref={containerRef}
+      style={{
+        minHeight: "100dvh", width: "100vw", background: "black", margin: 0, padding: 0, overflow: "hidden",
+        fontFamily: "Inter, Arial,sans-serif"
+      }}
+    >
+      <div
+        style={{
+          width: "100vw", height: "100dvh", overflowY: "scroll", overflowX: "hidden",
+          scrollSnapType: "y mandatory", background: "#000"
+        }}
+      >
         {shorts.map((v, idx) => {
           const filename = v.url.split("/").pop();
           const liked = isLiked(filename);
