@@ -1,7 +1,6 @@
-// AdminDashboard.js
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import Sidebar from './components/Sidebar';
 import AllComments from './components/AllComments';
 
 const HOST = "https://shorts-t2dk.onrender.com";
@@ -52,7 +51,7 @@ export default function AdminDashboard() {
   const [editState, setEditState] = useState({});
   const [scrollCounts, setScrollCounts] = useState({});
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("adminToken"));
-  const [activeTab, setActiveTab] = useState('videos'); // New state for tab selection
+  const [activeTab, setActiveTab] = useState('videos'); // Tab state
 
   // Force logout on certain failures
   function handleLogout() {
@@ -123,7 +122,7 @@ export default function AdminDashboard() {
       .finally(() => setUploading(false));
   };
 
-  // DELETE
+  // DELETE VIDEO
   const handleDelete = (filename) => {
     if (!window.confirm("Delete this video permanently?")) return;
     axios
@@ -197,7 +196,7 @@ export default function AdminDashboard() {
   let mainContent;
   if (activeTab === 'comments') {
     mainContent = <AllComments />;
-  } else {
+  } else if (activeTab === 'videos') {
     // Videos tab content as existing
     mainContent = (
       <div
@@ -210,6 +209,7 @@ export default function AdminDashboard() {
           padding: "24px 0 24px 24px",
           display: "flex",
           flexDirection: "column",
+          overflowY: "auto",
         }}
       >
         <div
@@ -225,7 +225,6 @@ export default function AdminDashboard() {
         <div
           style={{
             flex: 1,
-            overflowY: "auto",
             display: "flex",
             flexDirection: "column",
             gap: 30,
@@ -374,6 +373,12 @@ export default function AdminDashboard() {
         </div>
       </div>
     );
+  } else {
+    mainContent = (
+      <div style={{ padding: 40, color: '#fff' }}>
+        <h2>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} tab content coming soon...</h2>
+      </div>
+    );
   }
 
   return (
@@ -386,224 +391,200 @@ export default function AdminDashboard() {
         fontFamily: "Inter, sans-serif",
       }}
     >
-      {/* LEFT: Upload/meta/file list & tabs */}
-      <div
-        style={{
-          flex: "0 0 340px",
-          padding: "32px 18px",
-          background: "linear-gradient(180deg, #0a1d4c 70%, #1a1529 100%)",
-          color: "#fff",
-          display: "flex",
-          flexDirection: "column",
-          gap: 28,
-          position: 'relative',
-        }}
-      >
-        <button onClick={handleLogout} style={{
-          position:"absolute", top:18, right:22, zIndex:100,
-          background:"#FE5555", color:"#fff", fontWeight:800, border:"none", borderRadius:8, padding:"7px 13px", cursor:"pointer"
-        }}>Logout</button>
+      {/* Sidebar */}
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-        {/* Tabs for switching between Videos and Comments */}
-        <div style={{ display:"flex", gap: '12px', justifyContent: 'center', marginBottom: 12 }}>
+      {/* Main content */}
+      <main style={{ flex: 1, padding: 20, overflowY: 'auto' }}>
+        <Header activeTab={activeTab} />
+        {mainContent}
+      </main>
+
+      {/* Left panel for uploads + tabs only on videos tab */}
+      {activeTab === 'videos' && (
+        <div
+          style={{
+            flex: "0 0 340px",
+            padding: "32px 18px",
+            background: "linear-gradient(180deg, #0a1d4c 70%, #1a1529 100%)",
+            color: "#fff",
+            display: "flex",
+            flexDirection: "column",
+            gap: 28,
+            position: 'relative',
+          }}
+        >
           <button
-            onClick={() => setActiveTab('videos')}
+            onClick={handleLogout}
             style={{
-              padding: '10px 16px',
-              borderRadius: 8,
-              fontWeight: '700',
-              border: 'none',
-              cursor: 'pointer',
-              background: activeTab === 'videos' ? '#2596ff' : '#3a3d55',
-              color: '#fff',
-              flex: 1,
-              transition: "background-color 0.2s",
+              position:"absolute", top:18, right:22, zIndex:100,
+              background:"#FE5555", color:"#fff", fontWeight:800, border:"none", borderRadius:8, padding:"7px 13px", cursor:"pointer"
             }}
           >
-            Videos
+            Logout
           </button>
-          <button
-            onClick={() => setActiveTab('comments')}
-            style={{
-              padding: '10px 16px',
-              borderRadius: 8,
-              fontWeight: '700',
-              border: 'none',
-              cursor: 'pointer',
-              background: activeTab === 'comments' ? '#2596ff' : '#3a3d55',
-              color: '#fff',
-              flex: 1,
-              transition: "background-color 0.2s",
-            }}
-          >
-            Comments
-          </button>
-        </div>
 
-        {/* Upload form only show on videos tab */}
-        {activeTab === 'videos' && (
-          <>
-            <form onSubmit={handleUpload} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop:0 }}>
-              <label
-                htmlFor="upload"
-                style={{
-                  background: "#47A3F3",
-                  color: "#fff",
-                  fontWeight: 600,
-                  fontSize: 18,
-                  padding: "12px 22px",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  display: "inline-block",
-                  textAlign: "center",
-                  marginBottom: 8,
-                }}
-              >
-                Upload Video
-                <input
-                  id="upload"
-                  type="file"
-                  accept="video/mp4"
-                  style={{ display: "none" }}
-                  onChange={(e) => setVideo(e.target.files[0])}
-                />
-              </label>
-              <button
-                type="submit"
-                disabled={uploading || !video}
-                style={{
-                  background: uploading ? "#333" : "#0bb259",
-                  color: "#fff",
-                  fontWeight: 600,
-                  fontSize: 16,
-                  border: "none",
-                  borderRadius: 5,
-                  padding: "8px 0",
-                  cursor: uploading || !video ? "wait" : "pointer",
-                }}
-              >
-                {uploading ? "Uploading..." : "Submit"}
-              </button>
-              {uploadProgress > 0 && (
-                <div style={{width: '100%', background: '#333', borderRadius: 8, marginTop: 10, position:'relative'}}>
-                  <div style={{
-                    width: `${uploadProgress}%`,
-                    height: 18, background: '#3eeaa7', borderRadius: 8,
-                    transition: "width 0.17s"
-                  }} />
-                  <div style={{
-                    position: "absolute", color: "#000", fontWeight: 700,
-                    fontSize: 15, left: 8, top: 1
-                  }}>
-                    {uploadProgress}%
-                  </div>
-                </div>
-              )}
-              {status && (
-                <div
-                  style={{
-                    background: status.includes("Success") ? "#0f0" : "#f33",
-                    color: "#000",
-                    padding: "4px 0",
-                    borderRadius: 4,
-                    textAlign: "center",
-                    fontWeight: 500,
-                    marginTop: 4,
-                  }}
-                >
-                  {status}
-                </div>
-              )}
-            </form>
-            {/* Stats */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ fontWeight: "bold" }}>
-                No. of videos: <span style={{ color: "#22d3ee" }}>{shorts.length}</span>
-              </div>
-              <div>
-                File size:{" "}
-                <span style={{ color: "#22d3ee" }}>
-                  {totalSize ? bytesToSize(totalSize) : "N/A"}
-                </span>
-              </div>
-            </div>
-            {/* File List */}
-            <div
+          <form onSubmit={handleUpload} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop:0 }}>
+            <label
+              htmlFor="upload"
               style={{
-                background: "#111116",
-                padding: 16,
-                borderRadius: 10,
-                boxShadow: "0 2px 12px #0002",
-                minHeight: 150,
-                maxHeight: 330,
-                overflowY: "auto",
+                background: "#47A3F3",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: 18,
+                padding: "12px 22px",
+                borderRadius: 8,
+                cursor: "pointer",
+                display: "inline-block",
+                textAlign: "center",
+                marginBottom: 8,
               }}
             >
-              <div style={{ fontWeight: 600, marginBottom: 6, color: "#fff" }}>
-                Uploaded Files
-              </div>
-              {shorts.length === 0 ? (
-                <div style={{ color: "#aaa", textAlign: "center", fontSize: 14 }}>
-                  No videos uploaded yet.
+              Upload Video
+              <input
+                id="upload"
+                type="file"
+                accept="video/mp4"
+                style={{ display: "none" }}
+                onChange={(e) => setVideo(e.target.files[0])}
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={uploading || !video}
+              style={{
+                background: uploading ? "#333" : "#0bb259",
+                color: "#fff",
+                fontWeight: 600,
+                fontSize: 16,
+                border: "none",
+                borderRadius: 5,
+                padding: "8px 0",
+                cursor: uploading || !video ? "wait" : "pointer",
+              }}
+            >
+              {uploading ? "Uploading..." : "Submit"}
+            </button>
+            {uploadProgress > 0 && (
+              <div style={{width: '100%', background: '#333', borderRadius: 8, marginTop: 10, position:'relative'}}>
+                <div style={{
+                  width: `${uploadProgress}%`,
+                  height: 18, background: '#3eeaa7', borderRadius: 8,
+                  transition: "width 0.17s"
+                }} />
+                <div style={{
+                  position: "absolute", color: "#000", fontWeight: 700,
+                  fontSize: 15, left: 8, top: 1
+                }}>
+                  {uploadProgress}%
                 </div>
-              ) : shorts.map((s, i) => {
-                const filename = s.filename;
-                return (
-                  <div
-                    key={filename}
+              </div>
+            )}
+            {status && (
+              <div
+                style={{
+                  background: status.includes("Success") ? "#0f0" : "#f33",
+                  color: "#000",
+                  padding: "4px 0",
+                  borderRadius: 4,
+                  textAlign: "center",
+                  fontWeight: 500,
+                  marginTop: 4,
+                }}
+              >
+                {status}
+              </div>
+            )}
+          </form>
+          {/* Stats */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ fontWeight: "bold" }}>
+              No. of videos: <span style={{ color: "#22d3ee" }}>{shorts.length}</span>
+            </div>
+            <div>
+              File size:{" "}
+              <span style={{ color: "#22d3ee" }}>
+                {totalSize ? bytesToSize(totalSize) : "N/A"}
+              </span>
+            </div>
+          </div>
+          {/* File List */}
+          <div
+            style={{
+              background: "#111116",
+              padding: 16,
+              borderRadius: 10,
+              boxShadow: "0 2px 12px #0002",
+              minHeight: 150,
+              maxHeight: 330,
+              overflowY: "auto",
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: 6, color: "#fff" }}>
+              Uploaded Files
+            </div>
+            {shorts.length === 0 ? (
+              <div style={{ color: "#aaa", textAlign: "center", fontSize: 14 }}>
+                No videos uploaded yet.
+              </div>
+            ) : shorts.map((s, i) => {
+              const filename = s.filename;
+              return (
+                <div
+                  key={filename}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "5px 0",
+                    borderBottom: i === shorts.length - 1 ? "none" : "1px solid #23223c",
+                  }}
+                >
+                  <span
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "5px 0",
-                      borderBottom: i === shorts.length - 1 ? "none" : "1px solid #23223c",
+                      fontSize: 14,
+                      color: "#abe",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      wordBreak: "break-all",
+                      maxWidth: 150,
                     }}
                   >
-                    <span
-                      style={{
-                        fontSize: 14,
-                        color: "#abe",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        wordBreak: "break-all",
-                        maxWidth: 150,
-                      }}
-                    >
-                      {filename}
-                    </span>
-                    <span style={{
+                    {filename}
+                  </span>
+                  <span style={{
+                    fontSize: 13,
+                    color: "#fff9",
+                    margin: "0 8px",
+                  }}>
+                    {s.size ? bytesToSize(Number(s.size)) : ""}
+                  </span>
+                  <button
+                    type="button"
+                    style={{
+                      background: "#e11d48",
+                      color: "#fff",
+                      fontWeight: 600,
+                      border: "none",
+                      borderRadius: 4,
                       fontSize: 13,
-                      color: "#fff9",
-                      margin: "0 8px",
-                    }}>
-                      {s.size ? bytesToSize(Number(s.size)) : ""}
-                    </span>
-                    <button
-                      type="button"
-                      style={{
-                        background: "#e11d48",
-                        color: "#fff",
-                        fontWeight: 600,
-                        border: "none",
-                        borderRadius: 4,
-                        fontSize: 13,
-                        padding: "2px 9px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => handleDelete(filename)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* RIGHT: Main content area */}
-      {mainContent}
+                      padding: "2px 9px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => handleDelete(filename)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+// Sidebar.js imported from './components/Sidebar'
+// AllComments.js imported from './components/AllComments'
+// Make sure these files exist and properly export components.
