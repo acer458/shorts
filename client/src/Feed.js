@@ -642,6 +642,22 @@ export default function Feed() {
       index: i
     }));
   
+    // --- SCROLL LOCK FIX ---
+    function handleCommentListWheel(e) {
+      const el = e.currentTarget;
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const up = e.deltaY < 0;
+      const down = e.deltaY > 0;
+      if (
+        (up && scrollTop === 0) ||
+        (down && Math.ceil(scrollTop + clientHeight) >= scrollHeight)
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+    // --- END FIX ---
+  
     return (
       <div
         key={filename}
@@ -876,20 +892,7 @@ export default function Feed() {
               <div
                 style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}
                 onTouchMove={e => e.stopPropagation()}
-                onWheel={e => {
-                  // Prevent feed scroll when at top/bottom of comments on desktop
-                  const el = e.currentTarget;
-                  const { scrollTop, scrollHeight, clientHeight } = el;
-                  const up = e.deltaY < 0;
-                  const down = e.deltaY > 0;
-                  if (
-                    (up && scrollTop === 0) ||
-                    (down && scrollTop + clientHeight >= scrollHeight)
-                  ) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }
-                }}
+                onWheel={handleCommentListWheel}
               >
                 {mappedComments.length === 0 ? (
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
@@ -1019,7 +1022,6 @@ export default function Feed() {
       </div>
     );
   }
-
 
   // ---- VIDEO FEED UI STATE ----
   if (notFound) {
