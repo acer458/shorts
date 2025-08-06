@@ -28,7 +28,7 @@ function getProfilePic(v) {
     v.avatar ||
     v.profilePic ||
     `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(
-      v.author || "anonymous"
+      v.author || "propscholar-user"
     )}`
   );
 }
@@ -800,7 +800,7 @@ export default function Feed() {
           display: "flex", flexDirection: "column", userSelect: "none"
         }}>
           <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
-            @{v.author || "anonymous"}
+            @{v.author || "propscholar"}
           </div>
           {caption && (
             <div style={{
