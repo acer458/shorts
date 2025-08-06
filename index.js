@@ -65,6 +65,39 @@ function adminJwtAuth(req, res, next) {
   }
 }
 
+// ========== ADMIN Endpoints (protected) ==========
+
+// List all comments across all shorts (ADMIN only)
+app.get('/admin/all-comments', adminJwtAuth, (req, res) => {
+  const videos = getVideos();
+  const allComments = [];
+  videos.forEach((video) => {
+    (video.comments || []).forEach((comment, idx) => {
+      allComments.push({
+        videoFilename: video.filename,
+        videoCaption: video.caption || '',
+        comment,
+        index: idx,
+      });
+    });
+  });
+  res.json(allComments);
+});
+
+// Delete a comment by video and comment index (ADMIN only)
+app.delete('/admin/comments/:videoFilename/:commentIdx', adminJwtAuth, (req, res) => {
+  const { videoFilename, commentIdx } = req.params;
+  const videos = getVideos();
+  const video = videos.find(v => v.filename === videoFilename);
+  if (!video) return res.status(404).json({ error: "Video not found" });
+  const idx = parseInt(commentIdx, 10);
+  if (isNaN(idx) || !video.comments || !video.comments[idx]) 
+    return res.status(404).json({ error: "Comment not found" });
+  video.comments.splice(idx, 1);
+  saveVideos(videos);
+  res.json({ success: true });
+});
+
 // ========= Multer for uploads ==========
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, DISK_PATH),
@@ -90,7 +123,9 @@ function findVideoByHash(videos, hash) {
 // ========== Public Endpoints =============
 
 // List all videos
-app.get('/shorts', (req, res) => { res.json(getVideos()); });
+app.get('/shorts', (req, res) => { 
+  res.json(getVideos()); 
+});
 
 // Get a single video by filename
 app.get('/shorts/:filename', (req, res) => {
@@ -131,8 +166,6 @@ app.post('/shorts/:filename/comment', (req, res) => {
   saveVideos(videos);
   res.json({ success: true, comments: vid.comments });
 });
-
-// ========== ADMIN Endpoints (protected) ==========
 
 // Upload (dedupe by hash)
 app.post('/upload', adminJwtAuth, upload.single('video'), (req, res) => {
