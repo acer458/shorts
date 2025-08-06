@@ -34,11 +34,7 @@ function getProfilePic(v) {
 }
 function fakeAvatar(i) {
   const urls = [
-    "https://randomuser.me/api/portraits/men/32.jpg",
-    "https://randomuser.me/api/portraits/women/63.jpg",
-    "https://randomuser.me/api/portraits/men/75.jpg",
-    "https://randomuser.me/api/portraits/women/22.jpg",
-    "https://randomuser.me/api/portraits/men/18.jpg"
+    "https://res.cloudinary.com/dzozyqlqr/image/upload/v1754503052/PropScholarUser_neup6j.png"
   ];
   return urls[i % urls.length];
 }
@@ -453,14 +449,14 @@ export default function Feed() {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
     axios
-      .post(`${HOST}/shorts/${filename}/comment`, { name: "You", text })
+      .post(`${HOST}/shorts/${filename}/comment`, { name: "PropScholar User", text })
       .then(() => {
         setShorts((prev) =>
           prev.map((v, i) =>
             i === idx
               ? {
                   ...v,
-                  comments: [...(v.comments || []), { name: "You", text }]
+                  comments: [...(v.comments || []), { name: "PropScholar User", text }]
                 }
               : v
           )
@@ -469,7 +465,7 @@ export default function Feed() {
           prev && prev.url && prev.url.endsWith(filename)
             ? {
                 ...prev,
-                comments: [...(prev.comments || []), { name: "You", text }]
+                comments: [...(prev.comments || []), { name: "PropScholar User", text }]
               }
             : prev
         );
