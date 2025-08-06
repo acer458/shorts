@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from '../assets/logo.png'; // Adjust path if necessary
+import logo from '../assets/logo.png'; // <-- Or '../assets/logo.jpg' if using JPG
 
 const tabs = [
   { id: 'videos', label: 'Uploaded Videos', icon: '📁' },
@@ -21,18 +21,24 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       boxSizing: 'border-box',
       height: '100vh'
     }}>
-      {/* LOGO and BRAND NAME */}
+      {/* LOGO and NAME */}
       <div style={{
         padding: '0 20px 24px',
         borderBottom: '1px solid rgba(255,255,255,0.1)',
         display: 'flex',
         alignItems: 'center',
-        gap: 12
+        gap: 14
       }}>
         <img
           src={logo}
           alt="Propscholar Logo"
-          style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'contain', background: '#fff' }}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 8,
+            objectFit: 'contain',
+            background: '#fff'
+          }}
         />
         <h2 style={{
           fontSize: 20,
