@@ -1,19 +1,27 @@
 // ==== email.js ====
-// Utility for sending verification email with SendGrid
+// Send verification emails using your own Gmail SMTP (App Password required)
 
-const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,      // Your full Gmail address, e.g., "yourname@gmail.com"
+    pass: process.env.GMAIL_APP_PASS,  // Your Gmail app password (not main Gmail password!)
+  }
+});
 
 /**
- * @param {string} userEmail - to send to
- * @param {string} token - verification token
- * @param {string} frontend - frontend URL (from /api/register)
+ * Send a verification email
+ * @param {string} userEmail - the recipient's email
+ * @param {string} token - the verification token
+ * @param {string} frontend - your frontend URL
  */
 async function sendVerificationEmail(userEmail, token, frontend) {
   const link = `${frontend}/verify?token=${token}`;
-  await sgMail.send({
+  await transporter.sendMail({
+    from: process.env.GMAIL_USER,
     to: userEmail,
-    from: process.env.EMAIL_SENDER,
     subject: "Verify your Shorts App Account",
     html: `<h2>Verify your account</h2>
            <p>Click below to activate your account:</p>
