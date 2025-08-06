@@ -21,3 +21,4 @@ async function sendVerificationEmail(userEmail, token) {
 }
 
 module.exports = { sendVerificationEmail };
+
