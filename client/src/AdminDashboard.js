@@ -52,8 +52,8 @@ export default function AdminDashboard() {
   const [editState, setEditState] = useState({});
   const [scrollCounts, setScrollCounts] = useState({});
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("adminToken"));
-  const [activeTab, setActiveTab] = useState('videos'); // New state for tab selection
-
+  const [activeTab, setActiveTab] = useState('videos'); // Tab selection
+  
   // Force logout on certain failures
   function handleLogout() {
     localStorage.removeItem("adminToken");
@@ -73,7 +73,6 @@ export default function AdminDashboard() {
       .then((res) => setShorts(res.data))
       .catch(() => setStatus("Could not fetch shorts."));
 
-    // Fetch scroll/view counts (if you use a /views endpoint)
     axios.get(HOST + "/views")
       .then(res => setScrollCounts(res.data))
       .catch(() => {});
@@ -84,7 +83,7 @@ export default function AdminDashboard() {
     // eslint-disable-next-line
   }, [loggedIn, activeTab]);
 
-  // UPLOAD
+  // UPLOAD handler
   const handleUpload = (e) => {
     e.preventDefault();
     if (!video) { setStatus("Please select a file!"); return; }
@@ -94,9 +93,7 @@ export default function AdminDashboard() {
 
     axios
       .post(HOST + "/upload", formData, {
-        headers: {
-          ...authHeaders()
-        },
+        headers: { ...authHeaders() },
         onUploadProgress: progressEvent => {
           setUploadProgress(Math.round((progressEvent.loaded * 100) / progressEvent.total));
         }
@@ -123,7 +120,7 @@ export default function AdminDashboard() {
       .finally(() => setUploading(false));
   };
 
-  // DELETE
+  // DELETE handler
   const handleDelete = (filename) => {
     if (!window.confirm("Delete this video permanently?")) return;
     axios
@@ -143,7 +140,7 @@ export default function AdminDashboard() {
       });
   };
 
-  // Caption EDIT
+  // Caption edit handling
   const handleCaptionChange = (filename, value) => {
     setEditState((prev) => ({
       ...prev,
@@ -193,12 +190,12 @@ export default function AdminDashboard() {
   // Require login
   if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />;
 
-  // Tab content logic
+  // Prepare main content depending on activeTab
   let mainContent;
   if (activeTab === 'comments') {
     mainContent = <AllComments />;
   } else {
-    // Videos tab content as existing
+    // Videos tab content
     mainContent = (
       <div
         style={{
@@ -324,9 +321,7 @@ export default function AdminDashboard() {
                       alignItems: "center"
                     }}
                   >
-                    <span>
-                      {caption.length}/250
-                    </span>
+                    <span>{caption.length}/250</span>
                     {state.error && (
                       <span style={{ color: "#e11d48", marginLeft: 12 }}>
                         {state.error}
@@ -361,11 +356,7 @@ export default function AdminDashboard() {
                       minWidth: 85
                     }}
                   >
-                    {state.loading
-                      ? "Saving..."
-                      : state.saved
-                      ? "Saved ✓"
-                      : "Save"}
+                    {state.loading ? "Saving..." : state.saved ? "Saved ✓" : "Save"}
                   </button>
                 </div>
               </div>
@@ -386,7 +377,7 @@ export default function AdminDashboard() {
         fontFamily: "Inter, sans-serif",
       }}
     >
-      {/* LEFT: Upload/meta/file list & tabs */}
+      {/* LEFT: Upload/meta/file list & tab selection */}
       <div
         style={{
           flex: "0 0 340px",
@@ -404,7 +395,7 @@ export default function AdminDashboard() {
           background:"#FE5555", color:"#fff", fontWeight:800, border:"none", borderRadius:8, padding:"7px 13px", cursor:"pointer"
         }}>Logout</button>
 
-        {/* Tabs for switching between Videos and Comments */}
+        {/* Tabs for switching */}
         <div style={{ display:"flex", gap: '12px', justifyContent: 'center', marginBottom: 12 }}>
           <button
             onClick={() => setActiveTab('videos')}
@@ -440,10 +431,10 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        {/* Upload form only show on videos tab */}
+        {/* Upload form, stats, file list only shown on 'videos' tab */}
         {activeTab === 'videos' && (
           <>
-            <form onSubmit={handleUpload} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop:0 }}>
+            <form onSubmit={handleUpload} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 0 }}>
               <label
                 htmlFor="upload"
                 style={{
