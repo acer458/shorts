@@ -250,10 +250,6 @@ export default function Feed() {
   // "Replay-protection" overlay
   const [replayCounts, setReplayCounts] = useState({});
   const [overlayShown, setOverlayShown] = useState({});
-  const [lastCommentTime, setLastCommentTime] = useState({});
-  const COMMENT_SPAM_DELAY = 10 * 1000; // 10 seconds
-
-
 
   // ---- Prevent body scroll and pull-to-refresh on mobile ----
   useEffect(() => {
@@ -451,15 +447,6 @@ export default function Feed() {
     }
   }
   function handleAddComment(idx, filename) {
-    const now = Date.now();
-    // Prevent spam: check last comment time
-    if (
-      lastCommentTime[filename] &&
-      now - lastCommentTime[filename] < COMMENT_SPAM_DELAY
-    ) {
-      alert(`Please wait ${Math.ceil((COMMENT_SPAM_DELAY - (now - lastCommentTime[filename])) / 1000)}s before commenting again.`);
-      return;
-    }
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
     axios
@@ -484,13 +471,8 @@ export default function Feed() {
             : prev
         );
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
-        setLastCommentTime((prev) => ({
-          ...prev,
-          [filename]: now
-        }));
       });
   }
-
   const handleCaptionExpand = (filename) =>
     setExpandedCaptions((prev) => ({
       ...prev,
@@ -629,50 +611,36 @@ export default function Feed() {
   }
 
   // ---- PAGED RENDER LOGIC ----
-function renderVideo({
-  v,
-  idx,
-  filename,
-  prog,
-  liked,
-  isCurrent,
-  allComments,
-  caption,
-  showFull,
-  isTruncated,
-  displayedCaption,
-  inFeed
-}) {
-  const isOverlayShown = overlayShown[filename];
-  const mappedComments = (allComments || []).map((c, i) => ({
-    ...c,
-    index: i
-  }));
+  function getPagedShorts() {
+    if (shorts.length === 0) return [];
+    return [
+      currentIdx - 1,
+      currentIdx,
+      currentIdx + 1,
+    ]
+      .filter((idx) => idx >= 0 && idx < shorts.length)
+      .map((idx) => ({ ...shorts[idx], _idx: idx }));
+  }
 
-  // --- for spam prevention/UX
-  const cooldownActive =
-    lastCommentTime[filename] &&
-    Date.now() - lastCommentTime[filename] < COMMENT_SPAM_DELAY;
-  const cooldownSecs = cooldownActive
-    ? Math.ceil(
-        (COMMENT_SPAM_DELAY - (Date.now() - lastCommentTime[filename])) / 1000
-      )
-    : 0;
-
-    // --- scroll lock for comments modal
-    function handleCommentListWheel(e) {
-      const el = e.currentTarget;
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      const up = e.deltaY < 0;
-      const down = e.deltaY > 0;
-      if (
-        (up && scrollTop === 0) ||
-        (down && Math.ceil(scrollTop + clientHeight) >= scrollHeight)
-      ) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    }
+  function renderVideo({
+    v,
+    idx,
+    filename,
+    prog,
+    liked,
+    isCurrent,
+    allComments,
+    caption,
+    showFull,
+    isTruncated,
+    displayedCaption,
+    inFeed
+  }) {
+    const isOverlayShown = overlayShown[filename];
+    const mappedComments = (allComments || []).map((c, i) => ({
+      ...c,
+      index: i
+    }));
   
     return (
       <div
@@ -700,7 +668,173 @@ function renderVideo({
           onEnded={() => handleVideoEnded(idx, filename)}
           {...handleVideoEvents(idx, filename)}
         />
-        {/* ... overlays and controls unchanged ... */}
+        {isOverlayShown && (
+          <div style={{
+            position: "absolute", inset: 0, display: "flex",
+            alignItems: "center", justifyContent: "center", zIndex: 1002,
+          }}>
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", minWidth: "260px",
+              minHeight: "92px", background: "rgba(30,30,38,0.41)", borderRadius: "16px",
+              boxShadow: "0 8px 32px 0 rgba(12,16,30,0.21), 0 1.5px 11px #0004",
+              backdropFilter: "blur(14px) saturate(160%)", border: "1.6px solid rgba(80,80,86,0.16)",
+              padding: "24px 26px 18px 26px", animation: "glassRise .36s cubic-bezier(.61,2,.22,1.02)"
+            }}>
+              <span style={{ color: "#fff", fontSize: "1.11rem", fontWeight: 600, marginBottom: "6px" }}>
+                Continue watching?
+              </span>
+              <button onClick={() => handleOverlayContinue(idx, filename)} style={{
+                background: "rgba(0,0,0,0.30)", color: "#fff", fontFamily: "inherit", padding: "8px 28px",
+                fontSize: "1rem", fontWeight: 500, borderRadius: "12px", border: "1.1px solid rgba(255,255,255,0.085)",
+                boxShadow: "0 1.5px 8px #0004", outline: "none", marginTop: "1px", cursor: "pointer", letterSpacing: "0.01em"
+              }}>
+                Continue
+              </button>
+            </div>
+            <style>{`
+              @keyframes glassRise {
+                from { opacity: 0; transform: translateY(60px) scale(1.07);}
+                to   { opacity: 1; transform: translateY(0) scale(1);}
+              }
+            `}</style>
+          </div>
+        )}
+        <button
+          onClick={e => { e.stopPropagation(); setMuted(m => !m); setMutePulse(true); setTimeout(() => setMutePulse(false), 350); }}
+          aria-label={muted ? "Unmute" : "Mute"}
+          tabIndex={0}
+          style={{
+            position: "absolute", top: 20, right: 20, zIndex: 60,
+            background: "rgba(28,29,34,0.65)", border: "none",
+            borderRadius: 16, width: 39, height: 39,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", boxShadow: "0 2px 6px #0002", outline: "none",
+            transition: "box-shadow .22s,ease",
+            ...(mutePulse
+              ? { animation: "mutepulseanim 0.38s cubic-bezier(.3,1.5,.65,1.05)", boxShadow: "0 0 0 9px #33b6ff27" }
+              : {})
+          }}
+        >
+          <MuteMicIcon muted={muted} />
+          <style>{`
+            @keyframes mutepulseanim {
+              0% { box-shadow: 0 0 0 0 #33b6ff88; transform: scale(1.09);}
+              75%{ box-shadow:0 0 0 13px #33b6ff22; transform: scale(1.13);}
+              100% { box-shadow: 0 0 0 0 #33b6ff00; transform: scale(1);}
+            }
+          `}</style>
+        </button>
+        {isCurrent && showPause && (
+          <div style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 105, background: 'rgba(0,0,0,0.26)', pointerEvents: "none",
+            animation: 'fadeInPause .29s'
+          }}>
+            <PauseIcon />
+            <style>{`@keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }`}</style>
+          </div>
+        )}
+        {isCurrent && <PulseHeart visible={showPulseHeart} />}
+        <div style={{
+          position: "absolute", left: 0, right: 0, bottom: 0,
+          height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32, borderRadius: 2, overflow: "hidden", cursor: "pointer"
+        }}
+          onClick={e => handleSeek(idx, e, false)}
+          onTouchStart={e => handleSeek(idx, e, true)}
+          role="progressbar" aria-valuenow={Math.round(prog * 100)}
+        >
+          <div style={{
+            width: `${Math.min(prog * 100, 100)}%`,
+            height: "100%", background: "rgb(42, 131, 254)",
+            transition: "width 0.22s cubic-bezier(.4,1,.5,1)", pointerEvents: "none"
+          }} />
+        </div>
+        <div style={{
+          position: 'absolute', right: '12px', bottom: '100px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', zIndex: 10
+        }}>
+          <div style={{
+            marginBottom: 6, width: 48, height: 48,
+            borderRadius: "50%", overflow: "hidden"
+          }}>
+            <img src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754502047/Untitled_design_4_odnqn2.jpg' alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <button
+              aria-label={liked ? "Unlike" : "Like"}
+              disabled={likePending[filename]}
+              onClick={e => { e.stopPropagation(); handleLike(idx, filename, !liked); }}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', outline: 0 }}
+            ><HeartSVG filled={liked} /></button>
+            <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px' }}>{v.likes || 0}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <button
+              aria-label="Comment"
+              onClick={e => { e.stopPropagation(); setShowComments(filename); }}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            >
+              <svg aria-label="Comment" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
+                <path d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z" fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+            </button>
+            <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>{v.comments?.length || 0}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <button
+              aria-label="Share"
+              onClick={() => handleShare(filename)}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+              <svg aria-label="Share Post" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
+                <line fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="3" y2="10.083" />
+                <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="#fff" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+            </button>
+            <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
+          </div>
+        </div>
+        <div style={{
+          position: "absolute", left: 0, right: 0, bottom: 0,
+          background: "linear-gradient(0deg,#000e 88%,transparent 100%)",
+          color: "#fff", padding: "20px 18px 28px 18px", zIndex: 6,
+          display: "flex", flexDirection: "column", userSelect: "none"
+        }}>
+          <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
+            @{v.author || "propscholar"}
+          </div>
+          {caption && (
+            <div style={{
+              display: "flex", alignItems: "flex-end", minHeight: "26px", maxWidth: 500
+            }}>
+              <div
+                style={{
+                  fontWeight: 400, fontSize: 16, color: "#fff", lineHeight: 1.4,
+                  maxHeight: showFull ? "none" : "2.8em",
+                  overflow: showFull ? "visible" : "hidden", textOverflow: "ellipsis",
+                  display: "-webkit-box", WebkitLineClamp: showFull ? "unset" : 2,
+                  WebkitBoxOrient: "vertical", wordBreak: "break-word", marginRight: isTruncated ? 10 : 0,
+                  whiteSpace: "pre-line"
+                }}
+              >
+                {displayedCaption}
+              </div>
+              {isTruncated && (
+                <button
+                  style={{
+                    background: "none", border: "none", color: "#33b6ff", fontWeight: 600, fontSize: 15,
+                    cursor: "pointer", marginLeft: 2, padding: 0, lineHeight: 1.3, textDecoration: "underline"
+                  }}
+                  tabIndex={0} onClick={() => handleCaptionExpand(filename)}
+                >{showFull ? "less" : "more"}</button>
+              )}
+            </div>
+          )}
+          <div
+            style={{ color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer" }}
+            onClick={() => setShowComments(filename)}
+          >View all {v.comments ? v.comments.length : 0} comments</div>
+        </div>
         {showComments === filename &&
           <div
             style={{
@@ -742,7 +876,20 @@ function renderVideo({
               <div
                 style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}
                 onTouchMove={e => e.stopPropagation()}
-                onWheel={handleCommentListWheel}
+                onWheel={e => {
+                  // Prevent feed scroll when at top/bottom of comments on desktop
+                  const el = e.currentTarget;
+                  const { scrollTop, scrollHeight, clientHeight } = el;
+                  const up = e.deltaY < 0;
+                  const down = e.deltaY > 0;
+                  if (
+                    (up && scrollTop === 0) ||
+                    (down && scrollTop + clientHeight >= scrollHeight)
+                  ) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
               >
                 {mappedComments.length === 0 ? (
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
@@ -855,29 +1002,14 @@ function renderVideo({
                   }))}
                   onKeyDown={e => e.key === "Enter" && (commentInputs[filename] || "").trim() !== "" && handleAddComment(idx, filename)}
                 />
-                {/* Cooldown countdown text */}
-                {cooldownActive && (
-                  <span style={{color: "#ed4956", fontSize: 13, marginRight: 10}}>
-                    Please wait {cooldownSecs}s
-                  </span>
-                )}
                 <button
                   style={{
                     color: "#0095f6", fontWeight: 600, marginLeft: 10, fontSize: 14,
                     background: "none", border: "none",
-                    cursor:
-                      (commentInputs[filename] || "").trim() !== "" && !cooldownActive
-                        ? "pointer"
-                        : "default",
-                    opacity:
-                      (commentInputs[filename] || "").trim() !== "" && !cooldownActive
-                        ? 1
-                        : 0.5
+                    cursor: (commentInputs[filename] || "").trim() !== "" ? "pointer" : "default",
+                    opacity: (commentInputs[filename] || "").trim() !== "" ? 1 : 0.5
                   }}
-                  disabled={
-                    (commentInputs[filename] || "").trim() === "" ||
-                    cooldownActive
-                  }
+                  disabled={(commentInputs[filename] || "").trim() === ""}
                   onClick={() => handleAddComment(idx, filename)}
                 >Post</button>
               </div>
