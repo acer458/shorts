@@ -888,13 +888,13 @@ export default function Feed() {
                       borderBottom: '1px solid #1a1a1a',
                       alignItems: "flex-start"
                     }} key={c.index}>
-                      {/* Uncomment this block to enable avatars
+                      {/* Uncomment this block to enable avatars */
                       <img
                         src={c.avatar}
                         className="comment-avatar"
                         alt=""
                         style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
-                      /> */}
+                      /> }
                       <div className="comment-content" style={{ flex: 1 }}>
                         <div style={{ display: "flex", alignItems: 'center', gap: 8 }}>
                           <span className="comment-username" style={{
