@@ -1,3 +1,4 @@
+import React from 'react';
 const tabs = [
   { id: 'upload', label: 'Video Upload' },
   { id: 'users', label: 'User Analytics' },
