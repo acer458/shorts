@@ -38,16 +38,32 @@ function fakeAvatar(i) {
   ];
   return urls[i % urls.length];
 }
-function fakeTime(i) {
-  return [
-    "2h ago",
-    "1h ago",
-    "45m ago",
-    "30m ago",
-    "15m ago",
-    "Just now"
-  ][i % 6] || "Just now";
+// function fakeTime(i) {
+//   return [
+//     "2h ago",
+//     "1h ago",
+//     "45m ago",
+//     "30m ago",
+//     "15m ago",
+//     "Just now"
+//   ][i % 6] || "Just now";
+// }
+function timeAgo(date) {
+  if (!date) return "";
+  const now = Date.now();
+  const past = typeof date === "string" ? new Date(date).getTime() : date;
+  const diff = Math.round((now - past) / 1000); // seconds ago
+
+  if (diff < 10) return "Just now";
+  if (diff < 60) return diff + " sec";
+  if (diff < 90) return "1 min";
+  if (diff < 60 * 60) return Math.floor(diff / 60) + " min";
+  if (diff < 90 * 60) return "1 hr";
+  if (diff < 60 * 60 * 24) return Math.floor(diff / 3600) + " hr";
+  if (diff < 60 * 60 * 36) return "1 day";
+  return Math.floor(diff / 86400) + " days";
 }
+
 function throttle(fn, wait) {
   let locked = false;
   return (...args) => {
@@ -456,7 +472,7 @@ export default function Feed() {
             i === idx
               ? {
                   ...v,
-                  comments: [...(v.comments || []), { name: "PropScholar User", text }]
+                  comments: [...(v.comments || []), { name: "PropScholar User", text, createdAt: Date.now() }]
                 }
               : v
           )
@@ -975,7 +991,7 @@ export default function Feed() {
     const liked = isLiked(filename);
     const prog = videoProgress[filename] || 0;
     const allComments = (v.comments || []).map((c, i) => ({
-      ...c, avatar: fakeAvatar(i), time: fakeTime(i)
+      ...c, avatar: fakeAvatar(i), time: c.createdAt ? timeAgo(c.createdAt) : "Just now"
     }));
     const caption = v.caption || "";
     const previewLimit = 90;
@@ -1035,7 +1051,7 @@ export default function Feed() {
         const liked = isLiked(filename);
         const prog = videoProgress[filename] || 0;
         const allComments = (v.comments || []).map((c, i) => ({
-          ...c, avatar: fakeAvatar(i), time: fakeTime(i)
+          ...c, avatar: fakeAvatar(i), time: c.createdAt ? timeAgo(c.createdAt) : "Just now"
         }));
         const caption = v.caption || "";
         const previewLimit = 90;
