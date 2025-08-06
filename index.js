@@ -10,25 +10,21 @@ const app = express();
 app.use(cors());
 app.use(express.json()); // For parsing JSON bodies
 
-// === Use Render persistent disk path ===
-const DISK_PATH = '/data'; // Mount this in Render settings as persistent disk
+// Persistent Disk Path - MUST match Render disk mount path (e.g., '/data')
+const DISK_PATH = '/data';
 if (!fs.existsSync(DISK_PATH)) fs.mkdirSync(DISK_PATH, { recursive: true });
 
-// === All metadata (video list) IN THE DISK as well ===
+// Store all metadata in persistent disk
 const VIDEOS_JSON = path.join(DISK_PATH, 'videos.json');
 function getVideos() {
   if (!fs.existsSync(VIDEOS_JSON)) return [];
-  try {
-    return JSON.parse(fs.readFileSync(VIDEOS_JSON, 'utf-8') || '[]');
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(fs.readFileSync(VIDEOS_JSON, 'utf-8') || '[]'); } catch { return []; }
 }
 function saveVideos(videos) {
   fs.writeFileSync(VIDEOS_JSON, JSON.stringify(videos, null, 2), 'utf-8');
 }
 
-// Debug endpoint: see current files in disk
+// Debug endpoint for Render disk checks
 app.get('/_diskdebug', (req, res) => {
   try {
     const files = fs.existsSync(DISK_PATH) ? fs.readdirSync(DISK_PATH) : [];
@@ -38,10 +34,10 @@ app.get('/_diskdebug', (req, res) => {
   }
 });
 
-// ========== Auth & Admin ==============
+// ========== Admin Auth ===========
 const ADMIN_EMAIL = "propscholars@gmail.com";
 const ADMIN_PASSWORD = "Hindi@1234";
-const SECRET = "super-strong-secret-key-change-this"; // Use env var for production
+const SECRET = "super-strong-secret-key-change-this"; // Use env var in production
 
 app.post("/admin/login", (req, res) => {
   const { email, password } = req.body || {};
@@ -51,7 +47,6 @@ app.post("/admin/login", (req, res) => {
   }
   res.status(401).json({ error: "Unauthorized" });
 });
-
 function adminJwtAuth(req, res, next) {
   const header = req.header("Authorization");
   if (!header) return res.status(401).json({ error: "No token" });
@@ -65,9 +60,35 @@ function adminJwtAuth(req, res, next) {
   }
 }
 
-// ========== ADMIN Endpoints (protected) ==========
+// ========== Multer for uploads ==========
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, DISK_PATH),
+  filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}${path.extname(file.originalname)}`)
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 150 * 1024 * 1024 } // 150MB per video file!
+});
 
-// List all comments across all shorts (ADMIN only)
+// Serve uploaded videos
+app.use('/uploads', express.static(DISK_PATH));
+
+// Helper utilities
+function fileHashSync(filepath) {
+  const buffer = fs.readFileSync(filepath);
+  return crypto.createHash('sha256').update(buffer).digest('hex');
+}
+function findVideo(videos, filename) {
+  return videos.find(v => v.filename === filename);
+}
+function findVideoByHash(videos, hash) {
+  return videos.find(v => v.sha256 === hash);
+}
+
+// ================== Admin comments moderation endpoints ==================
+// (ADD any new admin endpoints here, as in your last step!)
+
+// List all comments
 app.get('/admin/all-comments', adminJwtAuth, (req, res) => {
   const videos = getVideos();
   const allComments = [];
@@ -84,7 +105,7 @@ app.get('/admin/all-comments', adminJwtAuth, (req, res) => {
   res.json(allComments);
 });
 
-// Delete a comment by video and comment index (ADMIN only)
+// Delete a comment by video and comment index
 app.delete('/admin/comments/:videoFilename/:commentIdx', adminJwtAuth, (req, res) => {
   const { videoFilename, commentIdx } = req.params;
   const videos = getVideos();
@@ -98,34 +119,10 @@ app.delete('/admin/comments/:videoFilename/:commentIdx', adminJwtAuth, (req, res
   res.json({ success: true });
 });
 
-// ========= Multer for uploads ==========
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, DISK_PATH),
-  filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}${path.extname(file.originalname)}`)
-});
-const upload = multer({ storage });
-
-// Serve uploaded videos statically
-app.use('/uploads', express.static(DISK_PATH));
-
-// === Utilities ===
-function fileHashSync(filepath) {
-  const buffer = fs.readFileSync(filepath);
-  return crypto.createHash('sha256').update(buffer).digest('hex');
-}
-function findVideo(videos, filename) {
-  return videos.find(v => v.filename === filename);
-}
-function findVideoByHash(videos, hash) {
-  return videos.find(v => v.sha256 === hash);
-}
-
-// ========== Public Endpoints =============
+// ================== Public & Upload Endpoints ==================
 
 // List all videos
-app.get('/shorts', (req, res) => { 
-  res.json(getVideos()); 
-});
+app.get('/shorts', (req, res) => res.json(getVideos()));
 
 // Get a single video by filename
 app.get('/shorts/:filename', (req, res) => {
@@ -167,7 +164,7 @@ app.post('/shorts/:filename/comment', (req, res) => {
   res.json({ success: true, comments: vid.comments });
 });
 
-// Upload (dedupe by hash)
+// Upload video (dedupe by hash)
 app.post('/upload', adminJwtAuth, upload.single('video'), (req, res) => {
   const tempPath = path.join(DISK_PATH, req.file.filename);
   let videos = getVideos();
@@ -260,6 +257,22 @@ app.delete('/delete/:filename', adminJwtAuth, (req, res) => {
 
   saveVideos(videos);
   res.json({ success: true, deleted: filename });
+});
+
+// Handle Multer errors nicely (file too large, etc)
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: "File too large" });
+    }
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
+});
+
+// Standard Express catch-all
+app.use((err, req, res, next) => {
+  res.status(500).json({ error: err.message || 'Unknown server error' });
 });
 
 const PORT = process.env.PORT || 5000;
