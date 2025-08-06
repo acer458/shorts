@@ -622,7 +622,6 @@ export default function Feed() {
       .map((idx) => ({ ...shorts[idx], _idx: idx }));
   }
 
-  // ---- RENDER VIDEO ----
   function renderVideo({
     v,
     idx,
@@ -643,7 +642,7 @@ export default function Feed() {
       ...c,
       index: i
     }));
-
+  
     return (
       <div
         key={filename}
@@ -875,70 +874,93 @@ export default function Feed() {
                   tabIndex={0}
                 >×</span>
               </div>
+              {/* THIS IS THE UPDATED COMMENT BLOCK */}
               <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }} onTouchMove={e => e.stopPropagation()}>
                 {mappedComments.length === 0 ? (
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
                 ) : (
                   mappedComments.map((c) => (
-                    <div className="comment" style={{
-                      display: 'flex',
-                      gap: 10,
-                      marginBottom: 22, // bigger vertical gap
-                      paddingBottom: 15,
-                      borderBottom: '1px solid #1a1a1a',
-                      alignItems: "flex-start"
-                    }} key={c.index}>
-                      {/* Uncomment this block to enable avatars */
-                      <img
-                        src= 'https://res.cloudinary.com/dzozyqlqr/image/upload/v1754503052/PropScholarUser_neup6j.png'
-                        className="comment-avatar"
-                        alt=""
-                        style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
-                      /> }
+                    <div
+                      className="comment"
+                      key={c.index}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 12,
+                        paddingBottom: 14,
+                        marginBottom: 20,
+                        borderBottom: '1px solid #1a1a1a'
+                      }}
+                    >
+                      <button
+                        style={{
+                          marginTop: 2,
+                          background: "none",
+                          border: "none",
+                          padding: 0,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center"
+                        }}
+                        onClick={() =>
+                          setCommentLikes((prev) => ({
+                            ...prev,
+                            [c.index]: !prev[c.index]
+                          }))
+                        }
+                        aria-label={commentLikes[c.index] ? "Unlike comment" : "Like comment"}
+                      >
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill={commentLikes[c.index] ? "#ed4956" : "none"}
+                          stroke="#ed4956"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ transition: 'fill 0.18s' }}
+                        >
+                          <path d="M12 21c-.67 0-1.29-.26-1.77-.73L3.18 13A4.07 4.07 0 0 1 2 9.81C2 7.11 4.13 5 6.81 5c1.36 0 2.71.55 3.69 1.54A5.002 5.002 0 0 1 17.19 5C19.87 5 22 7.11 22 9.81c0 1.13-.44 2.26-1.18 3.19l-7.05 7.26c-.48.47-1.1.74-1.77.74Z"/>
+                        </svg>
+                        <span style={{
+                          marginLeft: 4,
+                          fontSize: 13,
+                          color: "#ed4956",
+                          fontWeight: 500,
+                          minWidth: 12,
+                          userSelect: "none"
+                        }}>
+                          {commentLikes[c.index] ? 1 : 0}
+                        </span>
+                      </button>
                       <div className="comment-content" style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: 'center', gap: 8 }}>
-                          <span className="comment-username" style={{
-                            fontWeight: 600, fontSize: 14, marginRight: 5, color: "#fff"
-                          }}>{c.name}</span>
-                          <span className="comment-text" style={{ fontSize: 14, color: "#fff", wordBreak: "break-word" }}>{c.text}</span>
-                          <button
-                            style={{
-                              marginLeft: 10,
-                              background: "none",
-                              border: "none",
-                              padding: 0,
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center"
-                            }}
-                            onClick={() =>
-                              setCommentLikes((prev) => ({
-                                ...prev,
-                                [c.index]: !prev[c.index]
-                              }))
-                            }
-                            aria-label={commentLikes[c.index] ? "Unlike comment" : "Like comment"}
+                        <div style={{
+                          display: "flex",
+                          alignItems: 'center',
+                          flexWrap: "wrap",
+                          gap: 8,
+                          wordBreak: "break-word"
+                        }}>
+                          <span
+                            className="comment-username"
+                            style={{ fontWeight: 600, fontSize: 14, marginRight: 5, color: "#fff" }}
                           >
-                            <svg
-                              width="19"
-                              height="19"
-                              viewBox="0 0 24 24"
-                              fill={commentLikes[c.index] ? "#ed4956" : "none"}
-                              stroke="#ed4956"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              style={{ transition: 'fill 0.18s' }}
-                            >
-                              <path d="M12 21c-.67 0-1.29-.26-1.77-.73L3.18 13A4.07 4.07 0 0 1 2 9.81C2 7.11 4.13 5 6.81 5c1.36 0 2.71.55 3.69 1.54A5.002 5.002 0 0 1 17.19 5C19.87 5 22 7.11 22 9.81c0 1.13-.44 2.26-1.18 3.19l-7.05 7.26c-.48.47-1.1.74-1.77.74Z"/>
-                            </svg>
-                          </button>
+                            {c.name}
+                          </span>
+                          <span
+                            className="comment-text"
+                            style={{ fontSize: 14, color: "#fff" }}
+                          >
+                            {c.text}
+                          </span>
                         </div>
                       </div>
                     </div>
                   ))
                 )}
               </div>
+              {/* END UPDATED COMMENT BLOCK */}
               <div style={{
                 display: 'flex', alignItems: 'center',
                 paddingTop: 10, borderTop: '1px solid #262626'
@@ -974,6 +996,7 @@ export default function Feed() {
       </div>
     );
   }
+
 
   // ---- VIDEO FEED UI STATE ----
   if (notFound) {
