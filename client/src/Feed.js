@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 // ---- CONFIG ----
 const HOST = "https://shorts-t2dk.onrender.com";
+const COMMENT_SPAM_DELAY_MS = 5000; // 5 seconds delay between each comment per video
 
 // ---- UTILITIES ----
 function truncateString(str, maxLen = 90) {
@@ -42,7 +43,7 @@ function timeAgo(date) {
   if (!date) return "";
   const now = Date.now();
   const past = typeof date === "string" ? new Date(date).getTime() : date;
-  const diff = Math.round((now - past) / 1000); // seconds ago
+  const diff = Math.round((now - past) / 1000);
 
   if (diff < 10) return "Just now";
   if (diff < 60) return diff + " sec";
@@ -92,7 +93,7 @@ function PulseHeart({ visible }) {
       aria-hidden
       style={{
         position: "absolute", left: "50%", top: "50%", zIndex: 106,
-        transform: "translate(-50%, -50%)",
+        transform: "translate(-50%,-50%)",
         pointerEvents: "none", opacity: visible ? 1 : 0,
         animation: visible ? "heartPulseAnim .75s cubic-bezier(.1,1.6,.6,1)" : "none"
       }}
@@ -250,6 +251,12 @@ export default function Feed() {
   // "Replay-protection" overlay
   const [replayCounts, setReplayCounts] = useState({});
   const [overlayShown, setOverlayShown] = useState({});
+
+  // ----- SPAM PROTECTION -----
+  // Per video, timestamp of last successful comment
+  const lastCommentTimeRef = useRef({});
+  const [spamAlert, setSpamAlert] = useState({ show: false, message: "" });
+  const spamAlertTimeout = useRef(null);
 
   // ---- Prevent body scroll and pull-to-refresh on mobile ----
   useEffect(() => {
@@ -449,6 +456,15 @@ export default function Feed() {
   function handleAddComment(idx, filename) {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
+
+    // ---- SPAM PROTECTION ----
+    const now = Date.now();
+    const lastTime = lastCommentTimeRef.current[filename] || 0;
+    if (now - lastTime < COMMENT_SPAM_DELAY_MS) {
+      handleSpam(`Please wait ${Math.ceil((COMMENT_SPAM_DELAY_MS - (now - lastTime)) / 1000)}s before commenting again.`);
+      return;
+    }
+    lastCommentTimeRef.current[filename] = now;
     axios
       .post(`${HOST}/shorts/${filename}/comment`, { name: "PropScholar User", text })
       .then(() => {
@@ -471,7 +487,16 @@ export default function Feed() {
             : prev
         );
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
+      })
+      .catch(() => {
+        // on failure, clear cooldown so user can retry
+        lastCommentTimeRef.current[filename] = 0;
       });
+  }
+  function handleSpam(message) {
+    setSpamAlert({ show: true, message });
+    if (spamAlertTimeout.current) clearTimeout(spamAlertTimeout.current);
+    spamAlertTimeout.current = setTimeout(() => setSpamAlert({ show: false, message: "" }), 2300);
   }
   const handleCaptionExpand = (filename) =>
     setExpandedCaptions((prev) => ({
@@ -641,7 +666,7 @@ export default function Feed() {
       ...c,
       index: i
     }));
-  
+
     return (
       <div
         key={filename}
@@ -653,6 +678,29 @@ export default function Feed() {
           overflow: "hidden"
         }}
       >
+        {/* Spam Alert UI */}
+        {isCurrent && spamAlert.show && (
+          <div
+            style={{
+              position: "fixed",
+              top: "30px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "rgba(30,30,34,0.97)",
+              color: "#fff",
+              fontWeight: 500,
+              padding: "10px 28px",
+              borderRadius: "13px",
+              fontSize: 15,
+              boxShadow: "0 3px 24px #0005",
+              zIndex: 5005,
+              minWidth: 120,
+              letterSpacing: "0.02em",
+              textAlign: "center"
+            }}>
+            {spamAlert.message || "Please wait before commenting again."}
+          </div>
+        )}
         <video
           ref={el => el && (videoRefs.current[idx] = el)}
           src={HOST + v.url}
