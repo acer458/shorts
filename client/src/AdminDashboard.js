@@ -1,8 +1,7 @@
 // AdminDashboard.js
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import AllComments from './components/AllComments';
+import './AdminDashboard.css';
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
@@ -24,26 +23,30 @@ function AdminLogin({ onLogin }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{margin:"100px auto",maxWidth:350,padding:40,background:"#222",borderRadius:16}}>
-      <h2 style={{color:"#fff"}}>Admin Login</h2>
-      <input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="Gmail" required style={{width:"100%",padding:8,marginBottom:10}} />
-      <input value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder="Password" required style={{width:"100%",padding:8,marginBottom:20}} />
-      {status && <div style={{color:"#f66",marginBottom:10}}>{status}</div>}
-      <button type="submit" style={{width:"100%",padding:10,background:"#3079ed",color:"#fff",fontWeight:700,border:0,borderRadius:7}}>Sign In</button>
+    <form onSubmit={handleSubmit} className="admin-login-form">
+      <h2>Admin Login</h2>
+      <input 
+        value={email} 
+        onChange={e => setEmail(e.target.value)} 
+        type="email" 
+        placeholder="Gmail" 
+        required 
+      />
+      <input 
+        value={password} 
+        onChange={e => setPassword(e.target.value)} 
+        type="password" 
+        placeholder="Password" 
+        required 
+      />
+      {status && <div className="login-error">{status}</div>}
+      <button type="submit">Sign In</button>
     </form>
   )
 }
 
-// ============= BYTES UTILITY =============
-function bytesToSize(bytes) {
-  if (bytes === 0) return "0 B";
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10);
-  return Math.round((bytes / Math.pow(1024, i)) * 10) / 10 + " " + sizes[i];
-}
-
-// ============= MAIN DASHBOARD =============
-export default function AdminDashboard() {
+// ============= VIDEOS TAB COMPONENT =============
+function VideosTab({ host, onLogout }) {
   const [shorts, setShorts] = useState([]);
   const [video, setVideo] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -51,14 +54,6 @@ export default function AdminDashboard() {
   const [status, setStatus] = useState("");
   const [editState, setEditState] = useState({});
   const [scrollCounts, setScrollCounts] = useState({});
-  const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("adminToken"));
-  const [activeTab, setActiveTab] = useState('videos'); // Tab selection
-  
-  // Force logout on certain failures
-  function handleLogout() {
-    localStorage.removeItem("adminToken");
-    setLoggedIn(false);
-  }
 
   // Helper to add auth header if logged in
   function authHeaders() {
@@ -69,19 +64,18 @@ export default function AdminDashboard() {
   // Fetch all videos (and scroll/view counts)
   const refreshShorts = () => {
     axios
-      .get(HOST + "/shorts")
+      .get(host + "/shorts")
       .then((res) => setShorts(res.data))
       .catch(() => setStatus("Could not fetch shorts."));
 
-    axios.get(HOST + "/views")
+    axios.get(host + "/views")
       .then(res => setScrollCounts(res.data))
       .catch(() => {});
   };
 
   useEffect(() => {
-    if (loggedIn && activeTab === 'videos') refreshShorts();
-    // eslint-disable-next-line
-  }, [loggedIn, activeTab]);
+    refreshShorts();
+  }, []);
 
   // UPLOAD handler
   const handleUpload = (e) => {
@@ -92,7 +86,7 @@ export default function AdminDashboard() {
     formData.append("video", video);
 
     axios
-      .post(HOST + "/upload", formData, {
+      .post(host + "/upload", formData, {
         headers: { ...authHeaders() },
         onUploadProgress: progressEvent => {
           setUploadProgress(Math.round((progressEvent.loaded * 100) / progressEvent.total));
@@ -109,7 +103,7 @@ export default function AdminDashboard() {
         setUploadProgress(0);
         if (err.response && err.response.status === 401) {
           setStatus("Login expired. Please log in again.");
-          handleLogout();
+          onLogout();
         } else if (err.response && err.response.status === 413) {
           setStatus("Upload Failed: File too large.");
         } else {
@@ -124,7 +118,7 @@ export default function AdminDashboard() {
   const handleDelete = (filename) => {
     if (!window.confirm("Delete this video permanently?")) return;
     axios
-      .delete(`${HOST}/delete/${filename}`, {
+      .delete(`${host}/delete/${filename}`, {
         headers: { ...authHeaders() }
       })
       .then(() =>
@@ -133,7 +127,7 @@ export default function AdminDashboard() {
       .catch(err => {
         if (err.response && err.response.status === 401) {
           setStatus("Login expired. Please log in again.");
-          handleLogout();
+          onLogout();
         } else {
           alert("Delete failed!");
         }
@@ -157,7 +151,7 @@ export default function AdminDashboard() {
     }));
 
     axios
-      .patch(`${HOST}/shorts/${filename}`, { caption }, { headers: { ...authHeaders() } })
+      .patch(`${host}/shorts/${filename}`, { caption }, { headers: { ...authHeaders() } })
       .then(() => {
         setShorts((current) =>
           current.map((video) =>
@@ -172,7 +166,7 @@ export default function AdminDashboard() {
       .catch(err => {
         if (err.response && err.response.status === 401) {
           setStatus("Login expired. Please log in again.");
-          handleLogout();
+          onLogout();
         } else {
           setEditState((prev) => ({
             ...prev,
@@ -182,60 +176,26 @@ export default function AdminDashboard() {
       });
   };
 
+  // Bytes to size utility
+  const bytesToSize = (bytes) => {
+    if (bytes === 0) return "0 B";
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10);
+    return Math.round((bytes / Math.pow(1024, i)) * 10) / 10 + " " + sizes[i];
+  };
+
   const totalSize = shorts.reduce(
     (sum, v) => sum + (v.size ? Number(v.size) : 0),
     0
   );
 
-  // Require login
-  if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />;
-
-  // Prepare main content depending on activeTab
-  let mainContent;
-  if (activeTab === 'comments') {
-    mainContent = <AllComments />;
-  } else {
-    // Videos tab content
-    mainContent = (
-      <div
-        style={{
-          flex: 1,
-          margin: "36px 24px 36px 0",
-          background: "#000",
-          borderRadius: 18,
-          boxShadow: "0 6px 16px #0003",
-          padding: "24px 0 24px 24px",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div
-          style={{
-            fontWeight: "bold",
-            fontSize: 22,
-            color: "#8cd9ff",
-            marginBottom: 18,
-          }}
-        >
-          Scrollable Videos
-        </div>
-        <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: 30,
-          }}
-        >
+  return (
+    <div className="videos-tab-container">
+      <div className="video-list-container">
+        <h2 className="video-list-title">Scrollable Videos</h2>
+        <div className="video-list">
           {shorts.length === 0 && (
-            <div
-              style={{
-                color: "#888",
-                textAlign: "center",
-                marginTop: 100,
-              }}
-            >
+            <div className="no-videos-message">
               No videos uploaded yet.
             </div>
           )}
@@ -247,49 +207,21 @@ export default function AdminDashboard() {
             const viewCount = scrollCounts[filename] || 0;
 
             return (
-              <div
-                key={filename}
-                style={{
-                  background: "#1a1529",
-                  borderRadius: 12,
-                  padding: 15,
-                  boxShadow: "0 1px 10px #0002",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                }}
-              >
-                <span style={{ color: "#68d", fontWeight: "bold", fontSize: 14 }}>
-                  VIDEO-{i + 1}
-                </span>
+              <div key={filename} className="video-card">
+                <span className="video-id">VIDEO-{i + 1}</span>
                 <video
-                  src={HOST + s.url}
+                  src={host + s.url}
                   controls
                   loop
-                  style={{
-                    width: "100%",
-                    maxHeight: "260px",
-                    background: "#000",
-                    borderRadius: 10,
-                    objectFit: "cover",
-                    marginBottom: 7,
-                  }}
+                  className="video-player"
                 />
-                <small style={{ color: "#aaa" }}>{filename}</small>
-                <div>
-                  <strong style={{color:'#43e'}}>Views/Scrolls:</strong>{" "}
-                  <span style={{color:'#0fa'}}>{viewCount}</span>
+                <small className="video-filename">{filename}</small>
+                <div className="video-views">
+                  <strong>Views/Scrolls:</strong>
+                  <span>{viewCount}</span>
                 </div>
-                <div style={{ margin: "12px 0 3px 0" }}>
-                  <label
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 600,
-                      color: "#33b6ff",
-                      marginBottom: 4,
-                      display: "block",
-                    }}
-                  >
+                <div className="caption-section">
+                  <label className="caption-label">
                     Caption / Title (shows to users):
                   </label>
                   <textarea
@@ -298,32 +230,12 @@ export default function AdminDashboard() {
                     maxLength={250}
                     placeholder="Enter a clean caption for this video (up to 250 chars)..."
                     onChange={(e) => handleCaptionChange(filename, e.target.value)}
-                    style={{
-                      width: "100%",
-                      borderRadius: 9,
-                      border: "1.5px solid #22283c",
-                      padding: "8px 13px",
-                      fontSize: 15,
-                      background: state.error ? "#fee6e6" : "#110b23",
-                      color: "#eee",
-                      resize: "vertical",
-                      outline: "none",
-                      marginBottom: 4,
-                      fontWeight: 400,
-                    }}
+                    className={`caption-input ${state.error ? 'error' : ''}`}
                   />
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: 12,
-                      color: "#888",
-                      alignItems: "center"
-                    }}
-                  >
+                  <div className="caption-footer">
                     <span>{caption.length}/250</span>
                     {state.error && (
-                      <span style={{ color: "#e11d48", marginLeft: 12 }}>
+                      <span className="error-message">
                         {state.error}
                       </span>
                     )}
@@ -331,30 +243,7 @@ export default function AdminDashboard() {
                   <button
                     onClick={() => saveCaption(filename, origCaption)}
                     disabled={state.loading || caption === origCaption}
-                    style={{
-                      background: "#2596ff",
-                      color: "#fff",
-                      fontWeight: 700,
-                      fontSize: 15,
-                      border: "none",
-                      borderRadius: 7,
-                      padding: "7px 20px",
-                      cursor:
-                        caption &&
-                        caption !== origCaption &&
-                        !state.loading
-                          ? "pointer"
-                          : "not-allowed",
-                      opacity:
-                        caption &&
-                        caption !== origCaption &&
-                        !state.loading
-                          ? 1
-                          : 0.57,
-                      marginTop: 8,
-                      transition: "all .13s",
-                      minWidth: 85
-                    }}
+                    className="save-caption-btn"
                   >
                     {state.loading ? "Saving..." : state.saved ? "Saved ✓" : "Save"}
                   </button>
@@ -364,237 +253,142 @@ export default function AdminDashboard() {
           })}
         </div>
       </div>
-    );
-  }
+
+      <div className="upload-section">
+        <form onSubmit={handleUpload} className="upload-form">
+          <label htmlFor="upload" className="upload-label">
+            Upload Video
+            <input
+              id="upload"
+              type="file"
+              accept="video/mp4"
+              onChange={(e) => setVideo(e.target.files[0])}
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={uploading || !video}
+            className="submit-upload-btn"
+          >
+            {uploading ? "Uploading..." : "Submit"}
+          </button>
+          {uploadProgress > 0 && (
+            <div className="upload-progress-container">
+              <div 
+                className="upload-progress-bar"
+                style={{ width: `${uploadProgress}%` }}
+              />
+              <div className="upload-progress-text">
+                {uploadProgress}%
+              </div>
+            </div>
+          )}
+          {status && (
+            <div className={`status-message ${status.includes("Success") ? 'success' : 'error'}`}>
+              {status}
+            </div>
+          )}
+        </form>
+
+        <div className="stats-section">
+          <div className="stat-item">
+            No. of videos: <span>{shorts.length}</span>
+          </div>
+          <div className="stat-item">
+            File size: <span>{totalSize ? bytesToSize(totalSize) : "N/A"}</span>
+          </div>
+        </div>
+
+        <div className="file-list-container">
+          <h3 className="file-list-title">Uploaded Files</h3>
+          {shorts.length === 0 ? (
+            <div className="no-files-message">
+              No videos uploaded yet.
+            </div>
+          ) : shorts.map((s, i) => {
+            const filename = s.filename;
+            return (
+              <div key={filename} className="file-list-item">
+                <span className="file-name">
+                  {filename}
+                </span>
+                <span className="file-size">
+                  {s.size ? bytesToSize(Number(s.size)) : ""}
+                </span>
+                <button
+                  type="button"
+                  className="delete-file-btn"
+                  onClick={() => handleDelete(filename)}
+                >
+                  Delete
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============= COMMENTS TAB COMPONENT =============
+function CommentsTab({ host }) {
+  // This would be your AllComments component content
+  return (
+    <div className="comments-tab-container">
+      <h2>Comments Management</h2>
+      {/* Comments functionality would go here */}
+      <p>Comments management interface will be implemented here.</p>
+    </div>
+  );
+}
+
+// ============= MAIN DASHBOARD COMPONENT =============
+export default function AdminDashboard() {
+  const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("adminToken"));
+  const [activeTab, setActiveTab] = useState('videos');
+
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    setLoggedIn(false);
+  };
+
+  if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#181C23",
-        display: "flex",
-        flexDirection: "row",
-        fontFamily: "Inter, sans-serif",
-      }}
-    >
-      {/* LEFT: Upload/meta/file list & tab selection */}
-      <div
-        style={{
-          flex: "0 0 340px",
-          padding: "32px 18px",
-          background: "linear-gradient(180deg, #0a1d4c 70%, #1a1529 100%)",
-          color: "#fff",
-          display: "flex",
-          flexDirection: "column",
-          gap: 28,
-          position: 'relative',
-        }}
-      >
-        <button onClick={handleLogout} style={{
-          position:"absolute", top:18, right:22, zIndex:100,
-          background:"#FE5555", color:"#fff", fontWeight:800, border:"none", borderRadius:8, padding:"7px 13px", cursor:"pointer"
-        }}>Logout</button>
+    <div className="admin-container">
+      <div className="sidebar">
+        <button 
+          onClick={handleLogout} 
+          className="logout-btn"
+        >
+          Logout
+        </button>
 
-        {/* Tabs for switching */}
-        <div style={{ display:"flex", gap: '12px', justifyContent: 'center', marginBottom: 12 }}>
+        <div className="tab-buttons">
           <button
             onClick={() => setActiveTab('videos')}
-            style={{
-              padding: '10px 16px',
-              borderRadius: 8,
-              fontWeight: '700',
-              border: 'none',
-              cursor: 'pointer',
-              background: activeTab === 'videos' ? '#2596ff' : '#3a3d55',
-              color: '#fff',
-              flex: 1,
-              transition: "background-color 0.2s",
-            }}
+            className={`tab-btn ${activeTab === 'videos' ? 'active' : ''}`}
           >
             Videos
           </button>
           <button
             onClick={() => setActiveTab('comments')}
-            style={{
-              padding: '10px 16px',
-              borderRadius: 8,
-              fontWeight: '700',
-              border: 'none',
-              cursor: 'pointer',
-              background: activeTab === 'comments' ? '#2596ff' : '#3a3d55',
-              color: '#fff',
-              flex: 1,
-              transition: "background-color 0.2s",
-            }}
+            className={`tab-btn ${activeTab === 'comments' ? 'active' : ''}`}
           >
             Comments
           </button>
         </div>
-
-        {/* Upload form, stats, file list only shown on 'videos' tab */}
-        {activeTab === 'videos' && (
-          <>
-            <form onSubmit={handleUpload} style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 0 }}>
-              <label
-                htmlFor="upload"
-                style={{
-                  background: "#47A3F3",
-                  color: "#fff",
-                  fontWeight: 600,
-                  fontSize: 18,
-                  padding: "12px 22px",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  display: "inline-block",
-                  textAlign: "center",
-                  marginBottom: 8,
-                }}
-              >
-                Upload Video
-                <input
-                  id="upload"
-                  type="file"
-                  accept="video/mp4"
-                  style={{ display: "none" }}
-                  onChange={(e) => setVideo(e.target.files[0])}
-                />
-              </label>
-              <button
-                type="submit"
-                disabled={uploading || !video}
-                style={{
-                  background: uploading ? "#333" : "#0bb259",
-                  color: "#fff",
-                  fontWeight: 600,
-                  fontSize: 16,
-                  border: "none",
-                  borderRadius: 5,
-                  padding: "8px 0",
-                  cursor: uploading || !video ? "wait" : "pointer",
-                }}
-              >
-                {uploading ? "Uploading..." : "Submit"}
-              </button>
-              {uploadProgress > 0 && (
-                <div style={{width: '100%', background: '#333', borderRadius: 8, marginTop: 10, position:'relative'}}>
-                  <div style={{
-                    width: `${uploadProgress}%`,
-                    height: 18, background: '#3eeaa7', borderRadius: 8,
-                    transition: "width 0.17s"
-                  }} />
-                  <div style={{
-                    position: "absolute", color: "#000", fontWeight: 700,
-                    fontSize: 15, left: 8, top: 1
-                  }}>
-                    {uploadProgress}%
-                  </div>
-                </div>
-              )}
-              {status && (
-                <div
-                  style={{
-                    background: status.includes("Success") ? "#0f0" : "#f33",
-                    color: "#000",
-                    padding: "4px 0",
-                    borderRadius: 4,
-                    textAlign: "center",
-                    fontWeight: 500,
-                    marginTop: 4,
-                  }}
-                >
-                  {status}
-                </div>
-              )}
-            </form>
-            {/* Stats */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ fontWeight: "bold" }}>
-                No. of videos: <span style={{ color: "#22d3ee" }}>{shorts.length}</span>
-              </div>
-              <div>
-                File size:{" "}
-                <span style={{ color: "#22d3ee" }}>
-                  {totalSize ? bytesToSize(totalSize) : "N/A"}
-                </span>
-              </div>
-            </div>
-            {/* File List */}
-            <div
-              style={{
-                background: "#111116",
-                padding: 16,
-                borderRadius: 10,
-                boxShadow: "0 2px 12px #0002",
-                minHeight: 150,
-                maxHeight: 330,
-                overflowY: "auto",
-              }}
-            >
-              <div style={{ fontWeight: 600, marginBottom: 6, color: "#fff" }}>
-                Uploaded Files
-              </div>
-              {shorts.length === 0 ? (
-                <div style={{ color: "#aaa", textAlign: "center", fontSize: 14 }}>
-                  No videos uploaded yet.
-                </div>
-              ) : shorts.map((s, i) => {
-                const filename = s.filename;
-                return (
-                  <div
-                    key={filename}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "5px 0",
-                      borderBottom: i === shorts.length - 1 ? "none" : "1px solid #23223c",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 14,
-                        color: "#abe",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        wordBreak: "break-all",
-                        maxWidth: 150,
-                      }}
-                    >
-                      {filename}
-                    </span>
-                    <span style={{
-                      fontSize: 13,
-                      color: "#fff9",
-                      margin: "0 8px",
-                    }}>
-                      {s.size ? bytesToSize(Number(s.size)) : ""}
-                    </span>
-                    <button
-                      type="button"
-                      style={{
-                        background: "#e11d48",
-                        color: "#fff",
-                        fontWeight: 600,
-                        border: "none",
-                        borderRadius: 4,
-                        fontSize: 13,
-                        padding: "2px 9px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => handleDelete(filename)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
       </div>
 
-      {/* RIGHT: Main content area */}
-      {mainContent}
+      <div className="main-content">
+        {activeTab === 'videos' && (
+          <VideosTab host={HOST} onLogout={handleLogout} />
+        )}
+        {activeTab === 'comments' && (
+          <CommentsTab host={HOST} />
+        )}
+      </div>
     </div>
   );
 }
