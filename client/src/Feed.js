@@ -38,16 +38,6 @@ function fakeAvatar(i) {
   ];
   return urls[i % urls.length];
 }
-// function fakeTime(i) {
-//   return [
-//     "2h ago",
-//     "1h ago",
-//     "45m ago",
-//     "30m ago",
-//     "15m ago",
-//     "Just now"
-//   ][i % 6] || "Just now";
-// }
 function timeAgo(date) {
   if (!date) return "";
   const now = Date.now();
@@ -141,8 +131,6 @@ function MuteMicIcon({ muted }) {
     </svg>
   );
 }
-
-
 // ---- SKELETON SHORT ----
 function SkeletonShort() {
   return (
@@ -205,6 +193,7 @@ function SkeletonShort() {
     </div>
   );
 }
+
 
 // ---- ANTI-INSPECT ----
 function useAntiInspect() {
@@ -893,12 +882,13 @@ export default function Feed() {
                 ) : (
                   allComments.map((c, i) => (
                     <div className="comment" style={{ display: 'flex', marginBottom: 15 }} key={i}>
-                      <img
+                      {/* If you want to keep avatars, keep this <img>! Otherwise remove. */}
+                      { <img
                         src={c.avatar}
                         className="comment-avatar"
                         alt=""
                         style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
-                      />
+                      /> }
                       <div className="comment-content" style={{ flex: 1 }}>
                         <div>
                           <span className="comment-username" style={{
@@ -906,11 +896,9 @@ export default function Feed() {
                           }}>{c.name}</span>
                           <span className="comment-text" style={{ fontSize: 14, color: "#fff" }}>{c.text}</span>
                         </div>
-                        <div className="comment-time" style={{
-                          fontSize: 12, color: "#a8a8a8", marginTop: 2
-                        }}>{c.time}</div>
+                        {/* TIME REMOVED HERE */}
                         <div className="comment-actions" style={{ display: 'flex', marginTop: 5 }}>
-                          <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", userSelect: "none" }}>Reply</span>
+                          {/* REPLY REMOVED - only Like action kept below if desired */}
                           <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", userSelect: "none" }}>Like</span>
                         </div>
                       </div>
@@ -1079,4 +1067,4 @@ export default function Feed() {
       })}
     </div>
   );
-} 
+}
