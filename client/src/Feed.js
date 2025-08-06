@@ -848,7 +848,7 @@ export default function Feed() {
           color: "#fff", padding: "20px 18px 28px 18px", zIndex: 6,
           display: "flex", flexDirection: "column", userSelect: "none"
         }}>
-          <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
+          <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2, color: '#7381ff' }}>
             @{v.author || "propscholar"}
           </div>
           {caption && (
