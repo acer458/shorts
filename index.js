@@ -10,9 +10,25 @@ const app = express();
 app.use(cors());
 app.use(express.json()); // For parsing JSON bodies
 
-const DISK_PATH = '/data'; // Must match your Render persistent disk mount path
+// === Use Render persistent disk path ===
+const DISK_PATH = '/data'; // Mount this in Render settings as persistent disk
+if (!fs.existsSync(DISK_PATH)) fs.mkdirSync(DISK_PATH, { recursive: true });
 
-// Debug endpoint to check disk contents
+// === All metadata (video list) IN THE DISK as well ===
+const VIDEOS_JSON = path.join(DISK_PATH, 'videos.json');
+function getVideos() {
+  if (!fs.existsSync(VIDEOS_JSON)) return [];
+  try {
+    return JSON.parse(fs.readFileSync(VIDEOS_JSON, 'utf-8') || '[]');
+  } catch {
+    return [];
+  }
+}
+function saveVideos(videos) {
+  fs.writeFileSync(VIDEOS_JSON, JSON.stringify(videos, null, 2), 'utf-8');
+}
+
+// Debug endpoint: see current files in disk
 app.get('/_diskdebug', (req, res) => {
   try {
     const files = fs.existsSync(DISK_PATH) ? fs.readdirSync(DISK_PATH) : [];
@@ -22,25 +38,11 @@ app.get('/_diskdebug', (req, res) => {
   }
 });
 
-// Ensure disk path exists (server startup)
-if (!fs.existsSync(DISK_PATH)) fs.mkdirSync(DISK_PATH, { recursive: true });
-
-// Persistent video "database"
-const VIDEOS_JSON = path.join(__dirname, 'videos.json');
-function getVideos() {
-  if (!fs.existsSync(VIDEOS_JSON)) return [];
-  try { return JSON.parse(fs.readFileSync(VIDEOS_JSON, 'utf-8') || '[]'); } catch { return []; }
-}
-function saveVideos(videos) {
-  fs.writeFileSync(VIDEOS_JSON, JSON.stringify(videos, null, 2), 'utf-8');
-}
-
-// Admin settings
+// ========== Auth & Admin ==============
 const ADMIN_EMAIL = "propscholars@gmail.com";
 const ADMIN_PASSWORD = "Hindi@1234";
-const SECRET = "super-strong-secret-key-change-this"; // Use an ENV variable for production
+const SECRET = "super-strong-secret-key-change-this"; // Use env var for production
 
-// LOGIN SYSTEM
 app.post("/admin/login", (req, res) => {
   const { email, password } = req.body || {};
   if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
@@ -63,24 +65,21 @@ function adminJwtAuth(req, res, next) {
   }
 }
 
-// Multer storage with deduplication using SHA256 hash
+// ========= Multer for uploads ==========
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, DISK_PATH),
-  filename: (req, file, cb) => {
-    // We'll determine final filename after hash check in route
-    cb(null, `${crypto.randomUUID()}${path.extname(file.originalname)}`);
-  }
+  filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}${path.extname(file.originalname)}`)
 });
 const upload = multer({ storage });
 
+// Serve uploaded videos statically
 app.use('/uploads', express.static(DISK_PATH));
 
-// Helper: SHA256 hash for deduplication
+// === Utilities ===
 function fileHashSync(filepath) {
   const buffer = fs.readFileSync(filepath);
   return crypto.createHash('sha256').update(buffer).digest('hex');
 }
-
 function findVideo(videos, filename) {
   return videos.find(v => v.filename === filename);
 }
@@ -88,17 +87,16 @@ function findVideoByHash(videos, hash) {
   return videos.find(v => v.sha256 === hash);
 }
 
-// === PUBLIC ENDPOINTS ===
+// ========== Public Endpoints =============
 
-// Get ALL shorts
+// List all videos
 app.get('/shorts', (req, res) => { res.json(getVideos()); });
 
-// Get a single short by filename
+// Get a single video by filename
 app.get('/shorts/:filename', (req, res) => {
-  const videos = getVideos();
-  const vid = findVideo(videos, req.params.filename);
-  if (!vid) return res.status(404).json({ error: "Video not found" });
-  res.json(vid);
+  const v = findVideo(getVideos(), req.params.filename);
+  if (!v) return res.status(404).json({ error: "Video not found" });
+  res.json(v);
 });
 
 // Increment view count
@@ -134,14 +132,13 @@ app.post('/shorts/:filename/comment', (req, res) => {
   res.json({ success: true, comments: vid.comments });
 });
 
-// === ADMIN ENDPOINTS ===
+// ========== ADMIN Endpoints (protected) ==========
 
-// UPLOAD with deduplication by sha256
+// Upload (dedupe by hash)
 app.post('/upload', adminJwtAuth, upload.single('video'), (req, res) => {
   const tempPath = path.join(DISK_PATH, req.file.filename);
   let videos = getVideos();
 
-  // Compute hash of new file
   let incomingHash;
   try {
     incomingHash = fileHashSync(tempPath);
@@ -149,10 +146,10 @@ app.post('/upload', adminJwtAuth, upload.single('video'), (req, res) => {
     fs.unlinkSync(tempPath);
     return res.status(400).json({ error: "Failed to read file for hashing." });
   }
-  // Check for duplicate
+  // Duplicate check
   const dup = findVideoByHash(videos, incomingHash);
   if (dup) {
-    fs.unlinkSync(tempPath); // Remove duplicate file
+    fs.unlinkSync(tempPath);
     return res.json({ 
       success: true, 
       duplicate: true, 
@@ -162,7 +159,6 @@ app.post('/upload', adminJwtAuth, upload.single('video'), (req, res) => {
     });
   }
 
-  // Not duplicate: save details
   const videoUrl = `/uploads/${req.file.filename}`;
   const stats = fs.statSync(tempPath);
   const caption = typeof req.body.caption === "string" ? req.body.caption.trim() : "";
@@ -235,4 +231,3 @@ app.delete('/delete/:filename', adminJwtAuth, (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
