@@ -973,13 +973,13 @@ export default function Feed() {
                         }}>
                           <span
                             className="comment-username"
-                            style={{ fontWeight: 600, fontSize: 14, marginRight: 5, color: "#fff" }}
+                            style={{ fontWeight: 600, fontSize: 14, marginRight: 5, color: "#5768ff" }}
                           >
                             {c.name}
                           </span>
                           <span
                             className="comment-text"
-                            style={{ fontSize: 14, color: "#fff" }}
+                            style={{ fontSize: 14, color: "#d0d1d9" }}
                           >
                             {c.text}
                           </span>
