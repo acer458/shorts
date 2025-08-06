@@ -481,7 +481,7 @@ export default function Feed() {
           prev && prev.url && prev.url.endsWith(filename)
             ? {
                 ...prev,
-                comments: [...(prev.comments || []), { name: "PropScholar User", text }]
+                comments: [...(prev.comments || []), { name: "PropScholar User", text, createdAt: Date.now() }]
               }
             : prev
         );
