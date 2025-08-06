@@ -1,4 +1,5 @@
 import React from 'react';
+import './AdminDashboard.css'; // Share the same CSS
 
 const tabs = [
   { id: 'videos', label: 'Uploaded Videos', icon: '📁' },
@@ -10,44 +11,22 @@ const tabs = [
 
 export default function Sidebar({ activeTab, setActiveTab }) {
   return (
-    <aside style={{
-      width: 250,
-      backgroundColor: '#2c3e50',
-      color: '#ecf0f1',
-      display: 'flex',
-      flexDirection: 'column',
-      paddingTop: 20,
-      boxSizing: 'border-box',
-      height: '100vh'
-    }}>
-      <div style={{ padding: '0 20px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <h2 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>Admin Dashboard</h2>
+    <div className="sidebar">
+      <div className="sidebar-header">
+        <h2 className="sidebar-title">Admin Dashboard</h2>
       </div>
-      <nav style={{ flexGrow: 1, marginTop: 20 }}>
+      <div className="sidebar-menu">
         {tabs.map(tab => (
-          <button
+          <div
             key={tab.id}
+            className={`menu-item ${activeTab === tab.id ? 'active' : ''}`}
             onClick={() => setActiveTab(tab.id)}
-            style={{
-              backgroundColor: activeTab === tab.id ? '#4a6bff' : 'transparent',
-              border: 'none',
-              color: 'inherit',
-              fontSize: 16,
-              padding: '12px 24px',
-              textAlign: 'left',
-              cursor: 'pointer',
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              fontWeight: activeTab === tab.id ? 'bold' : 'normal',
-              outline: 'none'
-            }}
           >
-            <span style={{ marginRight: 12, fontSize: 18 }}>{tab.icon}</span>
+            <span className="menu-icon">{tab.icon}</span>
             {tab.label}
-          </button>
+          </div>
         ))}
-      </nav>
-    </aside>
+      </div>
+    </div>
   );
 }
