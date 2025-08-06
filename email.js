@@ -1,24 +1,24 @@
-// ==== FILE: email.js ====
-// Utility for sending transactional emails using SendGrid API.
+// ==== email.js ====
+// Utility for sending verification email with SendGrid
 
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 /**
- * sendVerificationEmail(userEmail, token)
- * Emails a user a link with their unique verification token.
+ * @param {string} userEmail - to send to
+ * @param {string} token - verification token
+ * @param {string} frontend - frontend URL (from /api/register)
  */
-async function sendVerificationEmail(userEmail, token) {
-  const link = `https://YOUR_CLIENT_DOMAIN/verify?token=${token}`;
+async function sendVerificationEmail(userEmail, token, frontend) {
+  const link = `${frontend}/verify?token=${token}`;
   await sgMail.send({
     to: userEmail,
     from: process.env.EMAIL_SENDER,
     subject: "Verify your Shorts App Account",
-    html: `<h1>Verify Your Account</h1>
-      <p>Click below to verify your account:</p>
-      <a href="${link}">Verify Account</a>`
+    html: `<h2>Verify your account</h2>
+           <p>Click below to activate your account:</p>
+           <a href="${link}">${link}</a>`
   });
 }
 
 module.exports = { sendVerificationEmail };
-
