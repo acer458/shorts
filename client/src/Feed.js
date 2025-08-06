@@ -11,7 +11,8 @@ function truncateString(str, maxLen = 90) {
   if (str.length <= maxLen) return str;
   const nextSpace = str.indexOf(" ", maxLen);
   return (
-    str.substring(0, nextSpace === -1 ? str.length : nextSpace) + "…"
+    str.substring(0, nextSpace === -1 ? str.length : nextSpace) +
+    "…"
   );
 }
 function shuffleArray(arr) {
@@ -129,6 +130,7 @@ function MuteMicIcon({ muted }) {
   );
 }
 
+
 // ---- SKELETON SHORT ----
 function SkeletonShort() {
   return (
@@ -192,54 +194,6 @@ function SkeletonShort() {
   );
 }
 
-// ---- SKELETON COMMENTS MODAL ----
-function SkeletonCommentsModal() {
-  return (
-    <div
-      style={{
-        backgroundColor: "#000",
-        borderTopLeftRadius: 15, borderTopRightRadius: 15, padding: 15,
-        minHeight: '36vh', height: '70vh',
-        display: 'flex', flexDirection: 'column',
-        maxWidth: 500, width: "97vw", margin: "0 auto",
-        border: '1px solid #262626',
-        boxSizing: "border-box"
-      }}
-    >
-      <div style={{ paddingBottom: 15, borderBottom: '1px solid #262626', display: 'flex', alignItems: "center" }}>
-        <div style={{ width: 109, height: 19, borderRadius: 7, background: "#191923", marginRight: 8 }} />
-        <div style={{ flex: 1 }} />
-        <div style={{ width: 24, height: 24, borderRadius: 12, background: "#23232c" }} />
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '18px 0' }}>
-        {/* Fake skeleton comments */}
-        {Array.from({length: 3}).map((_, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: 18 }}>
-            <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#23232c", marginRight: 10 }} />
-            <div style={{flex:1}}>
-              <div style={{ width: `${60 + 30*Math.random()}%`, height: 13, borderRadius: 5, background: "#22243c", marginBottom: 6 }} />
-              <div style={{ width: 54, height: 10, borderRadius: 5, background: "#1e2232", marginBottom: 5 }} />
-              <div style={{ display: "flex" }}>
-                <div style={{ width: 34, height: 9, background: "#26262c", borderRadius: 4, marginRight: 7 }} />
-                <div style={{ width: 34, height: 9, background: "#26262c", borderRadius: 4 }} />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div style={{
-        display: 'flex', alignItems: 'center', paddingTop: 10, borderTop: '1px solid #262626'
-      }}>
-        <div style={{
-          flex: 1, backgroundColor: "#262626", borderRadius: 20, height: 35
-        }} />
-        <div style={{ width: 56, height: 29, marginLeft: 10, background: "#262626", borderRadius: 12 }} />
-      </div>
-    </div>
-  );
-}
-
-
 // ---- ANTI-INSPECT ----
 function useAntiInspect() {
   useEffect(() => {
@@ -281,11 +235,7 @@ export default function Feed() {
   const [showPause, setShowPause] = useState(false);
   const [showPulseHeart, setShowPulseHeart] = useState(false);
   const [likePending, setLikePending] = useState({});
-  
-  // === MODAL STATES ADDED ===
   const [showComments, setShowComments] = useState(null);
-  const [commentsLoading, setCommentsLoading] = useState(false);
-  
   const [commentInputs, setCommentInputs] = useState({});
   const [expandedCaptions, setExpandedCaptions] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
@@ -390,6 +340,7 @@ export default function Feed() {
       }
       touchStartY = null;
     }
+
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: false });
     window.addEventListener("touchmove", onTouchMove, { passive: false });
@@ -405,7 +356,7 @@ export default function Feed() {
 
   // ---- VIDEO CONTROL: Play/pause
   useEffect(() => {
-    // On comments modal open: pause, on close: play (handled in next useEffect)
+    // Mute, pause all others, play current if not overlay
     if (aloneVideo) return;
     Object.entries(videoRefs.current).forEach(([idx, vid]) => {
       let nidx = Number(idx);
@@ -414,12 +365,7 @@ export default function Feed() {
         vid.muted = muted;
         const filename = shorts[nidx] && shorts[nidx].url.split("/").pop();
         if (!overlayShown[filename]) {
-          // If comments modal open for this, pause!
-          if (showComments === filename) {
-            vid.pause();
-          } else {
-            vid.play().catch(() => {});
-          }
+          vid.play().catch(() => {});
         }
       } else {
         vid.pause && vid.pause();
@@ -428,26 +374,10 @@ export default function Feed() {
     });
     setShowPause(false);
     setShowPulseHeart(false);
-  }, [currentIdx, muted, aloneVideo, shorts, overlayShown, showComments]);
+  }, [currentIdx, muted, aloneVideo, shorts, overlayShown]);
 
-  // ---- sync play/pause for single-video view (also for comments modal!) ----
   useEffect(() => {
-    if (!aloneVideo) return;
-    // Synthetic idx always zero
-    const filename = (aloneVideo.url || "").split("/").pop();
-    const vid = videoRefs.current[0];
-    if (!vid) return;
-    if (showComments === filename) {
-      vid.pause();
-    } else {
-      if (!overlayShown[filename]) {
-        vid.play && vid.play();
-      }
-    }
-  }, [showComments, aloneVideo, overlayShown]);
-
-  // ---- Pause all on tab switch
-  useEffect(() => {
+    // Pause all on tab switch
     function visibilityHandler() {
       if (document.visibilityState !== "visible") {
         Object.values(videoRefs.current).forEach((vid) => vid && vid.pause());
@@ -611,18 +541,6 @@ export default function Feed() {
       videoRefs.current[idx].play().catch(() => {});
     }
   }
-
-  // ---- Comments Modal: skeleton loading management ----
-
-  useEffect(() => {
-    if (showComments) {
-      setCommentsLoading(true);
-      const handle = setTimeout(() => setCommentsLoading(false), 900);
-      return () => clearTimeout(handle);
-    } else {
-      setCommentsLoading(false);
-    }
-  }, [showComments]);
 
   // ---- TAP + HEART UI ----
   function handleVideoEvents(idx, filename) {
@@ -927,10 +845,6 @@ export default function Feed() {
             }}
             onClick={() => setShowComments(null)}
           >
-            {/* SKELETON COMMENTS MODAL */}
-            {commentsLoading ? (
-              <SkeletonCommentsModal/>
-            ) : (
             <div
               className="comments-modal"
               style={{
@@ -1022,7 +936,6 @@ export default function Feed() {
                 >Post</button>
               </div>
             </div>
-            )}
           </div>
         }
       </div>
