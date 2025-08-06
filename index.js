@@ -14,7 +14,7 @@ const cors = require('cors');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { sendVerificationEmail } = require('./email.js'); // Uses Nodemailer+Gmail now!
+const { sendVerificationEmail } = require('./email.js'); // Uses Nodemailer+Gmail!
 
 const app = express();
 app.use(cors());
@@ -29,7 +29,7 @@ const USERS_JSON = path.join(__dirname, 'users.json');
 
 const ADMIN_EMAIL = "propscholars@gmail.com";
 const ADMIN_PASSWORD = "Hindi@1234";
-const JWT_SECRET = "Hindi@1234"; // per your request
+const JWT_SECRET = process.env.JWT_SECRET || "Hindi@1234"; // Should always be set in env
 
 // =======================
 // HELPER FUNCTIONS - VIDEOS DB
@@ -73,7 +73,7 @@ function findUserByToken(users, token) {
 }
 
 // =======================
-// ENSURE DISK PATH AND JSON FILES EXIST
+// ENSURE STORAGE DIR AND JSON FILES EXIST
 // =======================
 if (!fs.existsSync(DISK_PATH)) fs.mkdirSync(DISK_PATH, { recursive: true });
 if (!fs.existsSync(VIDEOS_JSON)) saveVideos([]);
@@ -109,6 +109,7 @@ function adminJwtAuth(req, res, next) {
 // USER AUTH & EMAIL VERIFICATION
 // ==============================
 
+// ==== USER SIGNUP ====
 app.post("/api/register", async (req, res) => {
   const { username, email, password } = req.body || {};
   if (
@@ -148,6 +149,7 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
+// ==== USER EMAIL VERIFICATION ====
 app.get("/api/verify", (req, res) => {
   const { token } = req.query;
   let users = getUsers();
@@ -159,6 +161,7 @@ app.get("/api/verify", (req, res) => {
   res.send("Email verified! You can now log in.");
 });
 
+// ==== USER LOGIN ====
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body || {};
   const users = getUsers();
@@ -175,6 +178,7 @@ app.post("/api/login", async (req, res) => {
   res.json({ token, username: user.username });
 });
 
+// ==== USER JWT AUTHENTICATION MIDDLEWARE ====
 function userJwtAuth(req, res, next) {
   const header = req.header("Authorization");
   if (!header || !header.startsWith("Bearer ")) return res.status(401).json({ error: "Missing token" });
@@ -191,10 +195,12 @@ function userJwtAuth(req, res, next) {
 // PUBLIC VIDEO ENDPOINTS
 // ==============================
 
+// Get all shorts
 app.get('/shorts', (req, res) => {
   res.json(getVideos());
 });
 
+// Get a single short
 app.get('/shorts/:filename', (req, res) => {
   const videos = getVideos();
   const vid = findVideo(videos, req.params.filename);
@@ -202,6 +208,7 @@ app.get('/shorts/:filename', (req, res) => {
   res.json(vid);
 });
 
+// Increment view count
 app.post('/shorts/:filename/view', (req, res) => {
   const videos = getVideos();
   const vid = findVideo(videos, req.params.filename);
@@ -211,7 +218,7 @@ app.post('/shorts/:filename/view', (req, res) => {
   res.json({ success: true, views: vid.views });
 });
 
-// ==== API: LIKE (AUTH REQUIRED) ====
+// Like (AUTH REQUIRED, only once per user)
 app.post('/shorts/:filename/like', userJwtAuth, (req, res) => {
   const videos = getVideos();
   const vid = findVideo(videos, req.params.filename);
@@ -227,7 +234,7 @@ app.post('/shorts/:filename/like', userJwtAuth, (req, res) => {
   res.json({ success: true, likes: vid.likes });
 });
 
-// ==== API: ADD COMMENT (AUTH REQUIRED) ====
+// Add a comment (AUTH REQUIRED)
 app.post('/shorts/:filename/comment', userJwtAuth, (req, res) => {
   const { text } = req.body || {};
   if (!text || typeof text !== "string") return res.status(400).json({ error: "No comment text." });
@@ -251,6 +258,7 @@ app.post('/shorts/:filename/comment', userJwtAuth, (req, res) => {
 // ADMIN VIDEO ENDPOINTS
 // =======================
 
+// Multer storage for uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, DISK_PATH),
   filename: (req, file, cb) => {
@@ -259,11 +267,13 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// Helper: SHA256 hash for deduplication
 function fileHashSync(filepath) {
   const buffer = fs.readFileSync(filepath);
   return crypto.createHash('sha256').update(buffer).digest('hex');
 }
 
+// Upload video (admin only, avoids duplicates)
 app.post('/upload', adminJwtAuth, upload.single('video'), (req, res) => {
   const tempPath = path.join(DISK_PATH, req.file.filename);
   let videos = getVideos();
@@ -309,6 +319,7 @@ app.post('/upload', adminJwtAuth, upload.single('video'), (req, res) => {
   res.json({ success: true, url: videoUrl, filename: req.file.filename });
 });
 
+// Edit caption (admin only)
 app.patch('/shorts/:filename', adminJwtAuth, (req, res) => {
   const filename = req.params.filename;
   const { caption } = req.body || {};
@@ -325,6 +336,7 @@ app.patch('/shorts/:filename', adminJwtAuth, (req, res) => {
   return res.status(400).json({ error: "No caption sent." });
 });
 
+// Delete video (admin only)
 app.delete('/delete/:filename', adminJwtAuth, (req, res) => {
   const filename = req.params.filename;
   const filePath = path.join(DISK_PATH, filename);
@@ -347,8 +359,10 @@ app.delete('/delete/:filename', adminJwtAuth, (req, res) => {
   res.json({ success: true, deleted: filename });
 });
 
+// Serve uploaded videos
 app.use('/uploads', express.static(DISK_PATH));
 
+// Disk debug endpoint (for admin)
 app.get('/_diskdebug', (req, res) => {
   try {
     const files = fs.existsSync(DISK_PATH) ? fs.readdirSync(DISK_PATH) : [];
@@ -361,4 +375,3 @@ app.get('/_diskdebug', (req, res) => {
 // ========= SERVER LISTEN ==========
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
