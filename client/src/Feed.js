@@ -871,7 +871,7 @@ export default function Feed() {
                   tabIndex={0}
                 >×</span>
               </div>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }} onTouchMove={e => e.stopPropagation()}>
                 {allComments.length === 0 ? (
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
                 ) : (
