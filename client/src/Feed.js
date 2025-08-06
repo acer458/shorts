@@ -130,37 +130,223 @@ function MuteMicIcon({ muted }) {
   );
 }
 
-// ---- SKELETON SHORT ----
+
+// SKELETON LOADING
 function SkeletonShort() {
   return (
     <div
       style={{
-        width: "100vw", height: "100dvh",
+        width: "100vw",
+        height: "100dvh",
         position: "relative",
         background: "#111",
-        display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
       }}
     >
-      <div style={{
-        width: "100vw", height: "100dvh",
-        background: "linear-gradient(90deg,#16181f 0%,#212332 50%,#181924 100%)",
-        animation: "skelAnim 1.3s infinite linear",
-        position: "absolute", top: 0, left: 0, zIndex: 1
-      }} />
+      {/* Background shimmer */}
+      <div
+        style={{
+          width: "100vw",
+          height: "100dvh",
+          background: "linear-gradient(90deg,#16181f 0%,#212332 50%,#181924 100%)",
+          animation: "skelAnim 1.3s infinite linear",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          zIndex: 1,
+        }}
+      />
       <style>{`
-        @keyframes skelAnim { 0% { filter:brightness(1);} 55% { filter:brightness(1.07);} 100% { filter:brightness(1);}}
+        @keyframes skelAnim {
+          0% { filter:brightness(1);}
+          55% { filter:brightness(1.07);}
+          100% { filter:brightness(1);}
+        }
+        .skel-item {
+          background: linear-gradient(90deg, #23243a 25%, #282944 50%, #212332 75%);
+          animation: skelAnim 1.35s infinite linear;
+        }
       `}</style>
-      <div style={{
-        position: "absolute", top: 20, right: 20, zIndex: 20,
-        background: "rgba(28,29,34,0.65)",
-        borderRadius: 16, width: 39, height: 39,
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}>
-        <div style={{
-          width: 24, height: 24,
-          background: "linear-gradient(90deg,#222 30%,#333 60%,#222 100%)",
-          borderRadius: "50%"
-        }} />
+      {/* Right action buttons (profile, like, comment, share) */}
+      <div
+        style={{
+          position: "absolute",
+          right: "18px",
+          bottom: "105px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "24px",
+          zIndex: 10,
+        }}
+      >
+        {/* Profile skeleton */}
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: "50%",
+            background: "#202131",
+            marginBottom: 6,
+            boxShadow: "0 2px 8px #0002",
+          }}
+          className="skel-item"
+        />
+        {/* Like/heart skeleton */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 7,
+              background: "#202131",
+              marginBottom: 4,
+            }}
+            className="skel-item"
+          />
+          <div
+            style={{
+              width: 18,
+              height: 10,
+              borderRadius: 4,
+              background: "#25263a",
+            }}
+            className="skel-item"
+          />
+        </div>
+        {/* Comment skeleton */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 7,
+              background: "#202131",
+              marginBottom: 4,
+            }}
+            className="skel-item"
+          />
+          <div
+            style={{
+              width: 18,
+              height: 10,
+              borderRadius: 4,
+              background: "#25263a",
+            }}
+            className="skel-item"
+          />
+        </div>
+        {/* Share skeleton */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 7,
+              background: "#202131",
+              marginBottom: 4,
+            }}
+            className="skel-item"
+          />
+          <div
+            style={{
+              width: 32,
+              height: 10,
+              borderRadius: 4,
+              background: "#25263a",
+            }}
+            className="skel-item"
+          />
+        </div>
+      </div>
+      {/* Caption and user skeleton (bottom) */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "linear-gradient(0deg,#000e 88%,transparent 100%)",
+          color: "#fff",
+          padding: "20px 18px 28px 18px",
+          zIndex: 6,
+          display: "flex",
+          flexDirection: "column",
+          userSelect: "none",
+          gap: 7,
+        }}
+      >
+        {/* Username skeleton */}
+        <div
+          style={{
+            width: 120,
+            height: 21,
+            borderRadius: 8,
+            background: "#23243a",
+            marginBottom: 3,
+          }}
+          className="skel-item"
+        />
+        {/* Caption skeleton */}
+        <div
+          style={{
+            width: "85%",
+            height: 17,
+            borderRadius: 8,
+            background: "#25263a",
+            marginBottom: 5,
+          }}
+          className="skel-item"
+        />
+        <div
+          style={{
+            width: "60%",
+            height: 15,
+            borderRadius: 8,
+            background: "#23243a",
+            marginBottom: 0,
+          }}
+          className="skel-item"
+        />
+        {/* Placeholder for 'View all comments' */}
+        <div
+          style={{
+            width: "38%",
+            height: 15,
+            borderRadius: 9,
+            background: "#25263a",
+            marginTop: 7,
+          }}
+          className="skel-item"
+        />
+      </div>
+      {/* Top right mute btn skeleton */}
+      <div
+        style={{
+          position: "absolute",
+          top: 20,
+          right: 20,
+          zIndex: 20,
+          background: "rgba(28,29,34,0.65)",
+          borderRadius: 16,
+          width: 39,
+          height: 39,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            width: 24,
+            height: 24,
+            background: "linear-gradient(90deg,#222 30%,#333 60%,#222 100%)",
+            borderRadius: "50%",
+          }}
+        />
       </div>
     </div>
   );
