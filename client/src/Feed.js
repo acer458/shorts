@@ -806,7 +806,7 @@ export default function Feed() {
             marginBottom: 6, width: 48, height: 48,
             borderRadius: "50%", overflow: "hidden"
           }}>
-            <img src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754502047/Untitled_design_4_odnqn2.jpg' alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+            <img src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg' alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
