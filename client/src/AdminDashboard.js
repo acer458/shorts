@@ -385,7 +385,7 @@ export default function AdminDashboard() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#181C23",
+        background: "##0c5eed",
         display: "flex",
         flexDirection: "row",
         fontFamily: "Inter, sans-serif",
