@@ -890,7 +890,7 @@ export default function Feed() {
                     }} key={c.index}>
                       {/* Uncomment this block to enable avatars */
                       <img
-                        src={c.avatar}
+                        src= 'https://res.cloudinary.com/dzozyqlqr/image/upload/v1754503052/PropScholarUser_neup6j.png'
                         className="comment-avatar"
                         alt=""
                         style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
