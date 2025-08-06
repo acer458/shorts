@@ -1,4 +1,5 @@
 import React from 'react';
+import logo from '../assets/logo.png'; // Adjust path if necessary
 
 const tabs = [
   { id: 'videos', label: 'Uploaded Videos', icon: '📁' },
@@ -20,8 +21,28 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       boxSizing: 'border-box',
       height: '100vh'
     }}>
-      <div style={{ padding: '0 20px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        <h2 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>Admin Dashboard</h2>
+      {/* LOGO and BRAND NAME */}
+      <div style={{
+        padding: '0 20px 24px',
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12
+      }}>
+        <img
+          src={logo}
+          alt="Propscholar Logo"
+          style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'contain', background: '#fff' }}
+        />
+        <h2 style={{
+          fontSize: 20,
+          fontWeight: 700,
+          margin: 0,
+          letterSpacing: 1,
+          color: '#fff'
+        }}>
+          Propscholar
+        </h2>
       </div>
       <nav style={{ flexGrow: 1, marginTop: 20 }}>
         {tabs.map(tab => (
