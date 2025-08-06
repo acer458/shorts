@@ -194,7 +194,6 @@ function SkeletonShort() {
   );
 }
 
-
 // ---- ANTI-INSPECT ----
 function useAntiInspect() {
   useEffect(() => {
@@ -240,6 +239,8 @@ export default function Feed() {
   const [commentInputs, setCommentInputs] = useState({});
   const [expandedCaptions, setExpandedCaptions] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
+  // Modern comment likes state
+  const [commentLikes, setCommentLikes] = useState({});
 
   // Comments modal drag
   const [modalDragY, setModalDragY] = useState(0);
@@ -257,7 +258,6 @@ export default function Feed() {
       return false;
     };
 
-    // Attach only when on feed, not in comments modal
     if (!aloneVideo && !showComments) {
       document.body.style.overscrollBehaviorY = "none";
       document.body.style.touchAction = "none";
@@ -296,7 +296,6 @@ export default function Feed() {
   }, [location.search]);
 
   // ---- PAGING: Only one video at a time, strictly state-based ----
-  // No scroll container! Paging only through up/down
   const pageLock = useRef(false);
 
   function changeIdx(direction) {
@@ -328,7 +327,6 @@ export default function Feed() {
     }
     function onTouchMove(e) {
       if (touchStartY == null || e.touches.length !== 1) return;
-      // Always prevent default to suppress pull-to-refresh
       e.preventDefault();
       touchMoved = true;
     }
@@ -357,7 +355,6 @@ export default function Feed() {
 
   // ---- VIDEO CONTROL: Play/pause
   useEffect(() => {
-    // Mute, pause all others, play current if not overlay
     if (aloneVideo) return;
     Object.entries(videoRefs.current).forEach(([idx, vid]) => {
       let nidx = Number(idx);
@@ -378,7 +375,6 @@ export default function Feed() {
   }, [currentIdx, muted, aloneVideo, shorts, overlayShown]);
 
   useEffect(() => {
-    // Pause all on tab switch
     function visibilityHandler() {
       if (document.visibilityState !== "visible") {
         Object.values(videoRefs.current).forEach((vid) => vid && vid.pause());
@@ -642,6 +638,12 @@ export default function Feed() {
     inFeed
   }) {
     const isOverlayShown = overlayShown[filename];
+    // --- use updated allComments with index for likes ---
+    const mappedComments = (allComments || []).map((c, i) => ({
+      ...c,
+      index: i
+    }));
+
     return (
       <div
         key={filename}
@@ -830,9 +832,6 @@ export default function Feed() {
               )}
             </div>
           )}
-          {/* 
-          // ========== COMMENT PREVIEW REMOVED HERE ===========
-          */}
           <div
             style={{ color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer" }}
             onClick={() => setShowComments(filename)}
@@ -877,29 +876,63 @@ export default function Feed() {
                 >×</span>
               </div>
               <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }} onTouchMove={e => e.stopPropagation()}>
-                {allComments.length === 0 ? (
+                {mappedComments.length === 0 ? (
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
                 ) : (
-                  allComments.map((c, i) => (
-                    <div className="comment" style={{ display: 'flex', marginBottom: 15 }} key={i}>
-                      {/* If you want to keep avatars, keep this <img>! Otherwise remove. */}
-                      { <img
+                  mappedComments.map((c) => (
+                    <div className="comment" style={{
+                      display: 'flex',
+                      gap: 10,
+                      marginBottom: 22, // bigger vertical gap
+                      paddingBottom: 15,
+                      borderBottom: '1px solid #1a1a1a',
+                      alignItems: "flex-start"
+                    }} key={c.index}>
+                      {/* Uncomment this block to enable avatars
+                      <img
                         src={c.avatar}
                         className="comment-avatar"
                         alt=""
                         style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
-                      /> }
+                      /> */}
                       <div className="comment-content" style={{ flex: 1 }}>
-                        <div>
+                        <div style={{ display: "flex", alignItems: 'center', gap: 8 }}>
                           <span className="comment-username" style={{
                             fontWeight: 600, fontSize: 14, marginRight: 5, color: "#fff"
                           }}>{c.name}</span>
-                          <span className="comment-text" style={{ fontSize: 14, color: "#fff" }}>{c.text}</span>
-                        </div>
-                        {/* TIME REMOVED HERE */}
-                        <div className="comment-actions" style={{ display: 'flex', marginTop: 5 }}>
-                          {/* REPLY REMOVED - only Like action kept below if desired */}
-                          <span style={{ fontSize: 12, color: "#a8a8a8", marginRight: 15, cursor: "pointer", userSelect: "none" }}>Like</span>
+                          <span className="comment-text" style={{ fontSize: 14, color: "#fff", wordBreak: "break-word" }}>{c.text}</span>
+                          <button
+                            style={{
+                              marginLeft: 10,
+                              background: "none",
+                              border: "none",
+                              padding: 0,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center"
+                            }}
+                            onClick={() =>
+                              setCommentLikes((prev) => ({
+                                ...prev,
+                                [c.index]: !prev[c.index]
+                              }))
+                            }
+                            aria-label={commentLikes[c.index] ? "Unlike comment" : "Like comment"}
+                          >
+                            <svg
+                              width="19"
+                              height="19"
+                              viewBox="0 0 24 24"
+                              fill={commentLikes[c.index] ? "#ed4956" : "none"}
+                              stroke="#ed4956"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              style={{ transition: 'fill 0.18s' }}
+                            >
+                              <path d="M12 21c-.67 0-1.29-.26-1.77-.73L3.18 13A4.07 4.07 0 0 1 2 9.81C2 7.11 4.13 5 6.81 5c1.36 0 2.71.55 3.69 1.54A5.002 5.002 0 0 1 17.19 5C19.87 5 22 7.11 22 9.81c0 1.13-.44 2.26-1.18 3.19l-7.05 7.26c-.48.47-1.1.74-1.77.74Z"/>
+                            </svg>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -979,7 +1012,7 @@ export default function Feed() {
     const liked = isLiked(filename);
     const prog = videoProgress[filename] || 0;
     const allComments = (v.comments || []).map((c, i) => ({
-      ...c, avatar: fakeAvatar(i), time: c.createdAt ? timeAgo(c.createdAt) : "Just now"
+      ...c
     }));
     const caption = v.caption || "";
     const previewLimit = 90;
@@ -1026,7 +1059,6 @@ export default function Feed() {
   }
 
   // ---- STRICT YT/REELS STYLE PAGED FEED ----
-  // Only current, previous and next video are rendered, strictly one page at a time.
   return (
     <div
       style={{
@@ -1039,7 +1071,7 @@ export default function Feed() {
         const liked = isLiked(filename);
         const prog = videoProgress[filename] || 0;
         const allComments = (v.comments || []).map((c, i) => ({
-          ...c, avatar: fakeAvatar(i), time: c.createdAt ? timeAgo(c.createdAt) : "Just now"
+          ...c
         }));
         const caption = v.caption || "";
         const previewLimit = 90;
