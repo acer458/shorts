@@ -637,7 +637,6 @@ export default function Feed() {
     inFeed
   }) {
     const isOverlayShown = overlayShown[filename];
-    // --- use updated allComments with index for likes ---
     const mappedComments = (allComments || []).map((c, i) => ({
       ...c,
       index: i
@@ -874,7 +873,24 @@ export default function Feed() {
                   tabIndex={0}
                 >×</span>
               </div>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }} onTouchMove={e => e.stopPropagation()}>
+              <div
+                style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}
+                onTouchMove={e => e.stopPropagation()}
+                onWheel={e => {
+                  // Prevent feed scroll when at top/bottom of comments on desktop
+                  const el = e.currentTarget;
+                  const { scrollTop, scrollHeight, clientHeight } = el;
+                  const up = e.deltaY < 0;
+                  const down = e.deltaY > 0;
+                  if (
+                    (up && scrollTop === 0) ||
+                    (down && scrollTop + clientHeight >= scrollHeight)
+                  ) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
+              >
                 {mappedComments.length === 0 ? (
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
                 ) : (
@@ -891,13 +907,14 @@ export default function Feed() {
                         borderBottom: '1px solid #1a1a1a'
                       }}
                     >
-                      {/* Avatar (if enabled) */}
+                      {/* Avatar (strict left) */}
                       <img
                         src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754503052/PropScholarUser_neup6j.png'
                         className="comment-avatar"
                         alt=""
                         style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
                       />
+                      {/* Username and text */}
                       <div className="comment-content" style={{ flex: 1 }}>
                         <div style={{
                           display: "flex",
@@ -920,7 +937,7 @@ export default function Feed() {
                           </span>
                         </div>
                       </div>
-                      {/* Heart/like button and count—extreme right */}
+                      {/* Like heart and count (strict right) */}
                       <button
                         style={{
                           marginLeft: 8,
