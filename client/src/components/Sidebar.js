@@ -4,3 +4,4 @@ const tabs = [
   { id: 'storage', label: 'Storage Stats' },
   { id: 'comments', label: 'All Comments' },  // <-- Add this line
 ];
+
