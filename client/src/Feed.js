@@ -221,6 +221,26 @@ export default function Feed() {
   const [replayCounts, setReplayCounts] = useState({});
   const [overlayShown, setOverlayShown] = useState({});
 
+  // ---- Prevent body scroll and pull-to-refresh on mobile ----
+  useEffect(() => {
+    const preventScroll = (e) => {
+      e.preventDefault();
+      return false;
+    };
+
+    // Attach only when on feed, not in comments modal
+    if (!aloneVideo && !showComments) {
+      document.body.style.overscrollBehaviorY = "none";
+      document.body.style.touchAction = "none";
+      window.addEventListener("touchmove", preventScroll, { passive: false });
+    }
+    return () => {
+      document.body.style.overscrollBehaviorY = "";
+      document.body.style.touchAction = "";
+      window.removeEventListener("touchmove", preventScroll);
+    };
+  }, [aloneVideo, showComments]);
+
   // ---- FETCH ----
   useEffect(() => {
     setLoading(true);
@@ -262,6 +282,8 @@ export default function Feed() {
   // Wheel and swipe listeners
   useEffect(() => {
     if (aloneVideo) return;
+    let touchStartY = null;
+    let touchMoved = false;
 
     function onWheel(e) {
       if (Math.abs(e.deltaY) < 16) return;
@@ -270,15 +292,21 @@ export default function Feed() {
       e.preventDefault();
     }
 
-    let touchStartY = null;
     function onTouchStart(e) {
       if (e.touches.length !== 1) return;
       touchStartY = e.touches[0].clientY;
+      touchMoved = false;
+    }
+    function onTouchMove(e) {
+      if (touchStartY == null || e.touches.length !== 1) return;
+      // Always prevent default to suppress pull-to-refresh
+      e.preventDefault();
+      touchMoved = true;
     }
     function onTouchEnd(e) {
       if (!touchStartY || !e.changedTouches) return;
       const dy = e.changedTouches[0].clientY - touchStartY;
-      if (Math.abs(dy) > 40) {
+      if (Math.abs(dy) > 40 && touchMoved) {
         if (dy < 0) changeIdx(1);
         if (dy > 0) changeIdx(-1);
       }
@@ -287,10 +315,13 @@ export default function Feed() {
 
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: false });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: false });
+
     return () => {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
     };
   }, [currentIdx, shorts.length, aloneVideo]);
@@ -770,15 +801,9 @@ export default function Feed() {
               )}
             </div>
           )}
-          {v.comments && v.comments.length > 0 && (
-            <div style={{ fontSize: 14, color: "#bae6fd" }}>
-              {v.comments[0].name === "You" ? (
-                <>{v.comments[0].text}</>
-              ) : (
-                <><b>{v.comments[0].name}:</b> {v.comments[0].text}</>
-              )}
-            </div>
-          )}
+          {/* 
+          // ========== COMMENT PREVIEW REMOVED HERE ===========
+          */}
           <div
             style={{ color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer" }}
             onClick={() => setShowComments(filename)}
