@@ -759,7 +759,7 @@ export default function Feed() {
             marginBottom: 6, width: 48, height: 48,
             borderRadius: "50%", overflow: "hidden"
           }}>
-            <img src= 'https://res.cloudinary.com/dzozyqlqr/image/upload/v1754502047/Untitled_design_4_odnqn2.jpg' alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+            <img src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754502047/Untitled_design_4_odnqn2.jpg' alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
@@ -874,7 +874,6 @@ export default function Feed() {
                   tabIndex={0}
                 >×</span>
               </div>
-              {/* THIS IS THE UPDATED COMMENT BLOCK */}
               <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }} onTouchMove={e => e.stopPropagation()}>
                 {mappedComments.length === 0 ? (
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
@@ -885,16 +884,46 @@ export default function Feed() {
                       key={c.index}
                       style={{
                         display: 'flex',
-                        alignItems: 'flex-start',
+                        alignItems: 'center',
                         gap: 12,
                         paddingBottom: 14,
                         marginBottom: 20,
                         borderBottom: '1px solid #1a1a1a'
                       }}
                     >
+                      {/* Avatar (if enabled) */}
+                      <img
+                        src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754503052/PropScholarUser_neup6j.png'
+                        className="comment-avatar"
+                        alt=""
+                        style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
+                      />
+                      <div className="comment-content" style={{ flex: 1 }}>
+                        <div style={{
+                          display: "flex",
+                          alignItems: 'center',
+                          flexWrap: "wrap",
+                          gap: 8,
+                          wordBreak: "break-word"
+                        }}>
+                          <span
+                            className="comment-username"
+                            style={{ fontWeight: 600, fontSize: 14, marginRight: 5, color: "#fff" }}
+                          >
+                            {c.name}
+                          </span>
+                          <span
+                            className="comment-text"
+                            style={{ fontSize: 14, color: "#fff" }}
+                          >
+                            {c.text}
+                          </span>
+                        </div>
+                      </div>
+                      {/* Heart/like button and count—extreme right */}
                       <button
                         style={{
-                          marginTop: 2,
+                          marginLeft: 8,
                           background: "none",
                           border: "none",
                           padding: 0,
@@ -934,33 +963,10 @@ export default function Feed() {
                           {commentLikes[c.index] ? 1 : 0}
                         </span>
                       </button>
-                      <div className="comment-content" style={{ flex: 1 }}>
-                        <div style={{
-                          display: "flex",
-                          alignItems: 'center',
-                          flexWrap: "wrap",
-                          gap: 8,
-                          wordBreak: "break-word"
-                        }}>
-                          <span
-                            className="comment-username"
-                            style={{ fontWeight: 600, fontSize: 14, marginRight: 5, color: "#fff" }}
-                          >
-                            {c.name}
-                          </span>
-                          <span
-                            className="comment-text"
-                            style={{ fontSize: 14, color: "#fff" }}
-                          >
-                            {c.text}
-                          </span>
-                        </div>
-                      </div>
                     </div>
                   ))
                 )}
               </div>
-              {/* END UPDATED COMMENT BLOCK */}
               <div style={{
                 display: 'flex', alignItems: 'center',
                 paddingTop: 10, borderTop: '1px solid #262626'
