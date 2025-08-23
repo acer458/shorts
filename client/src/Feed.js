@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -218,6 +217,7 @@ function useAntiInspect() {
   }, []);
 }
 
+// ---- MAIN FEED COMPONENT ----
 export default function Feed() {
   useAntiInspect();
   const location = useLocation();
@@ -253,31 +253,23 @@ export default function Feed() {
   const [overlayShown, setOverlayShown] = useState({});
 
   // ----- SPAM PROTECTION -----
+  // Per video, timestamp of last successful comment
   const lastCommentTimeRef = useRef({});
   const [spamAlert, setSpamAlert] = useState({ show: false, message: "" });
   const spamAlertTimeout = useRef(null);
 
   // ---- Prevent body scroll and pull-to-refresh on mobile ----
-  // Only block body scroll when NOT in aloneVideo and NOT showing comments
   useEffect(() => {
     const preventScroll = (e) => {
       e.preventDefault();
       return false;
     };
 
-    const shouldBlock = !aloneVideo && !showComments;
-
-    if (shouldBlock) {
+    if (!aloneVideo && !showComments) {
       document.body.style.overscrollBehaviorY = "none";
       document.body.style.touchAction = "none";
       window.addEventListener("touchmove", preventScroll, { passive: false });
-    } else {
-      // Allow native touch when modal is open or in aloneVideo
-      document.body.style.overscrollBehaviorY = "";
-      document.body.style.touchAction = "auto";
-      window.removeEventListener("touchmove", preventScroll);
     }
-
     return () => {
       document.body.style.overscrollBehaviorY = "";
       document.body.style.touchAction = "";
@@ -319,15 +311,12 @@ export default function Feed() {
     if (next < 0 || next >= shorts.length) return;
     pageLock.current = true;
     setCurrentIdx(next);
-    setTimeout(() => (pageLock.current = false), 500);
+    setTimeout(() => (pageLock.current = false), 500); // lock for anim duration
   }
 
-  // Wheel and swipe listeners (feed navigation)
-  // Do NOT attach when comments modal is open (critical for Android)
+  // Wheel and swipe listeners
   useEffect(() => {
     if (aloneVideo) return;
-    if (showComments) return;
-
     let touchStartY = null;
     let touchMoved = false;
 
@@ -345,13 +334,12 @@ export default function Feed() {
     }
     function onTouchMove(e) {
       if (touchStartY == null || e.touches.length !== 1) return;
-      // Prevent page scroll, emulate app-like paging
       e.preventDefault();
       touchMoved = true;
     }
     function onTouchEnd(e) {
       if (!touchStartY || !e.changedTouches) return;
-      const dy = e.changedTouches.clientY - touchStartY;
+      const dy = e.changedTouches[0].clientY - touchStartY;
       if (Math.abs(dy) > 40 && touchMoved) {
         if (dy < 0) changeIdx(1);
         if (dy > 0) changeIdx(-1);
@@ -370,7 +358,7 @@ export default function Feed() {
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
     };
-  }, [currentIdx, shorts.length, aloneVideo, showComments]);
+  }, [currentIdx, shorts.length, aloneVideo]);
 
   // ---- VIDEO CONTROL: Play/pause
   useEffect(() => {
@@ -469,6 +457,7 @@ export default function Feed() {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
 
+    // ---- SPAM PROTECTION ----
     const now = Date.now();
     const lastTime = lastCommentTimeRef.current[filename] || 0;
     if (now - lastTime < COMMENT_SPAM_DELAY_MS) {
@@ -500,6 +489,7 @@ export default function Feed() {
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
       })
       .catch(() => {
+        // on failure, clear cooldown so user can retry
         lastCommentTimeRef.current[filename] = 0;
       });
   }
@@ -522,7 +512,7 @@ export default function Feed() {
   }
   function handleModalTouchMove(e) {
     if (!isDraggingModal || !e.touches || e.touches.length !== 1) return;
-    const dy = e.touches.clientY - dragStartY.current;
+    const dy = e.touches[0].clientY - dragStartY.current;
     if (dy > 0) setModalDragY(dy);
   }
   function handleModalTouchEnd() {
@@ -574,6 +564,7 @@ export default function Feed() {
     }
   }
 
+  // ---- TAP + HEART UI ----
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -647,7 +638,11 @@ export default function Feed() {
   // ---- PAGED RENDER LOGIC ----
   function getPagedShorts() {
     if (shorts.length === 0) return [];
-    return [currentIdx - 1, currentIdx, currentIdx + 1]
+    return [
+      currentIdx - 1,
+      currentIdx,
+      currentIdx + 1,
+    ]
       .filter((idx) => idx >= 0 && idx < shorts.length)
       .map((idx) => ({ ...shorts[idx], _idx: idx }));
   }
@@ -667,7 +662,10 @@ export default function Feed() {
     inFeed
   }) {
     const isOverlayShown = overlayShown[filename];
-    const mappedComments = (allComments || []).map((c, i) => ({ ...c, index: i }));
+    const mappedComments = (allComments || []).map((c, i) => ({
+      ...c,
+      index: i
+    }));
 
     return (
       <div
@@ -885,14 +883,11 @@ export default function Feed() {
             onClick={() => setShowComments(filename)}
           >View all {v.comments ? v.comments.length : 0} comments</div>
         </div>
-
         {showComments === filename &&
           <div
             style={{
               position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.91)",
-              display: "flex", flexDirection: "column", justifyContent: "flex-end",
-              // Allow native touch on overlay so the inner scroll can work on Android
-              touchAction: "auto"
+              display: "flex", flexDirection: "column", justifyContent: "flex-end"
             }}
             onClick={() => setShowComments(null)}
           >
@@ -905,8 +900,7 @@ export default function Feed() {
                 display: 'flex', flexDirection: 'column',
                 maxWidth: 500, width: "97vw", margin: "0 auto",
                 border: '1px solid #262626',
-                // Crucial for Android: allow native touch inside modal
-                touchAction: "auto",
+                touchAction: "none",
                 transition: isDraggingModal ? "none" : "transform 0.22s cubic-bezier(.43,1.5,.48,1.16)",
                 transform: modalDragY ? `translateY(${Math.min(modalDragY, 144)}px)` : "translateY(0)"
               }}
@@ -927,30 +921,23 @@ export default function Feed() {
                   tabIndex={0}
                 >×</span>
               </div>
-
               <div
-                style={{
-                  flex: 1,
-                  overflowY: 'auto',
-                  padding: '10px 0',
-                  overscrollBehavior: 'contain',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-                onTouchMove={(e) => {
-                  // Let modal scroll; prevent feed swipe
-                  e.stopPropagation();
-                }}
-                onWheel={(e) => {
-                  e.stopPropagation();
+                style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}
+                onTouchMove={e => e.stopPropagation()}
+                onWheel={e => {
+                  // Prevent feed scroll when at top/bottom of comments on desktop
                   const el = e.currentTarget;
                   const { scrollTop, scrollHeight, clientHeight } = el;
-                  const atTop = scrollTop <= 0;
-                  const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-                  if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) {
+                  const up = e.deltaY < 0;
+                  const down = e.deltaY > 0;
+                  if (
+                    (up && scrollTop === 0) ||
+                    (down && scrollTop + clientHeight >= scrollHeight)
+                  ) {
                     e.preventDefault();
+                    e.stopPropagation();
                   }
                 }}
-                tabIndex={0}
               >
                 {mappedComments.length === 0 ? (
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
@@ -968,12 +955,14 @@ export default function Feed() {
                         borderBottom: '1px solid #1a1a1a'
                       }}
                     >
+                      {/* Avatar (strict left) */}
                       <img
                         src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754503052/PropScholarUser_neup6j.png'
                         className="comment-avatar"
                         alt=""
                         style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
                       />
+                      {/* Username and text */}
                       <div className="comment-content" style={{ flex: 1 }}>
                         <div style={{
                           display: "flex",
@@ -996,6 +985,7 @@ export default function Feed() {
                           </span>
                         </div>
                       </div>
+                      {/* Like heart and count (strict right) */}
                       <button
                         style={{
                           marginLeft: 8,
@@ -1042,7 +1032,6 @@ export default function Feed() {
                   ))
                 )}
               </div>
-
               <div style={{
                 display: 'flex', alignItems: 'center',
                 paddingTop: 10, borderTop: '1px solid #262626'
@@ -1078,6 +1067,7 @@ export default function Feed() {
       </div>
     );
   }
+
 
   // ---- VIDEO FEED UI STATE ----
   if (notFound) {
@@ -1115,7 +1105,9 @@ export default function Feed() {
     const filename = urlParts[urlParts.length - 1];
     const liked = isLiked(filename);
     const prog = videoProgress[filename] || 0;
-    const allComments = (v.comments || []).map((c, i) => ({ ...c }));
+    const allComments = (v.comments || []).map((c, i) => ({
+      ...c
+    }));
     const caption = v.caption || "";
     const previewLimit = 90;
     const isTruncated = caption && caption.length > previewLimit;
@@ -1172,7 +1164,9 @@ export default function Feed() {
         const filename = v.url.split("/").pop();
         const liked = isLiked(filename);
         const prog = videoProgress[filename] || 0;
-        const allComments = (v.comments || []).map((c, i) => ({ ...c }));
+        const allComments = (v.comments || []).map((c, i) => ({
+          ...c
+        }));
         const caption = v.caption || "";
         const previewLimit = 90;
         const isTruncated = caption && caption.length > previewLimit;
