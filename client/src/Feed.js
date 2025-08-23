@@ -253,26 +253,29 @@ export default function Feed() {
   const [overlayShown, setOverlayShown] = useState({});
 
   // ----- SPAM PROTECTION -----
-  // Per video, timestamp of last successful comment
   const lastCommentTimeRef = useRef({});
   const [spamAlert, setSpamAlert] = useState({ show: false, message: "" });
   const spamAlertTimeout = useRef(null);
 
   // ---- Prevent body scroll and pull-to-refresh on mobile ----
-  // IMPORTANT: do NOT suppress body touch when comments modal is open
+  // Only block body scroll when NOT in aloneVideo and NOT showing comments
   useEffect(() => {
     const preventScroll = (e) => {
       e.preventDefault();
       return false;
     };
 
-    // Only suppress when:
-    // - not aloneVideo
-    // - AND comments modal is NOT open
-    if (!aloneVideo && !showComments) {
+    const shouldBlock = !aloneVideo && !showComments;
+
+    if (shouldBlock) {
       document.body.style.overscrollBehaviorY = "none";
       document.body.style.touchAction = "none";
       window.addEventListener("touchmove", preventScroll, { passive: false });
+    } else {
+      // Allow native touch when modal is open or in aloneVideo
+      document.body.style.overscrollBehaviorY = "";
+      document.body.style.touchAction = "auto";
+      window.removeEventListener("touchmove", preventScroll);
     }
 
     return () => {
@@ -316,14 +319,14 @@ export default function Feed() {
     if (next < 0 || next >= shorts.length) return;
     pageLock.current = true;
     setCurrentIdx(next);
-    setTimeout(() => (pageLock.current = false), 500); // lock for anim duration
+    setTimeout(() => (pageLock.current = false), 500);
   }
 
   // Wheel and swipe listeners (feed navigation)
-  // IMPORTANT: do NOT attach when comments modal is open
+  // Do NOT attach when comments modal is open (critical for Android)
   useEffect(() => {
     if (aloneVideo) return;
-    if (showComments) return; // <- critical: don't intercept touch while modal open
+    if (showComments) return;
 
     let touchStartY = null;
     let touchMoved = false;
@@ -342,7 +345,8 @@ export default function Feed() {
     }
     function onTouchMove(e) {
       if (touchStartY == null || e.touches.length !== 1) return;
-      e.preventDefault(); // prevent page scroll; we handle paging
+      // Prevent page scroll, emulate app-like paging
+      e.preventDefault();
       touchMoved = true;
     }
     function onTouchEnd(e) {
@@ -465,7 +469,6 @@ export default function Feed() {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
 
-    // ---- SPAM PROTECTION ----
     const now = Date.now();
     const lastTime = lastCommentTimeRef.current[filename] || 0;
     if (now - lastTime < COMMENT_SPAM_DELAY_MS) {
@@ -497,7 +500,6 @@ export default function Feed() {
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
       })
       .catch(() => {
-        // on failure, clear cooldown so user can retry
         lastCommentTimeRef.current[filename] = 0;
       });
   }
@@ -645,11 +647,7 @@ export default function Feed() {
   // ---- PAGED RENDER LOGIC ----
   function getPagedShorts() {
     if (shorts.length === 0) return [];
-    return [
-      currentIdx - 1,
-      currentIdx,
-      currentIdx + 1,
-    ]
+    return [currentIdx - 1, currentIdx, currentIdx + 1]
       .filter((idx) => idx >= 0 && idx < shorts.length)
       .map((idx) => ({ ...shorts[idx], _idx: idx }));
   }
@@ -669,10 +667,7 @@ export default function Feed() {
     inFeed
   }) {
     const isOverlayShown = overlayShown[filename];
-    const mappedComments = (allComments || []).map((c, i) => ({
-      ...c,
-      index: i
-    }));
+    const mappedComments = (allComments || []).map((c, i) => ({ ...c, index: i }));
 
     return (
       <div
@@ -895,7 +890,9 @@ export default function Feed() {
           <div
             style={{
               position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.91)",
-              display: "flex", flexDirection: "column", justifyContent: "flex-end"
+              display: "flex", flexDirection: "column", justifyContent: "flex-end",
+              // Allow native touch on overlay so the inner scroll can work on Android
+              touchAction: "auto"
             }}
             onClick={() => setShowComments(null)}
           >
@@ -908,7 +905,7 @@ export default function Feed() {
                 display: 'flex', flexDirection: 'column',
                 maxWidth: 500, width: "97vw", margin: "0 auto",
                 border: '1px solid #262626',
-                // CRUCIAL: allow normal touch inside modal; do NOT block touches globally here
+                // Crucial for Android: allow native touch inside modal
                 touchAction: "auto",
                 transition: isDraggingModal ? "none" : "transform 0.22s cubic-bezier(.43,1.5,.48,1.16)",
                 transform: modalDragY ? `translateY(${Math.min(modalDragY, 144)}px)` : "translateY(0)"
@@ -931,7 +928,6 @@ export default function Feed() {
                 >×</span>
               </div>
 
-              {/* Scroll container (desktop + mobile) */}
               <div
                 style={{
                   flex: 1,
@@ -952,21 +948,6 @@ export default function Feed() {
                   const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
                   if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) {
                     e.preventDefault();
-                  }
-                }}
-                onKeyDown={(e) => {
-                  const el = e.currentTarget;
-                  const step = 40;
-                  const page = el.clientHeight * 0.9;
-                  if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End'].includes(e.key)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (e.key === 'ArrowDown') el.scrollTop += step;
-                    if (e.key === 'ArrowUp') el.scrollTop -= step;
-                    if (e.key === 'PageDown') el.scrollTop += page;
-                    if (e.key === 'PageUp') el.scrollTop -= page;
-                    if (e.key === 'Home') el.scrollTop = 0;
-                    if (e.key === 'End') el.scrollTop = el.scrollHeight;
                   }
                 }}
                 tabIndex={0}
@@ -1134,9 +1115,7 @@ export default function Feed() {
     const filename = urlParts[urlParts.length - 1];
     const liked = isLiked(filename);
     const prog = videoProgress[filename] || 0;
-    const allComments = (v.comments || []).map((c, i) => ({
-      ...c
-    }));
+    const allComments = (v.comments || []).map((c, i) => ({ ...c }));
     const caption = v.caption || "";
     const previewLimit = 90;
     const isTruncated = caption && caption.length > previewLimit;
@@ -1193,9 +1172,7 @@ export default function Feed() {
         const filename = v.url.split("/").pop();
         const liked = isLiked(filename);
         const prog = videoProgress[filename] || 0;
-        const allComments = (v.comments || []).map((c, i) => ({
-          ...c
-        }));
+        const allComments = (v.comments || []).map((c, i) => ({ ...c }));
         const caption = v.caption || "";
         const previewLimit = 90;
         const isTruncated = caption && caption.length > previewLimit;
