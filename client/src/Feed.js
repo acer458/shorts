@@ -259,17 +259,22 @@ export default function Feed() {
   const spamAlertTimeout = useRef(null);
 
   // ---- Prevent body scroll and pull-to-refresh on mobile ----
+  // IMPORTANT: do NOT suppress body touch when comments modal is open
   useEffect(() => {
     const preventScroll = (e) => {
       e.preventDefault();
       return false;
     };
 
+    // Only suppress when:
+    // - not aloneVideo
+    // - AND comments modal is NOT open
     if (!aloneVideo && !showComments) {
       document.body.style.overscrollBehaviorY = "none";
       document.body.style.touchAction = "none";
       window.addEventListener("touchmove", preventScroll, { passive: false });
     }
+
     return () => {
       document.body.style.overscrollBehaviorY = "";
       document.body.style.touchAction = "";
@@ -314,22 +319,22 @@ export default function Feed() {
     setTimeout(() => (pageLock.current = false), 500); // lock for anim duration
   }
 
-  // Wheel and swipe listeners
+  // Wheel and swipe listeners (feed navigation)
+  // IMPORTANT: do NOT attach when comments modal is open
   useEffect(() => {
     if (aloneVideo) return;
-    // IMPORTANT: when comments modal is open, do not attach feed paging handlers
-    if (showComments) return;
-  
+    if (showComments) return; // <- critical: don't intercept touch while modal open
+
     let touchStartY = null;
     let touchMoved = false;
-  
+
     function onWheel(e) {
       if (Math.abs(e.deltaY) < 16) return;
       if (e.deltaY > 0) changeIdx(1);
       else if (e.deltaY < 0) changeIdx(-1);
       e.preventDefault();
     }
-  
+
     function onTouchStart(e) {
       if (e.touches.length !== 1) return;
       touchStartY = e.touches[0].clientY;
@@ -337,7 +342,7 @@ export default function Feed() {
     }
     function onTouchMove(e) {
       if (touchStartY == null || e.touches.length !== 1) return;
-      e.preventDefault();
+      e.preventDefault(); // prevent page scroll; we handle paging
       touchMoved = true;
     }
     function onTouchEnd(e) {
@@ -349,12 +354,12 @@ export default function Feed() {
       }
       touchStartY = null;
     }
-  
+
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: false });
     window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: false });
-  
+
     return () => {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
@@ -903,7 +908,8 @@ export default function Feed() {
                 display: 'flex', flexDirection: 'column',
                 maxWidth: 500, width: "97vw", margin: "0 auto",
                 border: '1px solid #262626',
-                touchAction: "none",
+                // CRUCIAL: allow normal touch inside modal; do NOT block touches globally here
+                touchAction: "auto",
                 transition: isDraggingModal ? "none" : "transform 0.22s cubic-bezier(.43,1.5,.48,1.16)",
                 transform: modalDragY ? `translateY(${Math.min(modalDragY, 144)}px)` : "translateY(0)"
               }}
@@ -925,7 +931,7 @@ export default function Feed() {
                 >×</span>
               </div>
 
-              {/* UPDATED SCROLL CONTAINER STARTS HERE */}
+              {/* Scroll container (desktop + mobile) */}
               <div
                 style={{
                   flex: 1,
@@ -935,24 +941,20 @@ export default function Feed() {
                   WebkitOverflowScrolling: 'touch'
                 }}
                 onTouchMove={(e) => {
-                  // Allow scrolling inside, but stop propagation so feed doesn't swipe
+                  // Let modal scroll; prevent feed swipe
                   e.stopPropagation();
                 }}
                 onWheel={(e) => {
-                  // Always stop propagation so feed doesn't intercept
                   e.stopPropagation();
                   const el = e.currentTarget;
                   const { scrollTop, scrollHeight, clientHeight } = el;
                   const atTop = scrollTop <= 0;
                   const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-
-                  // If at boundaries and user tries to scroll beyond, prevent default to avoid page scroll
                   if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) {
                     e.preventDefault();
                   }
                 }}
                 onKeyDown={(e) => {
-                  // Keyboard scrolling support for desktop/a11y
                   const el = e.currentTarget;
                   const step = 40;
                   const page = el.clientHeight * 0.9;
@@ -985,14 +987,12 @@ export default function Feed() {
                         borderBottom: '1px solid #1a1a1a'
                       }}
                     >
-                      {/* Avatar (strict left) */}
                       <img
                         src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754503052/PropScholarUser_neup6j.png'
                         className="comment-avatar"
                         alt=""
                         style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
                       />
-                      {/* Username and text */}
                       <div className="comment-content" style={{ flex: 1 }}>
                         <div style={{
                           display: "flex",
@@ -1015,7 +1015,6 @@ export default function Feed() {
                           </span>
                         </div>
                       </div>
-                      {/* Like heart and count (strict right) */}
                       <button
                         style={{
                           marginLeft: 8,
@@ -1062,7 +1061,6 @@ export default function Feed() {
                   ))
                 )}
               </div>
-              {/* UPDATED SCROLL CONTAINER ENDS HERE */}
 
               <div style={{
                 display: 'flex', alignItems: 'center',
