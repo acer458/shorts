@@ -317,16 +317,19 @@ export default function Feed() {
   // Wheel and swipe listeners
   useEffect(() => {
     if (aloneVideo) return;
+    // IMPORTANT: when comments modal is open, do not attach feed paging handlers
+    if (showComments) return;
+  
     let touchStartY = null;
     let touchMoved = false;
-
+  
     function onWheel(e) {
       if (Math.abs(e.deltaY) < 16) return;
       if (e.deltaY > 0) changeIdx(1);
       else if (e.deltaY < 0) changeIdx(-1);
       e.preventDefault();
     }
-
+  
     function onTouchStart(e) {
       if (e.touches.length !== 1) return;
       touchStartY = e.touches[0].clientY;
@@ -346,19 +349,19 @@ export default function Feed() {
       }
       touchStartY = null;
     }
-
+  
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: false });
     window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: false });
-
+  
     return () => {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
     };
-  }, [currentIdx, shorts.length, aloneVideo]);
+  }, [currentIdx, shorts.length, aloneVideo, showComments]);
 
   // ---- VIDEO CONTROL: Play/pause
   useEffect(() => {
