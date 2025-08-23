@@ -1,223 +1,3 @@
-import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
-import { useLocation, useNavigate } from "react-router-dom";
-
-// ---- CONFIG ----
-const HOST = "https://shorts-t2dk.onrender.com";
-const COMMENT_SPAM_DELAY_MS = 5000; // 5 seconds delay between each comment per video
-
-// ---- UTILITIES ----
-function truncateString(str, maxLen = 90) {
-  if (!str) return "";
-  if (str.length <= maxLen) return str;
-  const nextSpace = str.indexOf(" ", maxLen);
-  return (
-    str.substring(0, nextSpace === -1 ? str.length : nextSpace) +
-    "…"
-  );
-}
-function shuffleArray(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-function getProfilePic(v) {
-  return (
-    v.avatar ||
-    v.profilePic ||
-    `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(
-      v.author || "propscholar-user"
-    )}`
-  );
-}
-function fakeAvatar(i) {
-  const urls = [
-    "https://res.cloudinary.com/dzozyqlqr/image/upload/v1754503052/PropScholarUser_neup6j.png"
-  ];
-  return urls[i % urls.length];
-}
-function timeAgo(date) {
-  if (!date) return "";
-  const now = Date.now();
-  const past = typeof date === "string" ? new Date(date).getTime() : date;
-  const diff = Math.round((now - past) / 1000);
-
-  if (diff < 10) return "Just now";
-  if (diff < 60) return diff + " sec";
-  if (diff < 90) return "1 min";
-  if (diff < 60 * 60) return Math.floor(diff / 60) + " min";
-  if (diff < 90 * 60) return "1 hr";
-  if (diff < 60 * 60 * 24) return Math.floor(diff / 3600) + " hr";
-  if (diff < 60 * 60 * 36) return "1 day";
-  return Math.floor(diff / 86400) + " days";
-}
-
-function throttle(fn, wait) {
-  let locked = false;
-  return (...args) => {
-    if (locked) return;
-    locked = true;
-    fn(...args);
-    setTimeout(() => (locked = false), wait);
-  };
-}
-
-// ---- SVG ICONS ----
-function HeartSVG({ filled }) {
-  return (
-    <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
-      <path
-        fill={filled ? "#ed4956" : "none"}
-        stroke={filled ? "#ed4956" : "#fff"}
-        strokeWidth="3"
-        d="M34.3 7.8c-3.4 0-6.5 1.7-8.3 4.4-1.8-2.7-4.9-4.4-8.3-4.4C11 7.8 7 12 7 17.2c0 3.7 2.6 7 6.6 11.1 3.1 3.1 9.3 8.6 10.1 9.3.6.5 1.5.5 2.1 0 .8-.7 7-6.2 10.1-9.3 4-4.1 6.6-7.4 6.6-11.1 0-5.2-4-9.4-8.6-9.4z"
-      />
-    </svg>
-  );
-}
-function PauseIcon() {
-  return (
-    <svg width={82} height={82} viewBox="0 0 82 82">
-      <circle cx="41" cy="41" r="40" fill="#000A" />
-      <rect x="26" y="20" width="10" height="42" rx="3" fill="#fff" />
-      <rect x="46" y="20" width="10" height="42" rx="3" fill="#fff" />
-    </svg>
-  );
-}
-function PulseHeart({ visible }) {
-  return (
-    <div
-      aria-hidden
-      style={{
-        position: "absolute", left: "50%", top: "50%", zIndex: 106,
-        transform: "translate(-50%,-50%)",
-        pointerEvents: "none", opacity: visible ? 1 : 0,
-        animation: visible ? "heartPulseAnim .75s cubic-bezier(.1,1.6,.6,1)" : "none"
-      }}
-    >
-      <svg viewBox="0 0 96 96" width={90} height={90} style={{ display: "block" }}>
-        <path
-          d="M48 86C48 86 12 60 12 32.5 12 18.8 24.5 10 36 10c6.2 0 11.9 3.3 12 3.3S53.8 10 60 10c11.5 0 24 8.8 24 22.5C84 60 48 86 48 86Z"
-          fill="#ed4956"
-          stroke="#ed4956"
-          strokeWidth="7"
-        />
-      </svg>
-      <style>{`
-        @keyframes heartPulseAnim {
-          0% { opacity: 0; transform: translate(-50%,-50%) scale(0);}
-          14% { opacity: 0.92; transform: translate(-50%,-50%) scale(1.22);}
-          27% { opacity: 1; transform: translate(-50%,-50%) scale(0.89);}
-          44%, 82% { opacity: 0.92; transform: translate(-50%,-50%) scale(1);}
-          100% { opacity: 0; transform: translate(-50%,-50%) scale(0);}
-        }
-      `}</style>
-    </div>
-  );
-}
-function MuteMicIcon({ muted }) {
-  return muted ? (
-    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff2" stroke="#fff"/>
-      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff"/>
-      <line x1="4.8" y1="4.8" x2="19.2" y2="19.2" stroke="#fff" strokeWidth="2.6"/>
-    </svg>
-  ) : (
-    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff1" stroke="#fff"/>
-      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff"/>
-    </svg>
-  );
-}
-// ---- SKELETON SHORT ----
-function SkeletonShort() {
-  return (
-    <div
-      style={{
-        width: "100vw", height: "100dvh",
-        scrollSnapAlign: "start",
-        position: "relative",
-        background: "#111",
-        display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
-      }}
-    >
-      <div style={{
-        width: "100vw", height: "100dvh",
-        background: "linear-gradient(90deg,#16181f 0%,#212332 50%,#181924 100%)",
-        animation: "skelAnim 1.3s infinite linear",
-        position: "absolute", top: 0, left: 0, zIndex: 1
-      }} />
-      <style>{`
-        @keyframes skelAnim { 0% { filter:brightness(1);} 55% { filter:brightness(1.07);} 100% { filter:brightness(1);}}
-      `}</style>
-      <div style={{
-        position: "absolute", top: 20, right: 20, zIndex: 20,
-        background: "rgba(28,29,34,0.65)",
-        borderRadius: 16, width: 39, height: 39,
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}>
-        <div style={{
-          width: 24, height: 24,
-          background: "linear-gradient(90deg,#222 30%,#333 60%,#222 100%)",
-          borderRadius: "50%"
-        }} />
-      </div>
-      <div style={{
-        position: 'absolute', right: '12px', bottom: '100px', zIndex: 10,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '25px'
-      }}>
-        {Array.from({length:3}).map((_,i) => (
-          <div key={i} style={{
-            width: 46, height: 49, marginBottom: i===0?6:0, borderRadius: 16,
-            background: "linear-gradient(90deg,#20212c 30%,#292a37 60%,#20212c 100%)"
-          }} />
-        ))}
-      </div>
-      <div style={{
-        position: "absolute", left: 0, right: 0, bottom: 0,
-        background: "linear-gradient(0deg,#151721 88%,transparent 100%)",
-        color: "#fff", padding: "22px 18px 33px 18px", zIndex: 6,
-        display: "flex", flexDirection: "column", userSelect: "none"
-      }}>
-        <div style={{width: 110, height: 17, marginBottom: 10, borderRadius: 7,
-          background: "linear-gradient(90deg,#21243a 30%,#393b56 60%,#21243a 100%)", marginLeft: 2
-        }} />
-        <div style={{
-          height: 15, width: "70%", borderRadius: 5,
-          background: "linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"
-        }}/>
-        <div style={{marginTop:8, width:76, height:14, borderRadius:6, background:"linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"}}/>
-      </div>
-    </div>
-  );
-}
-
-// ---- ANTI-INSPECT ----
-function useAntiInspect() {
-  useEffect(() => {
-    const blockDevtools = e => {
-      if (
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase()))
-      ) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-    const preventRightClick = e => e.preventDefault();
-    window.addEventListener("contextmenu", preventRightClick);
-    window.addEventListener("keydown", blockDevtools);
-    return () => {
-      window.removeEventListener("contextmenu", preventRightClick);
-      window.removeEventListener("keydown", blockDevtools);
-    };
-  }, []);
-}
-
-// ---- MAIN FEED COMPONENT ----
 export default function Feed() {
   useAntiInspect();
   const location = useLocation();
@@ -339,7 +119,7 @@ export default function Feed() {
     }
     function onTouchEnd(e) {
       if (!touchStartY || !e.changedTouches) return;
-      const dy = e.changedTouches[0].clientY - touchStartY;
+      const dy = e.changedTouches.clientY - touchStartY;
       if (Math.abs(dy) > 40 && touchMoved) {
         if (dy < 0) changeIdx(1);
         if (dy > 0) changeIdx(-1);
@@ -512,7 +292,7 @@ export default function Feed() {
   }
   function handleModalTouchMove(e) {
     if (!isDraggingModal || !e.touches || e.touches.length !== 1) return;
-    const dy = e.touches[0].clientY - dragStartY.current;
+    const dy = e.touches.clientY - dragStartY.current;
     if (dy > 0) setModalDragY(dy);
   }
   function handleModalTouchEnd() {
@@ -564,7 +344,6 @@ export default function Feed() {
     }
   }
 
-  // ---- TAP + HEART UI ----
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
     return {
@@ -883,6 +662,7 @@ export default function Feed() {
             onClick={() => setShowComments(filename)}
           >View all {v.comments ? v.comments.length : 0} comments</div>
         </div>
+
         {showComments === filename &&
           <div
             style={{
@@ -921,23 +701,50 @@ export default function Feed() {
                   tabIndex={0}
                 >×</span>
               </div>
+
+              {/* UPDATED SCROLL CONTAINER STARTS HERE */}
               <div
-                style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}
-                onTouchMove={e => e.stopPropagation()}
-                onWheel={e => {
-                  // Prevent feed scroll when at top/bottom of comments on desktop
+                style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  padding: '10px 0',
+                  overscrollBehavior: 'contain',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+                onTouchMove={(e) => {
+                  // Allow scrolling inside, but stop propagation so feed doesn't swipe
+                  e.stopPropagation();
+                }}
+                onWheel={(e) => {
+                  // Always stop propagation so feed doesn't intercept
+                  e.stopPropagation();
                   const el = e.currentTarget;
                   const { scrollTop, scrollHeight, clientHeight } = el;
-                  const up = e.deltaY < 0;
-                  const down = e.deltaY > 0;
-                  if (
-                    (up && scrollTop === 0) ||
-                    (down && scrollTop + clientHeight >= scrollHeight)
-                  ) {
+                  const atTop = scrollTop <= 0;
+                  const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+
+                  // If at boundaries and user tries to scroll beyond, prevent default to avoid page scroll
+                  if ((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom)) {
                     e.preventDefault();
-                    e.stopPropagation();
                   }
                 }}
+                onKeyDown={(e) => {
+                  // Keyboard scrolling support for desktop/a11y
+                  const el = e.currentTarget;
+                  const step = 40;
+                  const page = el.clientHeight * 0.9;
+                  if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End'].includes(e.key)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (e.key === 'ArrowDown') el.scrollTop += step;
+                    if (e.key === 'ArrowUp') el.scrollTop -= step;
+                    if (e.key === 'PageDown') el.scrollTop += page;
+                    if (e.key === 'PageUp') el.scrollTop -= page;
+                    if (e.key === 'Home') el.scrollTop = 0;
+                    if (e.key === 'End') el.scrollTop = el.scrollHeight;
+                  }
+                }}
+                tabIndex={0}
               >
                 {mappedComments.length === 0 ? (
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>No comments yet.</div>
@@ -1032,6 +839,8 @@ export default function Feed() {
                   ))
                 )}
               </div>
+              {/* UPDATED SCROLL CONTAINER ENDS HERE */}
+
               <div style={{
                 display: 'flex', alignItems: 'center',
                 paddingTop: 10, borderTop: '1px solid #262626'
@@ -1067,7 +876,6 @@ export default function Feed() {
       </div>
     );
   }
-
 
   // ---- VIDEO FEED UI STATE ----
   if (notFound) {
