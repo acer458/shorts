@@ -766,7 +766,19 @@ export default function Feed() {
                 from { opacity: 0; transform: translateY(60px) scale(1.07);}
                 to   { opacity: 1; transform: translateY(0) scale(1);}
               }
+            
+              /* Soft ambient glow ring synchronized with the double-tap pulse */
+              .center-pulse-glow {
+                animation: centerPulseGlow 700ms cubic-bezier(.2,.9,.2,1);
+              }
+              @keyframes centerPulseGlow {
+                0%   { box-shadow: 0 0 0 0 rgba(237,73,86,0.00); }
+                25%  { box-shadow: 0 0 0 22px rgba(237,73,86,0.14); }
+                70%  { box-shadow: 0 0 0 10px rgba(237,73,86,0.07); }
+                100% { box-shadow: 0 0 0 0 rgba(237,73,86,0.00); }
+              }
             `}</style>
+
           </div>
         )}
         <button
@@ -805,7 +817,15 @@ export default function Feed() {
             <style>{`@keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }`}</style>
           </div>
         )}
-        {isCurrent && <PulseHeart visible={showPulseHeart} />}
+        {isCurrent && (
+          <div
+            className={showPulseHeart ? "center-pulse-glow" : ""}
+            style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+          >
+            <PulseHeart visible={showPulseHeart} />
+          </div>
+        )}
+
         <div style={{
           position: "absolute", left: 0, right: 0, bottom: 0,
           height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32, borderRadius: 2, overflow: "hidden", cursor: "pointer"
