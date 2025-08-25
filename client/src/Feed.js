@@ -566,7 +566,7 @@ export default function Feed() {
   function handleVideoEvents(idx, filename) {
     let clickTimer = null;
     let lastTap = 0;
-    const SINGLE_DELAY = 250;
+    const SINGLE_DELAY = 150;
   
     const likeThenPulse = () => {
       // If not liked, like immediately so the heart turns red first
@@ -609,7 +609,7 @@ export default function Feed() {
       onTouchEnd: (e) => {
         if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
         const now = Date.now();
-        const isDouble = now - lastTap < 260;
+        const isDouble = now - lastTap < 160;
         lastTap = now;
         if (isDouble) {
           e.preventDefault();
