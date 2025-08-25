@@ -1,20 +1,19 @@
+// src/App.js
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Feed from "./Feed";
 import VideoPlayer from "./VideoPlayer";
 import AdminDashboard from "./AdminDashboard";
+import About from "./About";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Main (random order, all videos) */}
         <Route path="/" element={<Feed />} />
-        {/* Single video by filename */}
         <Route path="/shorts/:filename" element={<VideoPlayer />} />
-        {/* Admin */}
         <Route path="/admin" element={<AdminDashboard />} />
-        {/* Optional: Not found route */}
-        {/* <Route path="*" element={<NotFound />} /> */}
+        <Route path="/about" element={<About />} />
+        <Route path="*" element={<Feed />} />
       </Routes>
     </BrowserRouter>
   );
