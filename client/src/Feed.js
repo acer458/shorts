@@ -669,7 +669,7 @@ export default function Feed() {
       .map((idx) => ({ ...shorts[idx], _idx: idx }));
   }
 
-  function renderVideo({
+    function renderVideo({
     v,
     idx,
     filename,
@@ -688,18 +688,52 @@ export default function Feed() {
       ...c,
       index: i
     }));
-
+  
     return (
       <div
         key={filename}
         style={{
-          width: "100vw", height: "100dvh", position: "absolute", left: 0, top: 0,
+          width: "100vw",
+          height: "100dvh",
+          position: "absolute",
+          left: 0,
+          top: 0,
           transition: "transform 0.44s cubic-bezier(.5,1,.5,1)",
           willChange: "transform",
           background: "black",
           overflow: "hidden"
         }}
       >
+        {/* Aesthetic animation styles (mini pulse + ambient glow) */}
+        <style>{`
+          /* Mini pulse for the small heart button on click */
+          .mini-like-pulse {
+            animation: miniLikePulse 360ms cubic-bezier(.2,.9,.2,1);
+          }
+          @keyframes miniLikePulse {
+            0%   { transform: scale(0.92); filter: drop-shadow(0 0 0 rgba(237,73,86,0)); }
+            40%  { transform: scale(1.14); filter: drop-shadow(0 0 10px rgba(237,73,86,.55)); }
+            70%  { transform: scale(1.04); filter: drop-shadow(0 0 6px rgba(237,73,86,.35)); }
+            100% { transform: scale(1);    filter: drop-shadow(0 0 0 rgba(237,73,86,0)); }
+          }
+  
+          /* Subtle resting glow while liked */
+          .heart-filled-glow {
+            filter: drop-shadow(0 0 6px rgba(237,73,86,.24));
+            transition: filter .25s ease;
+          }
+  
+          /* Optional soft ambient glow behind the big center pulse */
+          .center-pulse-glow {
+            animation: centerPulseGlow 700ms cubic-bezier(.2,.9,.2,1);
+          }
+          @keyframes centerPulseGlow {
+            0%   { box-shadow: 0 0 0 0 rgba(237,73,86,0.0); }
+            25%  { box-shadow: 0 0 0 22px rgba(237,73,86,0.14); }
+            100% { box-shadow: 0 0 0 0 rgba(237,73,86,0.0); }
+          }
+        `}</style>
+  
         {/* Spam Alert UI */}
         {isCurrent && spamAlert.show && (
           <div
@@ -723,14 +757,19 @@ export default function Feed() {
             {spamAlert.message || "Please wait before commenting again."}
           </div>
         )}
+  
         <video
           ref={el => el && (videoRefs.current[idx] = el)}
           src={HOST + v.url}
           loop={false}
           playsInline
           style={{
-            width: "100vw", height: "100dvh", objectFit: "contain", background: "#000",
-            cursor: "pointer", display: "block"
+            width: "100vw",
+            height: "100dvh",
+            objectFit: "contain",
+            background: "#000",
+            cursor: "pointer",
+            display: "block"
           }}
           muted={muted}
           autoPlay
@@ -738,6 +777,7 @@ export default function Feed() {
           onEnded={() => handleVideoEnded(idx, filename)}
           {...handleVideoEvents(idx, filename)}
         />
+  
         {isOverlayShown && (
           <div style={{
             position: "absolute", inset: 0, display: "flex",
@@ -769,20 +809,28 @@ export default function Feed() {
             `}</style>
           </div>
         )}
+  
         <button
           onClick={e => { e.stopPropagation(); setMuted(m => !m); setMutePulse(true); setTimeout(() => setMutePulse(false), 350); }}
           aria-label={muted ? "Unmute" : "Mute"}
           tabIndex={0}
           style={{
-            position: "absolute", top: 20, right: 20, zIndex: 60,
-            background: "rgba(28,29,34,0.65)", border: "none",
-            borderRadius: 16, width: 39, height: 39,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", boxShadow: "0 2px 6px #0002", outline: "none",
-            transition: "box-shadow .22s,ease",
-            ...(mutePulse
-              ? { animation: "mutepulseanim 0.38s cubic-bezier(.3,1.5,.65,1.05)", boxShadow: "0 0 0 9px #33b6ff27" }
-              : {})
+            position: "absolute",
+            top: 20,
+            right: 20,
+            zIndex: 60,
+            background: "rgba(28,29,34,0.65)",
+            border: "none",
+            borderRadius: 16,
+            width: 39,
+            height: 39,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            boxShadow: "0 2px 6px #0002",
+            outline: "none",
+            transition: "box-shadow .22s ease"
           }}
         >
           <MuteMicIcon muted={muted} />
@@ -794,6 +842,7 @@ export default function Feed() {
             }
           `}</style>
         </button>
+  
         {isCurrent && showPause && (
           <div style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
@@ -805,7 +854,17 @@ export default function Feed() {
             <style>{`@keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }`}</style>
           </div>
         )}
-        {isCurrent && <PulseHeart visible={showPulseHeart} />}
+  
+        {/* Big center pulse wrapped with soft ambient glow */}
+        {isCurrent && (
+          <div
+            className={showPulseHeart ? "center-pulse-glow" : ""}
+            style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+          >
+            <PulseHeart visible={showPulseHeart} />
+          </div>
+        )}
+  
         <div style={{
           position: "absolute", left: 0, right: 0, bottom: 0,
           height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32, borderRadius: 2, overflow: "hidden", cursor: "pointer"
@@ -820,6 +879,7 @@ export default function Feed() {
             transition: "width 0.22s cubic-bezier(.4,1,.5,1)", pointerEvents: "none"
           }} />
         </div>
+  
         <div style={{
           position: 'absolute', right: '12px', bottom: '100px',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', zIndex: 10
@@ -830,15 +890,35 @@ export default function Feed() {
           }}>
             <img src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg' alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
           </div>
+  
+          {/* LIKE BUTTON with mini pulse + subtle glow when liked */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
               aria-label={liked ? "Unlike" : "Like"}
               disabled={likePending[filename]}
-              onClick={e => { e.stopPropagation(); handleLike(idx, filename); }}
-              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', outline: 0 }}
-            ><HeartSVG filled={liked} /></button>
+              onClick={e => {
+                e.stopPropagation();
+                // 1) Toggle like first so SVG fill turns red instantly
+                handleLike(idx, filename);
+                // 2) Trigger a mini pulse/glow on the button itself
+                const btn = e.currentTarget;
+                btn.classList.remove('mini-like-pulse'); // reset if mid-animation
+                // Force reflow so repeated clicks replay the animation
+                // eslint-disable-next-line no-unused-expressions
+                btn.offsetWidth;
+                btn.classList.add('mini-like-pulse');
+              }}
+              className={liked ? "heart-filled-glow" : ""}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', outline: 0, transition: "transform .14s cubic-bezier(.2,.9,.2,1)" }}
+              onMouseDown={e => e.currentTarget.style.transform = "scale(0.96)"}
+              onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
+              onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+            >
+              <HeartSVG filled={liked} />
+            </button>
             <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px' }}>{v.likes || 0}</span>
           </div>
+  
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
               aria-label="Comment"
@@ -851,6 +931,7 @@ export default function Feed() {
             </button>
             <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>{v.comments?.length || 0}</span>
           </div>
+  
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
               aria-label="Share"
@@ -864,6 +945,7 @@ export default function Feed() {
             <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
           </div>
         </div>
+  
         <div style={{
           position: "absolute", left: 0, right: 0, bottom: 0,
           background: "linear-gradient(0deg,#000e 88%,transparent 100%)",
@@ -905,6 +987,7 @@ export default function Feed() {
             onClick={() => setShowComments(filename)}
           >View all {v.comments ? v.comments.length : 0} comments</div>
         </div>
+  
         {showComments === filename &&
           <div
             style={{
@@ -933,7 +1016,7 @@ export default function Feed() {
             >
               <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                paddingBottom: 15, borderBottom: '1px solid #262626'
+                paddingBottom: 15, borderBottom: '1px solid '#262626'
               }}>
                 <h2 style={{ fontSize: 16, fontWeight: 600, color: "#fff" }}>Comments</h2>
                 <span
@@ -947,15 +1030,11 @@ export default function Feed() {
                 style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}
                 onTouchMove={e => e.stopPropagation()}
                 onWheel={e => {
-                  // Prevent feed scroll when at top/bottom of comments on desktop
                   const el = e.currentTarget;
                   const { scrollTop, scrollHeight, clientHeight } = el;
                   const up = e.deltaY < 0;
                   const down = e.deltaY > 0;
-                  if (
-                    (up && scrollTop === 0) ||
-                    (down && scrollTop + clientHeight >= scrollHeight)
-                  ) {
+                  if ((up && scrollTop === 0) || (down && scrollTop + clientHeight >= scrollHeight)) {
                     e.preventDefault();
                     e.stopPropagation();
                   }
@@ -977,14 +1056,12 @@ export default function Feed() {
                         borderBottom: '1px solid #1a1a1a'
                       }}
                     >
-                      {/* Avatar (strict left) */}
                       <img
                         src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754503052/PropScholarUser_neup6j.png'
                         className="comment-avatar"
                         alt=""
                         style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
                       />
-                      {/* Username and text */}
                       <div className="comment-content" style={{ flex: 1 }}>
                         <div style={{
                           display: "flex",
@@ -1007,7 +1084,6 @@ export default function Feed() {
                           </span>
                         </div>
                       </div>
-                      {/* Like heart and count (strict right) */}
                       <button
                         style={{
                           marginLeft: 8,
@@ -1080,6 +1156,7 @@ export default function Feed() {
       </div>
     );
   }
+
 
 
   // ---- VIDEO FEED UI STATE ----
