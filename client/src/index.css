@@ -41,4 +41,32 @@ button:focus, input:focus {
   display: none; /* Chrome/Safari scrollbar removal */
 }
 
+/* === About page === */
+.about-page { 
+  background:#000; color:#fff; min-height:100vh; padding:40px 24px; 
+  display:flex; flex-direction:column; gap:40px;
+}
+.about-hero h1 { font-size:40px; line-height:1.1; margin:0; }
+.about-hero .sub { color:#c7c7c7; margin-top:8px; max-width:720px; }
+
+.about-grid {
+  display:grid; gap:20px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.about-grid h2 { font-size:20px; margin:0 0 8px; }
+.about-grid p, .about-grid li { color:#d8d8d8; }
+.about-grid ul { margin:0; padding-left:18px; }
+
+.about-cta { display:flex; align-items:center; gap:12px; }
+.btn-primary {
+  display:inline-block; padding:12px 16px; color:#fff; text-decoration:none;
+  border-radius:12px; background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px);
+  transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+  box-shadow: 0 6px 24px rgba(0,0,0,.35), inset 0 0 0 0 rgba(255,255,255,.2);
+}
+.btn-primary:hover { transform: translateY(-1px); background:rgba(255,255,255,0.1); }
+.btn-primary:active { transform: translateY(0); box-shadow: 0 0 0 rgba(0,0,0,0.25), inset 0 0 0 999px rgba(255,255,255,0.05); }
+
 
