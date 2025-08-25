@@ -1003,6 +1003,7 @@ export default function Feed() {
                           }))
                         }
                         aria-label={commentLikes[c.index] ? "Unlike comment" : "Like comment"}
+                        title={commentLikes[c.index] ? "Unlike" : "Like"}
                       >
                         <svg
                           width="20"
@@ -1017,16 +1018,6 @@ export default function Feed() {
                         >
                           <path d="M12 21c-.67 0-1.29-.26-1.77-.73L3.18 13A4.07 4.07 0 0 1 2 9.81C2 7.11 4.13 5 6.81 5c1.36 0 2.71.55 3.69 1.54A5.002 5.002 0 0 1 17.19 5C19.87 5 22 7.11 22 9.81c0 1.13-.44 2.26-1.18 3.19l-7.05 7.26c-.48.47-1.1.74-1.77.74Z"/>
                         </svg>
-                        <span style={{
-                          marginLeft: 4,
-                          fontSize: 13,
-                          color: "#ed4956",
-                          fontWeight: 500,
-                          minWidth: 12,
-                          userSelect: "none"
-                        }}>
-                          {commentLikes[c.index] ? 1 : 0}
-                        </span>
                       </button>
                     </div>
                   ))
