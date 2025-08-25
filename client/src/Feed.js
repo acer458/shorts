@@ -567,9 +567,23 @@ export default function Feed() {
   // ---- TAP + HEART UI ----
   function handleVideoEvents(idx, filename) {
     let tapTimeout = null;
+    let lastTap = 0;
+    
     return {
       onClick: () => {
-        if (tapTimeout) clearTimeout(tapTimeout);
+        const now = Date.now();
+        // Double tap detection
+        if (now - lastTap < 300) {
+          clearTimeout(tapTimeout);
+          tapTimeout = null;
+          if (!isLiked(filename)) handleLike(idx, filename, true);
+          setShowPulseHeart(true);
+          setTimeout(() => setShowPulseHeart(false), 700);
+          lastTap = 0;
+          return;
+        }
+        
+        lastTap = now;
         tapTimeout = setTimeout(() => {
           const vid = videoRefs.current[idx];
           if (!vid) return;
@@ -580,9 +594,11 @@ export default function Feed() {
             vid.pause();
             setShowPause(true);
           }
-        }, 240);
+          tapTimeout = null;
+        }, 300);
       },
-      onDoubleClick: () => {
+      onDoubleClick: (e) => {
+        e.preventDefault();
         if (tapTimeout) {
           clearTimeout(tapTimeout);
           tapTimeout = null;
@@ -593,27 +609,33 @@ export default function Feed() {
       },
       onTouchEnd: (e) => {
         if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
-        if (tapTimeout) {
+        const now = Date.now();
+        
+        // Double tap detection for touch
+        if (now - lastTap < 300) {
           clearTimeout(tapTimeout);
           tapTimeout = null;
           if (!isLiked(filename)) handleLike(idx, filename, true);
           setShowPulseHeart(true);
           setTimeout(() => setShowPulseHeart(false), 700);
-        } else {
-          tapTimeout = setTimeout(() => {
-            const vid = videoRefs.current[idx];
-            if (vid) {
-              if (vid.paused) {
-                vid.play();
-                setShowPause(false);
-              } else {
-                vid.pause();
-                setShowPause(true);
-              }
-            }
-            tapTimeout = null;
-          }, 250);
+          lastTap = 0;
+          return;
         }
+        
+        lastTap = now;
+        tapTimeout = setTimeout(() => {
+          const vid = videoRefs.current[idx];
+          if (vid) {
+            if (vid.paused) {
+              vid.play();
+              setShowPause(false);
+            } else {
+              vid.pause();
+              setShowPause(true);
+            }
+          }
+          tapTimeout = null;
+        }, 300);
       }
     };
   }
@@ -985,7 +1007,7 @@ export default function Feed() {
                           </span>
                         </div>
                       </div>
-                      {/* Like heart and count (strict right) */}
+                      {/* Like heart (no count) */}
                       <button
                         style={{
                           marginLeft: 8,
@@ -1017,16 +1039,6 @@ export default function Feed() {
                         >
                           <path d="M12 21c-.67 0-1.29-.26-1.77-.73L3.18 13A4.07 4.07 0 0 1 2 9.81C2 7.11 4.13 5 6.81 5c1.36 0 2.71.55 3.69 1.54A5.002 5.002 0 0 1 17.19 5C19.87 5 22 7.11 22 9.81c0 1.13-.44 2.26-1.18 3.19l-7.05 7.26c-.48.47-1.1.74-1.77.74Z"/>
                         </svg>
-                        <span style={{
-                          marginLeft: 4,
-                          fontSize: 13,
-                          color: "#ed4956",
-                          fontWeight: 500,
-                          minWidth: 12,
-                          userSelect: "none"
-                        }}>
-                          {commentLikes[c.index] ? 1 : 0}
-                        </span>
                       </button>
                     </div>
                   ))
