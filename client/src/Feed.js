@@ -1016,7 +1016,7 @@ export default function Feed() {
             >
               <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                paddingBottom: 15, borderBottom: '1px solid '#262626'
+                paddingBottom: 15, borderBottom: '1px solid #262626'
               }}>
                 <h2 style={{ fontSize: 16, fontWeight: 600, color: "#fff" }}>Comments</h2>
                 <span
