@@ -327,7 +327,7 @@ export default function Feed() {
   const [spamAlert, setSpamAlert] = useState({ show: false, message: "" });
   const spamAlertTimeout = useRef(null);
 
-  // ---- Fetch ----
+  // ---- FETCH ----
   useEffect(() => {
     setLoading(true);
     setNotFound(false);
@@ -368,22 +368,24 @@ export default function Feed() {
   }
 
   // ---- Wheel and swipe listeners for feed ----
-// FEED_GESTURES_GUARD
+  // FEED_GESTURES_GUARD
   useEffect(() => {
     if (aloneVideo) return;
-    if (showComments) return; // do not capture feed gestures when modal is open [11]
+    if (showComments) return; // disable feed gestures when modal is open
+
     let touchStartY = null;
     let touchMoved = false;
-  
+
     function onWheel(e) {
       if (Math.abs(e.deltaY) < 16) return;
       if (e.deltaY > 0) changeIdx(1);
       else if (e.deltaY < 0) changeIdx(-1);
       e.preventDefault();
     }
+
     function onTouchStart(e) {
       if (e.touches.length !== 1) return;
-      touchStartY = e.touches.clientY;
+      touchStartY = e.touches[0].clientY;
       touchMoved = false;
     }
     function onTouchMove(e) {
@@ -393,29 +395,29 @@ export default function Feed() {
     }
     function onTouchEnd(e) {
       if (!touchStartY || !e.changedTouches) return;
-      const dy = e.changedTouches.clientY - touchStartY;
+      const dy = e.changedTouches[0].clientY - touchStartY;
       if (Math.abs(dy) > 40 && touchMoved) {
         if (dy < 0) changeIdx(1);
         if (dy > 0) changeIdx(-1);
       }
       touchStartY = null;
     }
-  
+
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: false });
     window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: false });
-  
+
     return () => {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
     };
-  }, [currentIdx, shorts.length, aloneVideo, showComments]); // passive:false needed if preventDefault [12]
+  }, [currentIdx, shorts.length, aloneVideo, showComments]);
 
   // ---- Body scroll management ----
-  // Prevent background body scroll when modal is open (iOS-safe)
+  // iOS-safe lock when modal open
   useEffect(() => {
     if (showComments) {
       lockBodyScroll();
@@ -423,26 +425,20 @@ export default function Feed() {
       unlockBodyScroll();
     }
     return () => unlockBodyScroll();
-  }, [showComments]); // iOS-safe body locking for modal [5][10]
+  }, [showComments]);
 
-  // Prevent feed pull-to-refresh and touchmove when feed is active and modal not open
   // FEED_TOUCH_BLOCKER
   useEffect(() => {
-    // Only block global touch scrolling when the comments modal is NOT open,
-    // otherwise mobile feed won't scroll and modal can't drag/scroll.
     const preventScroll = (e) => {
       e.preventDefault();
       return false;
     };
-  
     const shouldBlock = !aloneVideo && !showComments;
     if (shouldBlock) {
-      // Disable pull-to-refresh and background scroll while paging feed
       document.body.style.overscrollBehaviorY = "none";
       document.body.style.touchAction = "none";
       window.addEventListener("touchmove", preventScroll, { passive: false });
     }
-  
     return () => {
       document.body.style.overscrollBehaviorY = "";
       document.body.style.touchAction = "";
@@ -450,7 +446,7 @@ export default function Feed() {
     };
   }, [aloneVideo, showComments]);
 
-  // Pause current video when visibility changes
+  // Pause on tab hidden
   useEffect(() => {
     function visibilityHandler() {
       if (document.visibilityState !== "visible") {
@@ -465,10 +461,8 @@ export default function Feed() {
   useEffect(() => {
     if (!showComments) return;
     const vid = videoRefs.current[currentIdx];
-    if (vid && !vid.paused) {
-      vid.pause();
-    }
-  }, [showComments, currentIdx]); // prevent audio while modal open [5]
+    if (vid && !vid.paused) vid.pause();
+  }, [showComments, currentIdx]);
 
   // ---- Video control: play/pause current only ----
   useEffect(() => {
@@ -491,7 +485,7 @@ export default function Feed() {
     setShowPulseHeart(false);
   }, [currentIdx, muted, aloneVideo, shorts, overlayShown, showComments]);
 
-  // Cleanup timeouts on unmount
+  // Cleanup spam timer
   useEffect(() => {
     return () => {
       if (spamAlertTimeout.current) {
@@ -501,7 +495,7 @@ export default function Feed() {
     };
   }, []);
 
-  // ---- Like / Comment / Share ----
+  // ---- LIKE / COMMENT / SHARE ----
   function isLiked(filename) {
     return localStorage.getItem("like_" + filename) === "1";
   }
@@ -527,9 +521,6 @@ export default function Feed() {
               : prev
           );
           setLiked(filename, true);
-        })
-        .catch(() => {
-          // optional: toast error
         })
         .finally(() => {
           setLikePending((l) => ({ ...l, [filename]: false }));
@@ -605,7 +596,6 @@ export default function Feed() {
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
       })
       .catch(() => {
-        // on failure, clear cooldown so user can retry
         lastCommentTimeRef.current[filename] = 0;
       });
   }
@@ -623,18 +613,17 @@ export default function Feed() {
       [filename]: !prev[filename],
     }));
 
-  // ---- Bottom Sheet: Drag only from header grabber ----
+  // ---- Bottom Sheet Drag (grabber only) ----
   function handleModalGrabberTouchStart(e) {
     if (!e.touches || e.touches.length !== 1) return;
-    dragStartY.current = e.touches.clientY;
+    dragStartY.current = e.touches[0].clientY;
     setIsDraggingModal(true);
     dragStartedOnGrabber.current = true;
   }
   function handleModalGrabberTouchMove(e) {
     if (!isDraggingModal || !dragStartedOnGrabber.current || !e.touches || e.touches.length !== 1) return;
-    const dy = e.touches.clientY - dragStartY.current;
+    const dy = e.touches[0].clientY - dragStartY.current;
     if (dy > 0) setModalDragY(dy);
-    // Prevent background scroll while dragging
     e.preventDefault();
     e.stopPropagation();
   }
@@ -649,7 +638,7 @@ export default function Feed() {
     dragStartedOnGrabber.current = false;
   }
 
-  // Prevent scroll chaining on comments list at edges (desktop and mobile)
+  // Prevent scroll chaining on comments list edges
   function preventListEdgeScroll(e) {
     const el = e.currentTarget;
     const { scrollTop, scrollHeight, clientHeight } = el;
@@ -785,7 +774,7 @@ export default function Feed() {
     let clientX;
     if (isTouch) {
       if (!e.touches || e.touches.length !== 1) return;
-      clientX = e.touches.clientX;
+      clientX = e.touches[0].clientX;
     } else {
       clientX = e.clientX;
     }
@@ -821,7 +810,6 @@ export default function Feed() {
     showFull,
     isTruncated,
     displayedCaption,
-    inFeed,
   }) {
     const isOverlayShown = overlayShown[filename];
     const mappedComments = (allComments || []).map((c, i) => ({
@@ -1233,7 +1221,7 @@ export default function Feed() {
               display: "flex",
               flexDirection: "column",
               justifyContent: "flex-end",
-              overscrollBehavior: "none", // container
+              overscrollBehavior: "none",
             }}
             onClick={() => setShowComments(null)}
           >
@@ -1256,13 +1244,12 @@ export default function Feed() {
                 touchAction: "none",
                 transform: modalDragY ? `translateY(${Math.min(modalDragY, 160)}px)` : "translateY(0)",
                 transition: isDraggingModal ? "none" : "transform 0.28s cubic-bezier(.2,.9,.25,1)",
-                overscrollBehavior: "contain", // contain within sheet
+                overscrollBehavior: "contain",
                 boxShadow: "0 -10px 40px rgba(0,0,0,.35)",
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Grabber header area for drag */}
-              // SHEET_GRABBER_STYLES
+              {/* SHEET_GRABBER_STYLES */}
               <div
                 style={{
                   position: "relative",
@@ -1272,8 +1259,9 @@ export default function Feed() {
                   alignItems: "center",
                   justifyContent: "center",
                   borderBottom: "1px solid #1a1a1a",
-                  background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.00) 100%)",
-                  touchAction: "none" // only the grabber disables native touch to allow custom drag [13]
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.00) 100%)",
+                  touchAction: "none",
                 }}
                 onTouchStart={handleModalGrabberTouchStart}
                 onTouchMove={handleModalGrabberTouchMove}
@@ -1304,7 +1292,7 @@ export default function Feed() {
                 >
                   ×
                 </button>
-              </div>            
+              </div>
 
               {/* Title */}
               <div
@@ -1319,29 +1307,17 @@ export default function Feed() {
                 <h2 style={{ fontSize: 16, fontWeight: 600, color: "#fff", margin: 0 }}>Comments</h2>
               </div>
 
-              {/* List */}
-              // SHEET_LIST_STYLES (list can scroll vertically; stop scroll chaining at edges)
+              {/* SHEET_LIST_STYLES */}
               <div
                 style={{
                   flex: 1,
                   overflowY: "auto",
                   padding: "12px 12px",
-                  overscrollBehaviorY: "contain", // keep scroll inside the sheet
+                  overscrollBehaviorY: "contain",
                   WebkitOverflowScrolling: "touch",
-                  touchAction: "pan-y" // allow vertical scrolling gestures
+                  touchAction: "pan-y",
                 }}
-                onWheel={(e) => {
-                  const el = e.currentTarget;
-                  const { scrollTop, scrollHeight, clientHeight } = el;
-                  const up = e.deltaY < 0;
-                  const down = e.deltaY > 0;
-                  const atTop = scrollTop <= 0;
-                  const atBottom = scrollTop + clientHeight >= scrollHeight;
-                  if ((up && atTop) || (down && atBottom)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }
-                }}
+                onWheel={preventListEdgeScroll}
                 onTouchMove={(e) => {
                   const el = e.currentTarget;
                   const { scrollTop, scrollHeight, clientHeight } = el;
@@ -1353,7 +1329,6 @@ export default function Feed() {
                   }
                 }}
               >
-                {/* render your mapped comments here */}
                 {mappedComments.length === 0 ? (
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>
                     No comments yet.
@@ -1439,6 +1414,7 @@ export default function Feed() {
                   })
                 )}
               </div>
+
               {/* Input */}
               <div
                 style={{
@@ -1547,7 +1523,7 @@ export default function Feed() {
     const filename = urlParts[urlParts.length - 1];
     const liked = isLiked(filename);
     const prog = videoProgress[filename] || 0;
-    const allComments = (v.comments || []).map((c, i) => ({ ...c }));
+    const allComments = (v.comments || []).map((c) => ({ ...c }));
     const caption = v.caption || "";
     const previewLimit = 90;
     const isTruncated = caption && caption.length > previewLimit;
@@ -1576,7 +1552,6 @@ export default function Feed() {
           showFull,
           isTruncated,
           displayedCaption,
-          inFeed: false,
         })}
         <button
           onClick={() => navigate("/", { replace: true })}
@@ -1637,12 +1612,12 @@ export default function Feed() {
         fontFamily: "Inter, Arial,sans-serif",
       }}
     >
-      {getPagedShorts().map((v, j) => {
+      {getPagedShorts().map((v) => {
         const idx = v._idx;
         const filename = v.url.split("/").pop();
         const liked = isLiked(filename);
         const prog = videoProgress[filename] || 0;
-        const allComments = (v.comments || []).map((c, i) => ({ ...c }));
+        const allComments = (v.comments || []).map((c) => ({ ...c }));
         const caption = v.caption || "";
         const previewLimit = 90;
         const isTruncated = caption && caption.length > previewLimit;
@@ -1676,7 +1651,6 @@ export default function Feed() {
               showFull,
               isTruncated,
               displayedCaption,
-              inFeed: true,
             })}
           </div>
         );
