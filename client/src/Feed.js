@@ -399,10 +399,11 @@ export default function Feed() {
     if (yes) localStorage.setItem("like_" + filename, "1");
     else localStorage.removeItem("like_" + filename);
   }
-  function handleLike(idx, filename, wantPulse = false) {
+  function handleLike(idx, filename, _unusedWantPulse = false) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
     setLikePending((l) => ({ ...l, [filename]: true }));
+  
     if (!liked) {
       axios.post(`${HOST}/shorts/${filename}/like`).then(() => {
         setShorts((prev) =>
@@ -417,17 +418,13 @@ export default function Feed() {
         );
         setLiked(filename, true);
         setLikePending((l) => ({ ...l, [filename]: false }));
+      }).catch(() => {
+        setLikePending((l) => ({ ...l, [filename]: false }));
       });
-      if (wantPulse) {
-        setShowPulseHeart(true);
-        setTimeout(() => setShowPulseHeart(false), 720);
-      }
     } else {
       setShorts((prev) =>
         prev.map((v, i) =>
-          i === idx && (v.likes || 0) > 0
-            ? { ...v, likes: v.likes - 1 }
-            : v
+          i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v
         )
       );
       setAloneVideo((prev) =>
@@ -439,6 +436,7 @@ export default function Feed() {
       setLikePending((l) => ({ ...l, [filename]: false }));
     }
   }
+
   function handleShare(filename) {
     const url = window.location.origin + "/?v=" + filename;
     if (navigator.share) {
@@ -566,11 +564,28 @@ export default function Feed() {
 
   // ---- TAP + HEART UI ----
   function handleVideoEvents(idx, filename) {
-    let tapTimeout = null;
+    let clickTimer = null;
+    let lastTap = 0;
+    const SINGLE_DELAY = 250;
+  
+    const likeThenPulse = () => {
+      // If not liked, like immediately so the heart turns red first
+      if (!isLiked(filename)) {
+        handleLike(idx, filename, false); // do NOT trigger pulse inside handleLike
+      }
+      // Kick off the pulse in the same frame to feel simultaneous
+      setShowPulseHeart(true);
+      // Use requestAnimationFrame to ensure paint happens smoothly
+      requestAnimationFrame(() => {
+        setTimeout(() => setShowPulseHeart(false), 700);
+      });
+    };
+  
     return {
-      onClick: () => {
-        if (tapTimeout) clearTimeout(tapTimeout);
-        tapTimeout = setTimeout(() => {
+      onClick: (e) => {
+        if (clickTimer) return;
+        clickTimer = setTimeout(() => {
+          clickTimer = null;
           const vid = videoRefs.current[idx];
           if (!vid) return;
           if (vid.paused) {
@@ -580,27 +595,34 @@ export default function Feed() {
             vid.pause();
             setShowPause(true);
           }
-        }, 240);
+        }, SINGLE_DELAY);
       },
-      onDoubleClick: () => {
-        if (tapTimeout) {
-          clearTimeout(tapTimeout);
-          tapTimeout = null;
+      onDoubleClick: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (clickTimer) {
+          clearTimeout(clickTimer);
+          clickTimer = null;
         }
-        if (!isLiked(filename)) handleLike(idx, filename, true);
-        setShowPulseHeart(true);
-        setTimeout(() => setShowPulseHeart(false), 700);
+        likeThenPulse();
       },
       onTouchEnd: (e) => {
         if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
-        if (tapTimeout) {
-          clearTimeout(tapTimeout);
-          tapTimeout = null;
-          if (!isLiked(filename)) handleLike(idx, filename, true);
-          setShowPulseHeart(true);
-          setTimeout(() => setShowPulseHeart(false), 700);
+        const now = Date.now();
+        const isDouble = now - lastTap < 260;
+        lastTap = now;
+        if (isDouble) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (clickTimer) {
+            clearTimeout(clickTimer);
+            clickTimer = null;
+          }
+          likeThenPulse();
         } else {
-          tapTimeout = setTimeout(() => {
+          if (clickTimer) clearTimeout(clickTimer);
+          clickTimer = setTimeout(() => {
+            clickTimer = null;
             const vid = videoRefs.current[idx];
             if (vid) {
               if (vid.paused) {
@@ -611,12 +633,12 @@ export default function Feed() {
                 setShowPause(true);
               }
             }
-            tapTimeout = null;
-          }, 250);
+          }, SINGLE_DELAY);
         }
-      }
+      },
     };
   }
+
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -812,7 +834,7 @@ export default function Feed() {
             <button
               aria-label={liked ? "Unlike" : "Like"}
               disabled={likePending[filename]}
-              onClick={e => { e.stopPropagation(); handleLike(idx, filename, !liked); }}
+              onClick={e => { e.stopPropagation(); handleLike(idx, filename); }}
               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', outline: 0 }}
             ><HeartSVG filled={liked} /></button>
             <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px' }}>{v.likes || 0}</span>
@@ -1003,6 +1025,7 @@ export default function Feed() {
                           }))
                         }
                         aria-label={commentLikes[c.index] ? "Unlike comment" : "Like comment"}
+                        title={commentLikes[c.index] ? "Unlike" : "Like"}
                       >
                         <svg
                           width="20"
@@ -1017,16 +1040,6 @@ export default function Feed() {
                         >
                           <path d="M12 21c-.67 0-1.29-.26-1.77-.73L3.18 13A4.07 4.07 0 0 1 2 9.81C2 7.11 4.13 5 6.81 5c1.36 0 2.71.55 3.69 1.54A5.002 5.002 0 0 1 17.19 5C19.87 5 22 7.11 22 9.81c0 1.13-.44 2.26-1.18 3.19l-7.05 7.26c-.48.47-1.1.74-1.77.74Z"/>
                         </svg>
-                        <span style={{
-                          marginLeft: 4,
-                          fontSize: 13,
-                          color: "#ed4956",
-                          fontWeight: 500,
-                          minWidth: 12,
-                          userSelect: "none"
-                        }}>
-                          {commentLikes[c.index] ? 1 : 0}
-                        </span>
                       </button>
                     </div>
                   ))
