@@ -368,20 +368,19 @@ export default function Feed() {
   }
 
   // ---- Wheel and swipe listeners for feed ----
+// FEED_GESTURES_GUARD
   useEffect(() => {
     if (aloneVideo) return;
-    if (showComments) return; // do not handle feed gestures when modal is open
-
+    if (showComments) return; // do not capture feed gestures when modal is open [11]
     let touchStartY = null;
     let touchMoved = false;
-
+  
     function onWheel(e) {
       if (Math.abs(e.deltaY) < 16) return;
       if (e.deltaY > 0) changeIdx(1);
       else if (e.deltaY < 0) changeIdx(-1);
       e.preventDefault();
     }
-
     function onTouchStart(e) {
       if (e.touches.length !== 1) return;
       touchStartY = e.touches.clientY;
@@ -401,19 +400,19 @@ export default function Feed() {
       }
       touchStartY = null;
     }
-
+  
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: false });
     window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: false });
-
+  
     return () => {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
     };
-  }, [currentIdx, shorts.length, aloneVideo, showComments]);
+  }, [currentIdx, shorts.length, aloneVideo, showComments]); // passive:false needed if preventDefault [12]
 
   // ---- Body scroll management ----
   // Prevent background body scroll when modal is open (iOS-safe)
@@ -427,22 +426,29 @@ export default function Feed() {
   }, [showComments]); // iOS-safe body locking for modal [5][10]
 
   // Prevent feed pull-to-refresh and touchmove when feed is active and modal not open
+  // FEED_TOUCH_BLOCKER
   useEffect(() => {
+    // Only block global touch scrolling when the comments modal is NOT open,
+    // otherwise mobile feed won't scroll and modal can't drag/scroll.
     const preventScroll = (e) => {
       e.preventDefault();
       return false;
     };
-    if (!aloneVideo && !showComments) {
+  
+    const shouldBlock = !aloneVideo && !showComments;
+    if (shouldBlock) {
+      // Disable pull-to-refresh and background scroll while paging feed
       document.body.style.overscrollBehaviorY = "none";
       document.body.style.touchAction = "none";
       window.addEventListener("touchmove", preventScroll, { passive: false });
     }
+  
     return () => {
       document.body.style.overscrollBehaviorY = "";
       document.body.style.touchAction = "";
       window.removeEventListener("touchmove", preventScroll);
     };
-  }, [aloneVideo, showComments]); // scroll chaining management [8]
+  }, [aloneVideo, showComments]);
 
   // Pause current video when visibility changes
   useEffect(() => {
@@ -1256,6 +1262,7 @@ export default function Feed() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Grabber header area for drag */}
+              // SHEET_GRABBER_STYLES
               <div
                 style={{
                   position: "relative",
@@ -1265,8 +1272,8 @@ export default function Feed() {
                   alignItems: "center",
                   justifyContent: "center",
                   borderBottom: "1px solid #1a1a1a",
-                  background:
-                    "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.00) 100%)",
+                  background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.00) 100%)",
+                  touchAction: "none" // only the grabber disables native touch to allow custom drag [13]
                 }}
                 onTouchStart={handleModalGrabberTouchStart}
                 onTouchMove={handleModalGrabberTouchMove}
@@ -1297,7 +1304,7 @@ export default function Feed() {
                 >
                   ×
                 </button>
-              </div>
+              </div>            
 
               {/* Title */}
               <div
@@ -1313,17 +1320,29 @@ export default function Feed() {
               </div>
 
               {/* List */}
+              // SHEET_LIST_STYLES (list can scroll vertically; stop scroll chaining at edges)
               <div
                 style={{
                   flex: 1,
                   overflowY: "auto",
                   padding: "12px 12px",
-                  overscrollBehaviorY: "contain", // prevent chaining at edges
+                  overscrollBehaviorY: "contain", // keep scroll inside the sheet
                   WebkitOverflowScrolling: "touch",
+                  touchAction: "pan-y" // allow vertical scrolling gestures
                 }}
-                onWheel={preventListEdgeScroll}
+                onWheel={(e) => {
+                  const el = e.currentTarget;
+                  const { scrollTop, scrollHeight, clientHeight } = el;
+                  const up = e.deltaY < 0;
+                  const down = e.deltaY > 0;
+                  const atTop = scrollTop <= 0;
+                  const atBottom = scrollTop + clientHeight >= scrollHeight;
+                  if ((up && atTop) || (down && atBottom)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
                 onTouchMove={(e) => {
-                  // If the list is at an edge, prevent scroll chaining to the feed
                   const el = e.currentTarget;
                   const { scrollTop, scrollHeight, clientHeight } = el;
                   const atTop = scrollTop <= 0;
@@ -1334,6 +1353,7 @@ export default function Feed() {
                   }
                 }}
               >
+                {/* render your mapped comments here */}
                 {mappedComments.length === 0 ? (
                   <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>
                     No comments yet.
@@ -1419,7 +1439,6 @@ export default function Feed() {
                   })
                 )}
               </div>
-
               {/* Input */}
               <div
                 style={{
