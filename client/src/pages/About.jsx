@@ -1,4 +1,3 @@
-// src/pages/About.jsx
 import React from "react";
 
 const styles = {
@@ -11,12 +10,15 @@ const styles = {
     lineHeight: 1.6,
     maxWidth: 900,
     margin: "0 auto",
+    position: "relative",
+    overflow: "hidden",
   },
   title: {
     fontSize: "clamp(2.5rem, 5vw, 3.5rem)",
     marginBottom: 30,
     paddingBottom: 16,
-    background: "linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(74,163,255,1) 100%)",
+    background:
+      "linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(74,163,255,1) 100%)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     textAlign: "center",
@@ -25,7 +27,6 @@ const styles = {
     position: "relative",
   },
   titleUnderline: {
-    content: '""',
     position: "absolute",
     bottom: 0,
     left: "50%",
@@ -48,7 +49,8 @@ const styles = {
   subtitle: {
     fontSize: "clamp(1.5rem, 4vw, 2rem)",
     marginBottom: 20,
-    background: "linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(74,163,255,1) 100%)",
+    background:
+      "linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(74,163,255,1) 100%)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     fontWeight: 600,
@@ -92,13 +94,16 @@ const styles = {
     gap: "8px",
     transition: "all 0.3s ease",
     boxShadow: "0 4px 15px rgba(74, 163, 255, 0.3)",
+    cursor: "pointer",
+    userSelect: "none",
   },
   glow: {
     position: "fixed",
     width: "500px",
     height: "500px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(74, 163, 255, 0.15) 0%, rgba(0, 0, 0, 0) 70%)",
+    background:
+      "radial-gradient(circle, rgba(74, 163, 255, 0.15) 0%, rgba(0, 0, 0, 0) 70%)",
     top: "-250px",
     right: "-250px",
     pointerEvents: "none",
@@ -109,7 +114,8 @@ const styles = {
     width: "400px",
     height: "400px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(138, 43, 226, 0.15) 0%, rgba(0, 0, 0, 0) 70%)",
+    background:
+      "radial-gradient(circle, rgba(138, 43, 226, 0.15) 0%, rgba(0, 0, 0, 0) 70%)",
     bottom: "-200px",
     left: "-200px",
     pointerEvents: "none",
@@ -123,7 +129,7 @@ export default function About() {
       {/* Background Glow Effects */}
       <div style={styles.glow}></div>
       <div style={styles.glow2}></div>
-      
+
       <h1 style={styles.title}>
         Making Trading Accessible
         <span style={styles.titleUnderline}></span>
@@ -132,7 +138,6 @@ export default function About() {
       <p style={styles.paragraph}>
         Our mission is to make trading accessible for everyone by providing scholarship grants.
       </p>
-
       <p style={styles.paragraph}>
         In exchange we take a simple evaluation/test. If traders complete the test successfully, we provide the scholarship.
       </p>
@@ -147,7 +152,7 @@ export default function About() {
       <section style={styles.section}>
         <h2 style={styles.subtitle}>Our Vision</h2>
         <p style={styles.paragraph}>
-          Our vision is to make the process skill-based. We want to eliminate the capital barrier in a trader's journey. Using our platform, a trader can use their skill and earn a scholarship which will support their journey.
+          Our vision is to make the process skill-based. We want to eliminate the capital barrier in a trader’s journey. Using our platform, a trader can use their skill and earn a scholarship which will support their journey.
         </p>
         <p style={styles.paragraph}>
           By using our platform one can prove themselves by providing a skill-based test and hence passing, claiming, and earning a scholarship from us.
@@ -158,24 +163,28 @@ export default function About() {
         <h2 style={styles.subtitle}>Our Core Values</h2>
 
         <h3 style={styles.subtitleSmall}>
-          <span style={styles.icon}>✨</span>Commitment to Our Word
+          <span style={styles.icon}>✨</span>
+          Commitment to Our Word
         </h3>
         <p style={styles.paragraph}>We deliver what we say.</p>
 
         <h3 style={styles.subtitleSmall}>
-          <span style={styles.icon}>🎯</span>Client-Centered Focus
+          <span style={styles.icon}>🎯</span>
+          Client-Centered Focus
         </h3>
         <p style={styles.paragraph}>Our team is focused to deliver what our clients want.</p>
 
         <h3 style={styles.subtitleSmall}>
-          <span style={styles.icon}>🌟</span>Best Support in the Industry
+          <span style={styles.icon}>🌟</span>
+          Best Support in the Industry
         </h3>
         <p style={styles.paragraph}>
           We are committed to provide the best support in the industry. For us, support is the image of the company.
         </p>
 
         <h3 style={styles.subtitleSmall}>
-          <span style={styles.icon}>⚡</span>Simplest Evaluation Process
+          <span style={styles.icon}>⚡</span>
+          Simplest Evaluation Process
         </h3>
         <p style={styles.paragraph}>We have created an evaluation tailored to be fair and transparent.</p>
       </section>
@@ -186,50 +195,50 @@ export default function About() {
           We want to create a community of skilled individuals and enthusiasts who are committed and want to join us in making the trading process skill-based and devoid of capital barriers. Our Discord is an active place where we are committed to providing 24×7 support.
         </p>
         <div style={styles.links}>
-          <a 
-            href="https://discord.com/invite/yourserver" 
-            target="_blank" 
-            rel="noopener noreferrer" 
+          <a
+            href="https://discord.com/invite/yourserver"
+            target="_blank"
+            rel="noopener noreferrer"
             style={styles.linkItem}
             onMouseEnter={(e) => {
-              e.target.style.transform = "translateY(-3px)";
-              e.target.style.boxShadow = "0 6px 20px rgba(74, 163, 255, 0.5)";
+              e.currentTarget.style.transform = "translateY(-3px)";
+              e.currentTarget.style.boxShadow = "0 6px 20px rgba(74, 163, 255, 0.5)";
             }}
             onMouseLeave={(e) => {
-              e.target.style.transform = "translateY(0px)";
-              e.target.style.boxShadow = "0 4px 15px rgba(74, 163, 255, 0.3)";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 15px rgba(74, 163, 255, 0.3)";
             }}
           >
             <span>🎮</span> Join Discord
           </a>
-          <a 
-            href="https://instagram.com/propscholar" 
-            target="_blank" 
-            rel="noopener noreferrer" 
+          <a
+            href="https://instagram.com/propscholar"
+            target="_blank"
+            rel="noopener noreferrer"
             style={styles.linkItem}
             onMouseEnter={(e) => {
-              e.target.style.transform = "translateY(-3px)";
-              e.target.style.boxShadow = "0 6px 20px rgba(74, 163, 255, 0.5)";
+              e.currentTarget.style.transform = "translateY(-3px)";
+              e.currentTarget.style.boxShadow = "0 6px 20px rgba(74, 163, 255, 0.5)";
             }}
             onMouseLeave={(e) => {
-              e.target.style.transform = "translateY(0px)";
-              e.target.style.boxShadow = "0 4px 15px rgba(74, 163, 255, 0.3)";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 15px rgba(74, 163, 255, 0.3)";
             }}
           >
             <span>📸</span> Follow Instagram
           </a>
-          <a 
-            href="https://twitter.com/propscholar" 
-            target="_blank" 
-            rel="noopener noreferrer" 
+          <a
+            href="https://twitter.com/propscholar"
+            target="_blank"
+            rel="noopener noreferrer"
             style={styles.linkItem}
             onMouseEnter={(e) => {
-              e.target.style.transform = "translateY(-3px)";
-              e.target.style.boxShadow = "0 6px 20px rgba(74, 163, 255, 0.5)";
+              e.currentTarget.style.transform = "translateY(-3px)";
+              e.currentTarget.style.boxShadow = "0 6px 20px rgba(74, 163, 255, 0.5)";
             }}
             onMouseLeave={(e) => {
-              e.target.style.transform = "translateY(0px)";
-              e.target.style.boxShadow = "0 4px 15px rgba(74, 163, 255, 0.3)";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 15px rgba(74, 163, 255, 0.3)";
             }}
           >
             <span>🐦</span> Follow Twitter
