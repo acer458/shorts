@@ -39,32 +39,6 @@ function fakeAvatar(i) {
   ];
   return urls[i % urls.length];
 }
-function timeAgo(date) {
-  if (!date) return "";
-  const now = Date.now();
-  const past = typeof date === "string" ? new Date(date).getTime() : date;
-  const diff = Math.round((now - past) / 1000);
-
-  if (diff < 10) return "Just now";
-  if (diff < 60) return diff + " sec";
-  if (diff < 90) return "1 min";
-  if (diff < 60 * 60) return Math.floor(diff / 60) + " min";
-  if (diff < 90 * 60) return "1 hr";
-  if (diff < 60 * 60 * 24) return Math.floor(diff / 3600) + " hr";
-  if (diff < 60 * 60 * 36) return "1 day";
-  return Math.floor(diff / 86400) + " days";
-}
-
-function throttle(fn, wait) {
-  let locked = false;
-  return (...args) => {
-    if (locked) return;
-    locked = true;
-    fn(...args);
-    setTimeout(() => (locked = false), wait);
-  };
-}
-
 // ---- SVG ICONS ----
 function HeartSVG({ filled }) {
   return (
@@ -259,11 +233,11 @@ export default function Feed() {
   const spamAlertTimeout = useRef(null);
 
   // ---- Prevent body scroll and pull-to-refresh on mobile ----
-  useEffect(() => {
-    const preventScroll = (e) => {
-      e.preventDefault();
-      return false;
-    };
+  // useEffect(() => {
+  //   const preventScroll = (e) => {
+  //     e.preventDefault();
+  //     return false;
+  //   };
 
     if (!aloneVideo && !showComments) {
       document.body.style.overscrollBehaviorY = "none";
