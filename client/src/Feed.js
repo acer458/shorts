@@ -399,11 +399,10 @@ export default function Feed() {
     if (yes) localStorage.setItem("like_" + filename, "1");
     else localStorage.removeItem("like_" + filename);
   }
-  function handleLike(idx, filename, _unusedWantPulse = false) {
+  function handleLike(idx, filename, wantPulse = false) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
     setLikePending((l) => ({ ...l, [filename]: true }));
-  
     if (!liked) {
       axios.post(`${HOST}/shorts/${filename}/like`).then(() => {
         setShorts((prev) =>
@@ -418,13 +417,17 @@ export default function Feed() {
         );
         setLiked(filename, true);
         setLikePending((l) => ({ ...l, [filename]: false }));
-      }).catch(() => {
-        setLikePending((l) => ({ ...l, [filename]: false }));
       });
+      if (wantPulse) {
+        setShowPulseHeart(true);
+        setTimeout(() => setShowPulseHeart(false), 720);
+      }
     } else {
       setShorts((prev) =>
         prev.map((v, i) =>
-          i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v
+          i === idx && (v.likes || 0) > 0
+            ? { ...v, likes: v.likes - 1 }
+            : v
         )
       );
       setAloneVideo((prev) =>
@@ -436,7 +439,6 @@ export default function Feed() {
       setLikePending((l) => ({ ...l, [filename]: false }));
     }
   }
-
   function handleShare(filename) {
     const url = window.location.origin + "/?v=" + filename;
     if (navigator.share) {
@@ -564,28 +566,25 @@ export default function Feed() {
 
   // ---- TAP + HEART UI ----
   function handleVideoEvents(idx, filename) {
-    let clickTimer = null;
+    let tapTimeout = null;
     let lastTap = 0;
-    const SINGLE_DELAY = 150;
-  
-    const likeThenPulse = () => {
-      // If not liked, like immediately so the heart turns red first
-      if (!isLiked(filename)) {
-        handleLike(idx, filename, false); // do NOT trigger pulse inside handleLike
-      }
-      // Kick off the pulse in the same frame to feel simultaneous
-      setShowPulseHeart(true);
-      // Use requestAnimationFrame to ensure paint happens smoothly
-      requestAnimationFrame(() => {
-        setTimeout(() => setShowPulseHeart(false), 700);
-      });
-    };
-  
+    
     return {
-      onClick: (e) => {
-        if (clickTimer) return;
-        clickTimer = setTimeout(() => {
-          clickTimer = null;
+      onClick: () => {
+        const now = Date.now();
+        // Double tap detection
+        if (now - lastTap < 300) {
+          clearTimeout(tapTimeout);
+          tapTimeout = null;
+          if (!isLiked(filename)) handleLike(idx, filename, true);
+          setShowPulseHeart(true);
+          setTimeout(() => setShowPulseHeart(false), 700);
+          lastTap = 0;
+          return;
+        }
+        
+        lastTap = now;
+        tapTimeout = setTimeout(() => {
           const vid = videoRefs.current[idx];
           if (!vid) return;
           if (vid.paused) {
@@ -595,50 +594,51 @@ export default function Feed() {
             vid.pause();
             setShowPause(true);
           }
-        }, SINGLE_DELAY);
+          tapTimeout = null;
+        }, 300);
       },
       onDoubleClick: (e) => {
         e.preventDefault();
-        e.stopPropagation();
-        if (clickTimer) {
-          clearTimeout(clickTimer);
-          clickTimer = null;
+        if (tapTimeout) {
+          clearTimeout(tapTimeout);
+          tapTimeout = null;
         }
-        likeThenPulse();
+        if (!isLiked(filename)) handleLike(idx, filename, true);
+        setShowPulseHeart(true);
+        setTimeout(() => setShowPulseHeart(false), 700);
       },
       onTouchEnd: (e) => {
         if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
         const now = Date.now();
-        const isDouble = now - lastTap < 160;
-        lastTap = now;
-        if (isDouble) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (clickTimer) {
-            clearTimeout(clickTimer);
-            clickTimer = null;
-          }
-          likeThenPulse();
-        } else {
-          if (clickTimer) clearTimeout(clickTimer);
-          clickTimer = setTimeout(() => {
-            clickTimer = null;
-            const vid = videoRefs.current[idx];
-            if (vid) {
-              if (vid.paused) {
-                vid.play();
-                setShowPause(false);
-              } else {
-                vid.pause();
-                setShowPause(true);
-              }
-            }
-          }, SINGLE_DELAY);
+        
+        // Double tap detection for touch
+        if (now - lastTap < 300) {
+          clearTimeout(tapTimeout);
+          tapTimeout = null;
+          if (!isLiked(filename)) handleLike(idx, filename, true);
+          setShowPulseHeart(true);
+          setTimeout(() => setShowPulseHeart(false), 700);
+          lastTap = 0;
+          return;
         }
-      },
+        
+        lastTap = now;
+        tapTimeout = setTimeout(() => {
+          const vid = videoRefs.current[idx];
+          if (vid) {
+            if (vid.paused) {
+              vid.play();
+              setShowPause(false);
+            } else {
+              vid.pause();
+              setShowPause(true);
+            }
+          }
+          tapTimeout = null;
+        }, 300);
+      }
     };
   }
-
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -834,7 +834,7 @@ export default function Feed() {
             <button
               aria-label={liked ? "Unlike" : "Like"}
               disabled={likePending[filename]}
-              onClick={e => { e.stopPropagation(); handleLike(idx, filename); }}
+              onClick={e => { e.stopPropagation(); handleLike(idx, filename, !liked); }}
               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', outline: 0 }}
             ><HeartSVG filled={liked} /></button>
             <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px' }}>{v.likes || 0}</span>
@@ -1007,7 +1007,7 @@ export default function Feed() {
                           </span>
                         </div>
                       </div>
-                      {/* Like heart and count (strict right) */}
+                      {/* Like heart (no count) */}
                       <button
                         style={{
                           marginLeft: 8,
@@ -1025,7 +1025,6 @@ export default function Feed() {
                           }))
                         }
                         aria-label={commentLikes[c.index] ? "Unlike comment" : "Like comment"}
-                        title={commentLikes[c.index] ? "Unlike" : "Like"}
                       >
                         <svg
                           width="20"
