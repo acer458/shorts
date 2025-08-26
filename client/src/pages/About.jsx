@@ -249,7 +249,7 @@ export default function About() {
       <section style={styles.section}>
         <h2 style={styles.subtitle}>Our Journey</h2>
         <p style={styles.paragraph}>
-          At PropScholar, we are committed to making trading accessible to everyone. Pass our evaluation with your skill and earn a scholarship.
+          At PropScholar, we are ith your skill and earn a scholarship.
         </p>
       </section>
     </main>
