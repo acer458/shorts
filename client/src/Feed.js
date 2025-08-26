@@ -630,7 +630,7 @@ export default function Feed() {
   function handleModalGrabberTouchEnd() {
     if (!dragStartedOnGrabber.current) return;
     setIsDraggingModal(false);
-    const closeThreshold = 90;
+    const closeThreshold = 56;
     if (modalDragY > closeThreshold) {
       setShowComments(null);
     }
