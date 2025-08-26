@@ -4,14 +4,17 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 // ---- CONFIG ----
 const HOST = "https://shorts-t2dk.onrender.com";
-const COMMENT_SPAM_DELAY_MS = 5000; // 5 seconds
+const COMMENT_SPAM_DELAY_MS = 5000; // 5 seconds delay between each comment per video
 
 // ---- UTILITIES ----
 function truncateString(str, maxLen = 90) {
   if (!str) return "";
   if (str.length <= maxLen) return str;
   const nextSpace = str.indexOf(" ", maxLen);
-  return str.substring(0, nextSpace === -1 ? str.length : nextSpace) + "…";
+  return (
+    str.substring(0, nextSpace === -1 ? str.length : nextSpace) +
+    "…"
+  );
 }
 function shuffleArray(arr) {
   const a = [...arr];
@@ -21,100 +24,173 @@ function shuffleArray(arr) {
   }
   return a;
 }
+function getProfilePic(v) {
+  return (
+    v.avatar ||
+    v.profilePic ||
+    `https://api.dicebear.com/8.x/thumbs/svg?seed=${encodeURIComponent(
+      v.author || "propscholar-user"
+    )}`
+  );
+}
+function fakeAvatar(i) {
+  const urls = [
+    "https://res.cloudinary.com/dzozyqlqr/image/upload/v1754503052/PropScholarUser_neup6j.png"
+  ];
+  return urls[i % urls.length];
+}
+function timeAgo(date) {
+  if (!date) return "";
+  const now = Date.now();
+  const past = typeof date === "string" ? new Date(date).getTime() : date;
+  const diff = Math.round((now - past) / 1000);
 
-// ---- ICONS/UI ----
-const HeartSVG = ({ filled }) => (
-  <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
-    <path
-      fill={filled ? "#ed4956" : "none"}
-      stroke={filled ? "#ed4956" : "#fff"}
-      strokeWidth="3"
-      d="M34.3 7.8c-3.4 0-6.5 1.7-8.3 4.4-1.8-2.7-4.9-4.4-8.3-4.4C11 7.8 7 12 7 17.2c0 3.7 2.6 7 6.6 11.1 3.1 3.1 9.3 8.6 10.1 9.3.6.5 1.5.5 2.1 0 .8-.7 7-6.2 10.1-9.3 4-4.1 6.6-7.4 6.6-11.1 0-5.2-4-9.4-8.6-9.4z"
-    />
-  </svg>
-);
-const PauseIcon = () => (
-  <svg width={82} height={82} viewBox="0 0 82 82">
-    <circle cx="41" cy="41" r="40" fill="#000A" />
-    <rect x="26" y="20" width="10" height="42" rx="3" fill="#fff" />
-    <rect x="46" y="20" width="10" height="42" rx="3" fill="#fff" />
-  </svg>
-);
-const PulseHeart = ({ visible }) => (
-  <div
-    aria-hidden
-    style={{
-      position: "absolute",
-      left: "50%",
-      top: "50%",
-      zIndex: 106,
-      transform: "translate(-50%,-50%)",
-      pointerEvents: "none",
-      opacity: visible ? 1 : 0,
-      animation: visible ? "heartPulseAnim .75s cubic-bezier(.1,1.6,.6,1)" : "none",
-    }}
-  >
-    <svg viewBox="0 0 96 96" width={90} height={90} style={{ display: "block" }}>
+  if (diff < 10) return "Just now";
+  if (diff < 60) return diff + " sec";
+  if (diff < 90) return "1 min";
+  if (diff < 60 * 60) return Math.floor(diff / 60) + " min";
+  if (diff < 90 * 60) return "1 hr";
+  if (diff < 60 * 60 * 24) return Math.floor(diff / 3600) + " hr";
+  if (diff < 60 * 60 * 36) return "1 day";
+  return Math.floor(diff / 86400) + " days";
+}
+
+function throttle(fn, wait) {
+  let locked = false;
+  return (...args) => {
+    if (locked) return;
+    locked = true;
+    fn(...args);
+    setTimeout(() => (locked = false), wait);
+  };
+}
+
+// ---- SVG ICONS ----
+function HeartSVG({ filled }) {
+  return (
+    <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
       <path
-        d="M48 86C48 86 12 60 12 32.5 12 18.8 24.5 10 36 10c6.2 0 11.9 3.3 12 3.3S53.8 10 60 10c11.5 0 24 8.8 24 22.5C84 60 48 86 48 86Z"
-        fill="#ed4956"
-        stroke="#ed4956"
-        strokeWidth="7"
+        fill={filled ? "#ed4956" : "none"}
+        stroke={filled ? "#ed4956" : "#fff"}
+        strokeWidth="3"
+        d="M34.3 7.8c-3.4 0-6.5 1.7-8.3 4.4-1.8-2.7-4.9-4.4-8.3-4.4C11 7.8 7 12 7 17.2c0 3.7 2.6 7 6.6 11.1 3.1 3.1 9.3 8.6 10.1 9.3.6.5 1.5.5 2.1 0 .8-.7 7-6.2 10.1-9.3 4-4.1 6.6-7.4 6.6-11.1 0-5.2-4-9.4-8.6-9.4z"
       />
     </svg>
-    <style>{`
-      @keyframes heartPulseAnim {
-        0% { opacity: 0; transform: translate(-50%,-50%) scale(0);}
-        14% { opacity: 0.92; transform: translate(-50%,-50%) scale(1.22);}
-        27% { opacity: 1; transform: translate(-50%,-50%) scale(0.89);}
-        44%, 82% { opacity: 0.92; transform: translate(-50%,-50%) scale(1);}
-        100% { opacity: 0; transform: translate(-50%,-50%) scale(0);}
-      }
-    `}</style>
-  </div>
-);
-const MuteMicIcon = ({ muted }) =>
-  muted ? (
+  );
+}
+function PauseIcon() {
+  return (
+    <svg width={82} height={82} viewBox="0 0 82 82">
+      <circle cx="41" cy="41" r="40" fill="#000A" />
+      <rect x="26" y="20" width="10" height="42" rx="3" fill="#fff" />
+      <rect x="46" y="20" width="10" height="42" rx="3" fill="#fff" />
+    </svg>
+  );
+}
+function PulseHeart({ visible }) {
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: "absolute", left: "50%", top: "50%", zIndex: 106,
+        transform: "translate(-50%,-50%)",
+        pointerEvents: "none", opacity: visible ? 1 : 0,
+        animation: visible ? "heartPulseAnim .75s cubic-bezier(.1,1.6,.6,1)" : "none"
+      }}
+    >
+      <svg viewBox="0 0 96 96" width={90} height={90} style={{ display: "block" }}>
+        <path
+          d="M48 86C48 86 12 60 12 32.5 12 18.8 24.5 10 36 10c6.2 0 11.9 3.3 12 3.3S53.8 10 60 10c11.5 0 24 8.8 24 22.5C84 60 48 86 48 86Z"
+          fill="#ed4956"
+          stroke="#ed4956"
+          strokeWidth="7"
+        />
+      </svg>
+      <style>{`
+        @keyframes heartPulseAnim {
+          0% { opacity: 0; transform: translate(-50%,-50%) scale(0);}
+          14% { opacity: 0.92; transform: translate(-50%,-50%) scale(1.22);}
+          27% { opacity: 1; transform: translate(-50%,-50%) scale(0.89);}
+          44%, 82% { opacity: 0.92; transform: translate(-50%,-50%) scale(1);}
+          100% { opacity: 0; transform: translate(-50%,-50%) scale(0);}
+        }
+      `}</style>
+    </div>
+  );
+}
+function MuteMicIcon({ muted }) {
+  return muted ? (
     <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff2" stroke="#fff" />
-      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff" />
-      <line x1="4.8" y1="4.8" x2="19.2" y2="19.2" stroke="#fff" strokeWidth="2.6" />
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff2" stroke="#fff"/>
+      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff"/>
+      <line x1="4.8" y1="4.8" x2="19.2" y2="19.2" stroke="#fff" strokeWidth="2.6"/>
     </svg>
   ) : (
     <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff1" stroke="#fff" />
-      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff" />
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff1" stroke="#fff"/>
+      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff"/>
     </svg>
   );
-
-// ---- LOADING SKELETON ----
+}
+// ---- SKELETON SHORT ----
 function SkeletonShort() {
   return (
     <div
       style={{
-        width: "100vw",
-        height: "100dvh",
+        width: "100vw", height: "100dvh",
+        scrollSnapAlign: "start",
         position: "relative",
         background: "#111",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        overflow: "hidden",
+        display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden"
       }}
     >
-      <div
-        style={{
-          width: "100vw",
-          height: "100dvh",
-          background: "linear-gradient(90deg,#16181f 0%,#212332 50%,#181924 100%)",
-          animation: "skelAnim 1.3s infinite linear",
-          position: "absolute",
-          top: 0,
-          left: 0,
-          zIndex: 1,
-        }}
-      />
-      <style>{`@keyframes skelAnim { 0% { filter:brightness(1);} 55% { filter:brightness(1.07);} 100% { filter:brightness(1);}}`}</style>
+      <div style={{
+        width: "100vw", height: "100dvh",
+        background: "linear-gradient(90deg,#16181f 0%,#212332 50%,#181924 100%)",
+        animation: "skelAnim 1.3s infinite linear",
+        position: "absolute", top: 0, left: 0, zIndex: 1
+      }} />
+      <style>{`
+        @keyframes skelAnim { 0% { filter:brightness(1);} 55% { filter:brightness(1.07);} 100% { filter:brightness(1);}}
+      `}</style>
+      <div style={{
+        position: "absolute", top: 20, right: 20, zIndex: 20,
+        background: "rgba(28,29,34,0.65)",
+        borderRadius: 16, width: 39, height: 39,
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        <div style={{
+          width: 24, height: 24,
+          background: "linear-gradient(90deg,#222 30%,#333 60%,#222 100%)",
+          borderRadius: "50%"
+        }} />
+      </div>
+      <div style={{
+        position: 'absolute', right: '12px', bottom: '100px', zIndex: 10,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '25px'
+      }}>
+        {Array.from({length:3}).map((_,i) => (
+          <div key={i} style={{
+            width: 46, height: 49, marginBottom: i===0?6:0, borderRadius: 16,
+            background: "linear-gradient(90deg,#20212c 30%,#292a37 60%,#20212c 100%)"
+          }} />
+        ))}
+      </div>
+      <div style={{
+        position: "absolute", left: 0, right: 0, bottom: 0,
+        background: "linear-gradient(0deg,#151721 88%,transparent 100%)",
+        color: "#fff", padding: "22px 18px 33px 18px", zIndex: 6,
+        display: "flex", flexDirection: "column", userSelect: "none"
+      }}>
+        <div style={{width: 110, height: 17, marginBottom: 10, borderRadius: 7,
+          background: "linear-gradient(90deg,#21243a 30%,#393b56 60%,#21243a 100%)", marginLeft: 2
+        }} />
+        <div style={{
+          height: 15, width: "70%", borderRadius: 5,
+          background: "linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"
+        }}/>
+        <div style={{marginTop:8, width:76, height:14, borderRadius:6, background:"linear-gradient(90deg,#292b3b 30%,#33364a 60%,#292b3b 100%)"}}/>
+      </div>
     </div>
   );
 }
@@ -122,13 +198,16 @@ function SkeletonShort() {
 // ---- ANTI-INSPECT ----
 function useAntiInspect() {
   useEffect(() => {
-    const blockDevtools = (e) => {
-      if (e.key === "F12" || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase()))) {
+    const blockDevtools = e => {
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase()))
+      ) {
         e.preventDefault();
         e.stopPropagation();
       }
     };
-    const preventRightClick = (e) => e.preventDefault();
+    const preventRightClick = e => e.preventDefault();
     window.addEventListener("contextmenu", preventRightClick);
     window.addEventListener("keydown", blockDevtools);
     return () => {
@@ -138,12 +217,11 @@ function useAntiInspect() {
   }, []);
 }
 
-// ---- MAIN FEED ----
+// ---- MAIN FEED COMPONENT ----
 export default function Feed() {
   useAntiInspect();
   const location = useLocation();
   const navigate = useNavigate();
-
   // CORE STATE
   const [shorts, setShorts] = useState([]);
   const [aloneVideo, setAloneVideo] = useState(null);
@@ -162,6 +240,7 @@ export default function Feed() {
   const [commentInputs, setCommentInputs] = useState({});
   const [expandedCaptions, setExpandedCaptions] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
+  // Modern comment likes state
   const [commentLikes, setCommentLikes] = useState({});
 
   // Comments modal drag
@@ -169,21 +248,23 @@ export default function Feed() {
   const [isDraggingModal, setIsDraggingModal] = useState(false);
   const dragStartY = useRef(0);
 
-  // Replay-protection overlay
+  // "Replay-protection" overlay
   const [replayCounts, setReplayCounts] = useState({});
   const [overlayShown, setOverlayShown] = useState({});
 
-  // SPAM PROTECTION
+  // ----- SPAM PROTECTION -----
+  // Per video, timestamp of last successful comment
   const lastCommentTimeRef = useRef({});
   const [spamAlert, setSpamAlert] = useState({ show: false, message: "" });
   const spamAlertTimeout = useRef(null);
 
-  // Prevent body overscroll/pull-to-refresh on mobile
+  // ---- Prevent body scroll and pull-to-refresh on mobile ----
   useEffect(() => {
     const preventScroll = (e) => {
       e.preventDefault();
       return false;
     };
+
     if (!aloneVideo && !showComments) {
       document.body.style.overscrollBehaviorY = "none";
       document.body.style.touchAction = "none";
@@ -196,7 +277,7 @@ export default function Feed() {
     };
   }, [aloneVideo, showComments]);
 
-  // FETCH
+  // ---- FETCH ----
   useEffect(() => {
     setLoading(true);
     setNotFound(false);
@@ -207,33 +288,30 @@ export default function Feed() {
     const params = new URLSearchParams(location.search);
     const filename = params.get("v");
     if (filename) {
-      axios
-        .get(`${HOST}/shorts/${filename}`)
-        .then((res) =>
-          setAloneVideo({
-            ...res.data,
-            url: res.data.url || `/shorts/${filename}`,
-          })
-        )
+      axios.get(`${HOST}/shorts/${filename}`)
+        .then(res => setAloneVideo({
+          ...res.data,
+          url: res.data.url || `/shorts/${filename}`
+        }))
         .catch(() => setNotFound(true))
         .finally(() => setLoading(false));
     } else {
-      axios
-        .get(HOST + "/shorts")
-        .then((res) => setShorts(shuffleArray(res.data)))
+      axios.get(HOST + "/shorts")
+        .then(res => setShorts(shuffleArray(res.data)))
         .finally(() => setLoading(false));
     }
   }, [location.search]);
 
-  // PAGING: Only one at a time, state-based
+  // ---- PAGING: Only one video at a time, strictly state-based ----
   const pageLock = useRef(false);
+
   function changeIdx(direction) {
     if (pageLock.current) return;
-    const next = currentIdx + direction;
+    let next = currentIdx + direction;
     if (next < 0 || next >= shorts.length) return;
     pageLock.current = true;
     setCurrentIdx(next);
-    setTimeout(() => (pageLock.current = false), 500);
+    setTimeout(() => (pageLock.current = false), 500); // lock for anim duration
   }
 
   // Wheel and swipe listeners
@@ -282,11 +360,11 @@ export default function Feed() {
     };
   }, [currentIdx, shorts.length, aloneVideo]);
 
-  // VIDEO CONTROL
+  // ---- VIDEO CONTROL: Play/pause
   useEffect(() => {
     if (aloneVideo) return;
     Object.entries(videoRefs.current).forEach(([idx, vid]) => {
-      const nidx = Number(idx);
+      let nidx = Number(idx);
       if (!vid) return;
       if (nidx === currentIdx) {
         vid.muted = muted;
@@ -313,7 +391,7 @@ export default function Feed() {
     return () => document.removeEventListener("visibilitychange", visibilityHandler);
   }, []);
 
-  // LIKE / COMMENT / SHARE
+  // ---- LIKE / COMMENT / SHARE
   function isLiked(filename) {
     return localStorage.getItem("like_" + filename) === "1";
   }
@@ -321,33 +399,46 @@ export default function Feed() {
     if (yes) localStorage.setItem("like_" + filename, "1");
     else localStorage.removeItem("like_" + filename);
   }
-  function handleLike(idx, filename) {
+  function handleLike(idx, filename, wantPulse = false) {
     if (likePending[filename]) return;
     const liked = isLiked(filename);
     setLikePending((l) => ({ ...l, [filename]: true }));
-
     if (!liked) {
-      axios
-        .post(`${HOST}/shorts/${filename}/like`)
-        .then(() => {
-          setShorts((prev) => prev.map((v, i) => (i === idx ? { ...v, likes: (v.likes || 0) + 1 } : v)));
-          setAloneVideo((prev) =>
-            prev && prev.url && prev.url.endsWith(filename) ? { ...prev, likes: (prev.likes || 0) + 1 } : prev
-          );
-          setLiked(filename, true);
-          setLikePending((l) => ({ ...l, [filename]: false }));
-        })
-        .catch(() => setLikePending((l) => ({ ...l, [filename]: false })));
+      axios.post(`${HOST}/shorts/${filename}/like`).then(() => {
+        setShorts((prev) =>
+          prev.map((v, i) =>
+            i === idx ? { ...v, likes: (v.likes || 0) + 1 } : v
+          )
+        );
+        setAloneVideo((prev) =>
+          prev && prev.url && prev.url.endsWith(filename)
+            ? { ...prev, likes: (prev.likes || 0) + 1 }
+            : prev
+        );
+        setLiked(filename, true);
+        setLikePending((l) => ({ ...l, [filename]: false }));
+      });
+      if (wantPulse) {
+        setShowPulseHeart(true);
+        setTimeout(() => setShowPulseHeart(false), 720);
+      }
     } else {
-      setShorts((prev) => prev.map((v, i) => (i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v)));
+      setShorts((prev) =>
+        prev.map((v, i) =>
+          i === idx && (v.likes || 0) > 0
+            ? { ...v, likes: v.likes - 1 }
+            : v
+        )
+      );
       setAloneVideo((prev) =>
-        prev && prev.url && prev.url.endsWith(filename) && (prev.likes || 0) > 0 ? { ...prev, likes: prev.likes - 1 } : prev
+        prev && prev.url && prev.url.endsWith(filename) && (prev.likes || 0) > 0
+          ? { ...prev, likes: prev.likes - 1 }
+          : prev
       );
       setLiked(filename, false);
       setLikePending((l) => ({ ...l, [filename]: false }));
     }
   }
-
   function handleShare(filename) {
     const url = window.location.origin + "/?v=" + filename;
     if (navigator.share) {
@@ -362,11 +453,11 @@ export default function Feed() {
       setTimeout(() => document.body.removeChild(temp), 1200);
     }
   }
-
   function handleAddComment(idx, filename) {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
 
+    // ---- SPAM PROTECTION ----
     const now = Date.now();
     const lastTime = lastCommentTimeRef.current[filename] || 0;
     if (now - lastTime < COMMENT_SPAM_DELAY_MS) {
@@ -374,7 +465,6 @@ export default function Feed() {
       return;
     }
     lastCommentTimeRef.current[filename] = now;
-
     axios
       .post(`${HOST}/shorts/${filename}/comment`, { name: "PropScholar User", text })
       .then(() => {
@@ -383,33 +473,38 @@ export default function Feed() {
             i === idx
               ? {
                   ...v,
-                  comments: [...(v.comments || []), { name: "PropScholar User", text, createdAt: Date.now() }],
+                  comments: [...(v.comments || []), { name: "PropScholar User", text, createdAt: Date.now() }]
                 }
               : v
           )
         );
         setAloneVideo((prev) =>
           prev && prev.url && prev.url.endsWith(filename)
-            ? { ...prev, comments: [...(prev.comments || []), { name: "PropScholar User", text, createdAt: Date.now() }] }
+            ? {
+                ...prev,
+                comments: [...(prev.comments || []), { name: "PropScholar User", text, createdAt: Date.now() }]
+              }
             : prev
         );
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
       })
       .catch(() => {
-        lastCommentTimeRef.current[filename] = 0; // clear cooldown on failure
+        // on failure, clear cooldown so user can retry
+        lastCommentTimeRef.current[filename] = 0;
       });
   }
-
   function handleSpam(message) {
     setSpamAlert({ show: true, message });
     if (spamAlertTimeout.current) clearTimeout(spamAlertTimeout.current);
     spamAlertTimeout.current = setTimeout(() => setSpamAlert({ show: false, message: "" }), 2300);
   }
-
   const handleCaptionExpand = (filename) =>
-    setExpandedCaptions((prev) => ({ ...prev, [filename]: !prev[filename] }));
+    setExpandedCaptions((prev) => ({
+      ...prev,
+      [filename]: !prev[filename]
+    }));
 
-  // Comments modal drag
+  // ---- Comments modal drag
   function handleModalTouchStart(e) {
     if (!e.touches || e.touches.length !== 1) return;
     dragStartY.current = e.touches[0].clientY;
@@ -426,16 +521,19 @@ export default function Feed() {
     setModalDragY(0);
   }
 
-  // Video progress
+  // ---- Video Progress
   function handleTimeUpdate(idx, filename) {
     const vid = videoRefs.current[idx];
     setVideoProgress((prev) => ({
       ...prev,
-      [filename]: vid && vid.duration && isFinite(vid.duration) ? vid.currentTime / vid.duration : 0,
+      [filename]:
+        vid && vid.duration && isFinite(vid.duration)
+          ? vid.currentTime / vid.duration
+          : 0
     }));
   }
 
-  // Replay protection
+  // ---- ============= REPLAY PROTECTION =============== ----
   function handleVideoEnded(idx, filename) {
     setReplayCounts((prev) => {
       const prevCount = prev[filename] || 0;
@@ -446,8 +544,13 @@ export default function Feed() {
         }
         return { ...prev, [filename]: prevCount + 1 };
       } else {
-        setOverlayShown((prevOverlay) => ({ ...prevOverlay, [filename]: true }));
-        if (videoRefs.current[idx]) videoRefs.current[idx].pause();
+        setOverlayShown((prevOverlay) => ({
+          ...prevOverlay,
+          [filename]: true,
+        }));
+        if (videoRefs.current[idx]) {
+          videoRefs.current[idx].pause();
+        }
         return { ...prev, [filename]: prevCount + 1 };
       }
     });
@@ -461,23 +564,13 @@ export default function Feed() {
     }
   }
 
-  // Tap + heart UI
+  // ---- TAP + HEART UI ----
   function handleVideoEvents(idx, filename) {
-    let clickTimer = null;
-    let lastTap = 0;
-    const SINGLE_DELAY = 150;
-
-    const likeThenPulse = () => {
-      if (!isLiked(filename)) handleLike(idx, filename);
-      setShowPulseHeart(true);
-      requestAnimationFrame(() => setTimeout(() => setShowPulseHeart(false), 700));
-    };
-
+    let tapTimeout = null;
     return {
       onClick: () => {
-        if (clickTimer) return;
-        clickTimer = setTimeout(() => {
-          clickTimer = null;
+        if (tapTimeout) clearTimeout(tapTimeout);
+        tapTimeout = setTimeout(() => {
           const vid = videoRefs.current[idx];
           if (!vid) return;
           if (vid.paused) {
@@ -487,34 +580,27 @@ export default function Feed() {
             vid.pause();
             setShowPause(true);
           }
-        }, SINGLE_DELAY);
+        }, 240);
       },
-      onDoubleClick: (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (clickTimer) {
-          clearTimeout(clickTimer);
-          clickTimer = null;
+      onDoubleClick: () => {
+        if (tapTimeout) {
+          clearTimeout(tapTimeout);
+          tapTimeout = null;
         }
-        likeThenPulse();
+        if (!isLiked(filename)) handleLike(idx, filename, true);
+        setShowPulseHeart(true);
+        setTimeout(() => setShowPulseHeart(false), 700);
       },
       onTouchEnd: (e) => {
         if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
-        const now = Date.now();
-        const isDouble = now - lastTap < 160;
-        lastTap = now;
-        if (isDouble) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (clickTimer) {
-            clearTimeout(clickTimer);
-            clickTimer = null;
-          }
-          likeThenPulse();
+        if (tapTimeout) {
+          clearTimeout(tapTimeout);
+          tapTimeout = null;
+          if (!isLiked(filename)) handleLike(idx, filename, true);
+          setShowPulseHeart(true);
+          setTimeout(() => setShowPulseHeart(false), 700);
         } else {
-          if (clickTimer) clearTimeout(clickTimer);
-          clickTimer = setTimeout(() => {
-            clickTimer = null;
+          tapTimeout = setTimeout(() => {
             const vid = videoRefs.current[idx];
             if (vid) {
               if (vid.paused) {
@@ -525,13 +611,12 @@ export default function Feed() {
                 setShowPause(true);
               }
             }
-          }, SINGLE_DELAY);
+            tapTimeout = null;
+          }, 250);
         }
-      },
+      }
     };
   }
-
-  // Seek bar
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
     if (isTouch) {
@@ -550,15 +635,18 @@ export default function Feed() {
     }
   }
 
-  // Paged shorts
+  // ---- PAGED RENDER LOGIC ----
   function getPagedShorts() {
     if (shorts.length === 0) return [];
-    return [currentIdx - 1, currentIdx, currentIdx + 1]
+    return [
+      currentIdx - 1,
+      currentIdx,
+      currentIdx + 1,
+    ]
       .filter((idx) => idx >= 0 && idx < shorts.length)
       .map((idx) => ({ ...shorts[idx], _idx: idx }));
   }
 
-  // Render per video
   function renderVideo({
     v,
     idx,
@@ -571,110 +659,83 @@ export default function Feed() {
     showFull,
     isTruncated,
     displayedCaption,
-    inFeed,
+    inFeed
   }) {
-    const isOverlay = overlayShown[filename];
-    const mappedComments = (allComments || []).map((c, i) => ({ ...c, index: i }));
+    const isOverlayShown = overlayShown[filename];
+    const mappedComments = (allComments || []).map((c, i) => ({
+      ...c,
+      index: i
+    }));
 
     return (
       <div
         key={filename}
         style={{
-          width: "100vw",
-          height: "100dvh",
-          position: "absolute",
-          left: 0,
-          top: 0,
+          width: "100vw", height: "100dvh", position: "absolute", left: 0, top: 0,
           transition: "transform 0.44s cubic-bezier(.5,1,.5,1)",
           willChange: "transform",
           background: "black",
-          overflow: "hidden",
+          overflow: "hidden"
         }}
       >
+        {/* Spam Alert UI */}
         {isCurrent && spamAlert.show && (
           <div
             style={{
               position: "fixed",
-              top: 30,
+              top: "30px",
               left: "50%",
               transform: "translateX(-50%)",
-              background: "rgba(20,20,26,0.96)",
+              background: "rgba(30,30,34,0.97)",
               color: "#fff",
               fontWeight: 500,
               padding: "10px 28px",
-              borderRadius: 13,
+              borderRadius: "13px",
               fontSize: 15,
               boxShadow: "0 3px 24px #0005",
               zIndex: 5005,
               minWidth: 120,
               letterSpacing: "0.02em",
-              textAlign: "center",
-              border: "1px solid #34384a",
-            }}
-          >
+              textAlign: "center"
+            }}>
             {spamAlert.message || "Please wait before commenting again."}
           </div>
         )}
-
         <video
-          ref={(el) => el && (videoRefs.current[idx] = el)}
+          ref={el => el && (videoRefs.current[idx] = el)}
           src={HOST + v.url}
           loop={false}
           playsInline
-          style={{ width: "100vw", height: "100dvh", objectFit: "contain", background: "#000", cursor: "pointer", display: "block" }}
+          style={{
+            width: "100vw", height: "100dvh", objectFit: "contain", background: "#000",
+            cursor: "pointer", display: "block"
+          }}
           muted={muted}
           autoPlay
           onTimeUpdate={() => handleTimeUpdate(idx, filename)}
           onEnded={() => handleVideoEnded(idx, filename)}
           {...handleVideoEvents(idx, filename)}
         />
-
-        {isOverlay && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 1002,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 12,
-                minWidth: 260,
-                minHeight: 92,
-                background: "rgba(30,30,38,0.41)",
-                borderRadius: 16,
-                boxShadow: "0 8px 32px 0 rgba(12,16,30,0.21), 0 1.5px 11px #0004",
-                backdropFilter: "blur(14px) saturate(160%)",
-                border: "1.6px solid rgba(80,80,86,0.16)",
-                padding: "24px 26px 18px 26px",
-                animation: "glassRise .36s cubic-bezier(.61,2,.22,1.02)",
-              }}
-            >
-              <span style={{ color: "#fff", fontSize: "1.11rem", fontWeight: 600, marginBottom: 6 }}>Continue watching?</span>
-              <button
-                onClick={() => handleOverlayContinue(idx, filename)}
-                style={{
-                  background: "rgba(0,0,0,0.30)",
-                  color: "#fff",
-                  padding: "8px 28px",
-                  fontSize: "1rem",
-                  fontWeight: 500,
-                  borderRadius: 12,
-                  border: "1.1px solid rgba(255,255,255,0.085)",
-                  boxShadow: "0 1.5px 8px #0004",
-                  outline: "none",
-                  marginTop: 1,
-                  cursor: "pointer",
-                  letterSpacing: "0.01em",
-                }}
-              >
+        {isOverlayShown && (
+          <div style={{
+            position: "absolute", inset: 0, display: "flex",
+            alignItems: "center", justifyContent: "center", zIndex: 1002,
+          }}>
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", minWidth: "260px",
+              minHeight: "92px", background: "rgba(30,30,38,0.41)", borderRadius: "16px",
+              boxShadow: "0 8px 32px 0 rgba(12,16,30,0.21), 0 1.5px 11px #0004",
+              backdropFilter: "blur(14px) saturate(160%)", border: "1.6px solid rgba(80,80,86,0.16)",
+              padding: "24px 26px 18px 26px", animation: "glassRise .36s cubic-bezier(.61,2,.22,1.02)"
+            }}>
+              <span style={{ color: "#fff", fontSize: "1.11rem", fontWeight: 600, marginBottom: "6px" }}>
+                Continue watching?
+              </span>
+              <button onClick={() => handleOverlayContinue(idx, filename)} style={{
+                background: "rgba(0,0,0,0.30)", color: "#fff", fontFamily: "inherit", padding: "8px 28px",
+                fontSize: "1rem", fontWeight: 500, borderRadius: "12px", border: "1.1px solid rgba(255,255,255,0.085)",
+                boxShadow: "0 1.5px 8px #0004", outline: "none", marginTop: "1px", cursor: "pointer", letterSpacing: "0.01em"
+              }}>
                 Continue
               </button>
             </div>
@@ -686,33 +747,20 @@ export default function Feed() {
             `}</style>
           </div>
         )}
-
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setMuted((m) => !m);
-            setMutePulse(true);
-            setTimeout(() => setMutePulse(false), 350);
-          }}
+          onClick={e => { e.stopPropagation(); setMuted(m => !m); setMutePulse(true); setTimeout(() => setMutePulse(false), 350); }}
           aria-label={muted ? "Unmute" : "Mute"}
           tabIndex={0}
           style={{
-            position: "absolute",
-            top: 20,
-            right: 20,
-            zIndex: 60,
-            background: "rgba(28,29,34,0.65)",
-            border: "1px solid rgba(200,200,210,0.12)",
-            borderRadius: 16,
-            width: 39,
-            height: 39,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            boxShadow: "0 2px 6px #0002",
-            outline: "none",
-            ...(mutePulse ? { animation: "mutepulseanim 0.38s cubic-bezier(.3,1.5,.65,1.05)", boxShadow: "0 0 0 9px #33b6ff27" } : {}),
+            position: "absolute", top: 20, right: 20, zIndex: 60,
+            background: "rgba(28,29,34,0.65)", border: "none",
+            borderRadius: 16, width: 39, height: 39,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", boxShadow: "0 2px 6px #0002", outline: "none",
+            transition: "box-shadow .22s,ease",
+            ...(mutePulse
+              ? { animation: "mutepulseanim 0.38s cubic-bezier(.3,1.5,.65,1.05)", boxShadow: "0 0 0 9px #33b6ff27" }
+              : {})
           }}
         >
           <MuteMicIcon muted={muted} />
@@ -724,166 +772,97 @@ export default function Feed() {
             }
           `}</style>
         </button>
-
         {isCurrent && showPause && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 105,
-              background: "rgba(0,0,0,0.26)",
-              pointerEvents: "none",
-              animation: "fadeInPause .29s",
-            }}
-          >
+          <div style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 105, background: 'rgba(0,0,0,0.26)', pointerEvents: "none",
+            animation: 'fadeInPause .29s'
+          }}>
             <PauseIcon />
             <style>{`@keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }`}</style>
           </div>
         )}
-
         {isCurrent && <PulseHeart visible={showPulseHeart} />}
-
-        {/* Progress bar */}
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 4,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 32,
-            borderRadius: 2,
-            overflow: "hidden",
-            cursor: "pointer",
-          }}
-          onClick={(e) => handleSeek(idx, e, false)}
-          onTouchStart={(e) => handleSeek(idx, e, true)}
-          role="progressbar"
-          aria-valuenow={Math.round(prog * 100)}
+        <div style={{
+          position: "absolute", left: 0, right: 0, bottom: 0,
+          height: 4, background: "rgba(255,255,255,0.18)", zIndex: 32, borderRadius: 2, overflow: "hidden", cursor: "pointer"
+        }}
+          onClick={e => handleSeek(idx, e, false)}
+          onTouchStart={e => handleSeek(idx, e, true)}
+          role="progressbar" aria-valuenow={Math.round(prog * 100)}
         >
-          <div
-            style={{
-              width: `${Math.min(prog * 100, 100)}%`,
-              height: "100%",
-              background: "rgb(42, 131, 254)",
-              transition: "width 0.22s cubic-bezier(.4,1,.5,1)",
-              pointerEvents: "none",
-            }}
-          />
+          <div style={{
+            width: `${Math.min(prog * 100, 100)}%`,
+            height: "100%", background: "rgb(42, 131, 254)",
+            transition: "width 0.22s cubic-bezier(.4,1,.5,1)", pointerEvents: "none"
+          }} />
         </div>
-
-        {/* Right action rail */}
-        <div
-          style={{
-            position: "absolute",
-            right: 12,
-            bottom: 100,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 24,
-            zIndex: 10,
-          }}
-        >
-          <div style={{ marginBottom: 6, width: 48, height: 48, borderRadius: "50%", overflow: "hidden", border: "1px solid #ffffff22" }}>
-            <img
-              src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg"
-              alt=""
-              style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
-            />
+        <div style={{
+          position: 'absolute', right: '12px', bottom: '100px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', zIndex: 10
+        }}>
+          <div style={{
+            marginBottom: 6, width: 48, height: 48,
+            borderRadius: "50%", overflow: "hidden"
+          }}>
+            <img src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg' alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
           </div>
-
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
               aria-label={liked ? "Unlike" : "Like"}
               disabled={likePending[filename]}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleLike(idx, filename);
-              }}
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", outline: 0 }}
-            >
-              <HeartSVG filled={liked} />
-            </button>
-            <span style={{ color: liked ? "#ed4956" : "#fff", fontSize: 13, marginTop: 4 }}>{v.likes || 0}</span>
+              onClick={e => { e.stopPropagation(); handleLike(idx, filename, !liked); }}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', outline: 0 }}
+            ><HeartSVG filled={liked} /></button>
+            <span style={{ color: liked ? '#ed4956' : '#fff', fontSize: '13px', marginTop: '4px' }}>{v.likes || 0}</span>
           </div>
-
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
               aria-label="Comment"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowComments(filename);
-              }}
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+              onClick={e => { e.stopPropagation(); setShowComments(filename); }}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
             >
               <svg aria-label="Comment" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
                 <path d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z" fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" />
               </svg>
             </button>
-            <span style={{ color: "#fff", fontSize: 13, marginTop: 4 }}>{v.comments?.length || 0}</span>
+            <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>{v.comments?.length || 0}</span>
           </div>
-
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
               aria-label="Share"
               onClick={() => handleShare(filename)}
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-            >
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
               <svg aria-label="Share Post" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
                 <line fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="3" y2="10.083" />
-                <polygon
-                  fill="none"
-                  points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334"
-                  stroke="#fff"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                />
+                <polygon fill="none" points="11.698 20.334 22 3.001 2 3.001 9.218 10.084 11.698 20.334" stroke="#fff" strokeLinejoin="round" strokeWidth="2" />
               </svg>
             </button>
-            <span style={{ color: "#fff", fontSize: 13, marginTop: 4 }}>Share</span>
+            <span style={{ color: '#fff', fontSize: '13px', marginTop: '4px' }}>Share</span>
           </div>
         </div>
-
-        {/* Bottom caption area */}
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "linear-gradient(0deg,#000e 88%,transparent 100%)",
-            color: "#fff",
-            padding: "20px 18px 28px 18px",
-            zIndex: 6,
-            display: "flex",
-            flexDirection: "column",
-            userSelect: "none",
-          }}
-        >
-          <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2, color: "#7381ff" }}>@{v.author || "propscholar"}</div>
-
+        <div style={{
+          position: "absolute", left: 0, right: 0, bottom: 0,
+          background: "linear-gradient(0deg,#000e 88%,transparent 100%)",
+          color: "#fff", padding: "20px 18px 28px 18px", zIndex: 6,
+          display: "flex", flexDirection: "column", userSelect: "none"
+        }}>
+          <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2, color: '#7381ff' }}>
+            @{v.author || "propscholar"}
+          </div>
           {caption && (
-            <div style={{ display: "flex", alignItems: "flex-end", minHeight: 26, maxWidth: 520 }}>
+            <div style={{
+              display: "flex", alignItems: "flex-end", minHeight: "26px", maxWidth: 500
+            }}>
               <div
                 style={{
-                  fontWeight: 400,
-                  fontSize: 16,
-                  color: "#fff",
-                  lineHeight: 1.4,
+                  fontWeight: 400, fontSize: 16, color: "#fff", lineHeight: 1.4,
                   maxHeight: showFull ? "none" : "2.8em",
-                  overflow: showFull ? "visible" : "hidden",
-                  textOverflow: "ellipsis",
-                  display: "-webkit-box",
-                  WebkitLineClamp: showFull ? "unset" : 2,
-                  WebkitBoxOrient: "vertical",
-                  wordBreak: "break-word",
-                  marginRight: isTruncated ? 10 : 0,
-                  whiteSpace: "pre-line",
+                  overflow: showFull ? "visible" : "hidden", textOverflow: "ellipsis",
+                  display: "-webkit-box", WebkitLineClamp: showFull ? "unset" : 2,
+                  WebkitBoxOrient: "vertical", wordBreak: "break-word", marginRight: isTruncated ? 10 : 0,
+                  whiteSpace: "pre-line"
                 }}
               >
                 {displayedCaption}
@@ -891,42 +870,24 @@ export default function Feed() {
               {isTruncated && (
                 <button
                   style={{
-                    background: "none",
-                    border: "none",
-                    color: "#33b6ff",
-                    fontWeight: 600,
-                    fontSize: 15,
-                    cursor: "pointer",
-                    marginLeft: 2,
-                    padding: 0,
-                    lineHeight: 1.3,
-                    textDecoration: "underline",
+                    background: "none", border: "none", color: "#33b6ff", fontWeight: 600, fontSize: 15,
+                    cursor: "pointer", marginLeft: 2, padding: 0, lineHeight: 1.3, textDecoration: "underline"
                   }}
-                  tabIndex={0}
-                  onClick={() => handleCaptionExpand(filename)}
-                >
-                  {showFull ? "less" : "more"}
-                </button>
+                  tabIndex={0} onClick={() => handleCaptionExpand(filename)}
+                >{showFull ? "less" : "more"}</button>
               )}
             </div>
           )}
-
-          <div style={{ color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer" }} onClick={() => setShowComments(filename)}>
-            View all {v.comments ? v.comments.length : 0} comments
-          </div>
+          <div
+            style={{ color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer" }}
+            onClick={() => setShowComments(filename)}
+          >View all {v.comments ? v.comments.length : 0} comments</div>
         </div>
-
-        {/* Comments modal */}
-        {showComments === filename && (
+        {showComments === filename &&
           <div
             style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 500,
-              background: "rgba(0,0,0,0.91)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "flex-end",
+              position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.91)",
+              display: "flex", flexDirection: "column", justifyContent: "flex-end"
             }}
             onClick={() => setShowComments(null)}
           >
@@ -934,42 +895,45 @@ export default function Feed() {
               className="comments-modal"
               style={{
                 backgroundColor: "#000",
-                borderTopLeftRadius: 15,
-                borderTopRightRadius: 15,
-                padding: 15,
-                minHeight: "36vh",
-                height: "70vh",
-                display: "flex",
-                flexDirection: "column",
-                maxWidth: 500,
-                width: "97vw",
-                margin: "0 auto",
-                border: "1px solid #262626",
+                borderTopLeftRadius: 15, borderTopRightRadius: 15, padding: 15,
+                minHeight: '36vh', height: '70vh',
+                display: 'flex', flexDirection: 'column',
+                maxWidth: 500, width: "97vw", margin: "0 auto",
+                border: '1px solid #262626',
                 touchAction: "none",
                 transition: isDraggingModal ? "none" : "transform 0.22s cubic-bezier(.43,1.5,.48,1.16)",
-                transform: modalDragY ? `translateY(${Math.min(modalDragY, 144)}px)` : "translateY(0)",
+                transform: modalDragY ? `translateY(${Math.min(modalDragY, 144)}px)` : "translateY(0)"
               }}
               onTouchStart={handleModalTouchStart}
               onTouchMove={handleModalTouchMove}
               onTouchEnd={handleModalTouchEnd}
-              onClick={(e) => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 15, borderBottom: "1px solid #262626" }}>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                paddingBottom: 15, borderBottom: '1px solid #262626'
+              }}>
                 <h2 style={{ fontSize: 16, fontWeight: 600, color: "#fff" }}>Comments</h2>
-                <span className="fas fa-times" style={{ fontSize: 22, color: "#fff", cursor: "pointer" }} onClick={() => setShowComments(null)} tabIndex={0}>
-                  ×
-                </span>
+                <span
+                  className="fas fa-times"
+                  style={{ fontSize: 22, color: "#fff", cursor: "pointer" }}
+                  onClick={() => setShowComments(null)}
+                  tabIndex={0}
+                >×</span>
               </div>
-
               <div
-                style={{ flex: 1, overflowY: "auto", padding: "10px 0" }}
-                onTouchMove={(e) => e.stopPropagation()}
-                onWheel={(e) => {
+                style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}
+                onTouchMove={e => e.stopPropagation()}
+                onWheel={e => {
+                  // Prevent feed scroll when at top/bottom of comments on desktop
                   const el = e.currentTarget;
                   const { scrollTop, scrollHeight, clientHeight } = el;
                   const up = e.deltaY < 0;
                   const down = e.deltaY > 0;
-                  if ((up && scrollTop === 0) || (down && scrollTop + clientHeight >= scrollHeight)) {
+                  if (
+                    (up && scrollTop === 0) ||
+                    (down && scrollTop + clientHeight >= scrollHeight)
+                  ) {
                     e.preventDefault();
                     e.stopPropagation();
                   }
@@ -983,136 +947,167 @@ export default function Feed() {
                       className="comment"
                       key={c.index}
                       style={{
-                        display: "flex",
-                        alignItems: "center",
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: 12,
                         paddingBottom: 14,
                         marginBottom: 20,
-                        borderBottom: "1px solid #1a1a1a",
+                        borderBottom: '1px solid #1a1a1a'
                       }}
                     >
+                      {/* Avatar (strict left) */}
                       <img
-                        src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1754503052/PropScholarUser_neup6j.png"
+                        src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754503052/PropScholarUser_neup6j.png'
                         className="comment-avatar"
                         alt=""
                         style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
                       />
+                      {/* Username and text */}
                       <div className="comment-content" style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8, wordBreak: "break-word" }}>
-                          <span className="comment-username" style={{ fontWeight: 600, fontSize: 14, marginRight: 5, color: "#5768ff" }}>
+                        <div style={{
+                          display: "flex",
+                          alignItems: 'center',
+                          flexWrap: "wrap",
+                          gap: 8,
+                          wordBreak: "break-word"
+                        }}>
+                          <span
+                            className="comment-username"
+                            style={{ fontWeight: 600, fontSize: 14, marginRight: 5, color: "#5768ff" }}
+                          >
                             {c.name}
                           </span>
-                          <span className="comment-text" style={{ fontSize: 14, color: "#d0d1d9" }}>
+                          <span
+                            className="comment-text"
+                            style={{ fontSize: 14, color: "#d0d1d9" }}
+                          >
                             {c.text}
                           </span>
                         </div>
                       </div>
+                      {/* Like heart and count (strict right) */}
                       <button
-                        style={{ marginLeft: 8, background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center" }}
-                        onClick={() => setCommentLikes((prev) => ({ ...prev, [c.index]: !prev[c.index] }))}
+                        style={{
+                          marginLeft: 8,
+                          background: "none",
+                          border: "none",
+                          padding: 0,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center"
+                        }}
+                        onClick={() =>
+                          setCommentLikes((prev) => ({
+                            ...prev,
+                            [c.index]: !prev[c.index]
+                          }))
+                        }
                         aria-label={commentLikes[c.index] ? "Unlike comment" : "Like comment"}
-                        title={commentLikes[c.index] ? "Unlike" : "Like"}
                       >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill={commentLikes[c.index] ? "#ed4956" : "none"} stroke="#ed4956" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: "fill 0.18s" }}>
-                          <path d="M12 21c-.67 0-1.29-.26-1.77-.73L3.18 13A4.07 4.07 0 0 1 2 9.81C2 7.11 4.13 5 6.81 5c1.36 0 2.71.55 3.69 1.54A5.002 5.002 0 0 1 17.19 5C19.87 5 22 7.11 22 9.81c0 1.13-.44 2.26-1.18 3.19l-7.05 7.26c-.48.47-1.1.74-1.77.74Z" />
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill={commentLikes[c.index] ? "#ed4956" : "none"}
+                          stroke="#ed4956"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ transition: 'fill 0.18s' }}
+                        >
+                          <path d="M12 21c-.67 0-1.29-.26-1.77-.73L3.18 13A4.07 4.07 0 0 1 2 9.81C2 7.11 4.13 5 6.81 5c1.36 0 2.71.55 3.69 1.54A5.002 5.002 0 0 1 17.19 5C19.87 5 22 7.11 22 9.81c0 1.13-.44 2.26-1.18 3.19l-7.05 7.26c-.48.47-1.1.74-1.77.74Z"/>
                         </svg>
+                        <span style={{
+                          marginLeft: 4,
+                          fontSize: 13,
+                          color: "#ed4956",
+                          fontWeight: 500,
+                          minWidth: 12,
+                          userSelect: "none"
+                        }}>
+                          {commentLikes[c.index] ? 1 : 0}
+                        </span>
                       </button>
                     </div>
                   ))
                 )}
               </div>
-
-              <div style={{ display: "flex", alignItems: "center", paddingTop: 10, borderTop: "1px solid #262626" }}>
+              <div style={{
+                display: 'flex', alignItems: 'center',
+                paddingTop: 10, borderTop: '1px solid #262626'
+              }}>
                 <input
                   type="text"
                   placeholder="Add a comment..."
                   style={{
-                    flex: 1,
-                    backgroundColor: "#262626",
-                    border: "none",
-                    borderRadius: 20,
-                    padding: "10px 15px",
-                    color: "white",
-                    fontSize: 14,
+                    flex: 1, backgroundColor: "#262626", border: "none", borderRadius: 20,
+                    padding: "10px 15px", color: "white", fontSize: 14
                   }}
                   value={commentInputs[filename] || ""}
-                  onChange={(e) =>
-                    setCommentInputs((prev) => ({
-                      ...prev,
-                      [filename]: e.target.value,
-                    }))
-                  }
-                  onKeyDown={(e) => e.key === "Enter" && (commentInputs[filename] || "").trim() !== "" && handleAddComment(idx, filename)}
+                  onChange={e => setCommentInputs(prev => ({
+                    ...prev,
+                    [filename]: e.target.value
+                  }))}
+                  onKeyDown={e => e.key === "Enter" && (commentInputs[filename] || "").trim() !== "" && handleAddComment(idx, filename)}
                 />
                 <button
                   style={{
-                    color: "#0095f6",
-                    fontWeight: 600,
-                    marginLeft: 10,
-                    fontSize: 14,
-                    background: "none",
-                    border: "none",
+                    color: "#0095f6", fontWeight: 600, marginLeft: 10, fontSize: 14,
+                    background: "none", border: "none",
                     cursor: (commentInputs[filename] || "").trim() !== "" ? "pointer" : "default",
-                    opacity: (commentInputs[filename] || "").trim() !== "" ? 1 : 0.5,
+                    opacity: (commentInputs[filename] || "").trim() !== "" ? 1 : 0.5
                   }}
                   disabled={(commentInputs[filename] || "").trim() === ""}
                   onClick={() => handleAddComment(idx, filename)}
-                >
-                  Post
-                </button>
+                >Post</button>
               </div>
             </div>
           </div>
-        )}
+        }
       </div>
     );
   }
 
+
   // ---- VIDEO FEED UI STATE ----
   if (notFound) {
     return (
-      <div
-        style={{
-          color: "#ca7979",
-          textAlign: "center",
-          marginTop: 120,
-          fontSize: 22,
-          background: "#000",
-          minHeight: "100dvh",
-        }}
-      >
+      <div style={{
+        fontFamily: "Inter, Arial,sans-serif",
+        color: "#ca7979", textAlign: "center", marginTop: 120, fontSize: 22,
+        background: "#000", minHeight: "100dvh"
+      }}>
         <div style={{ marginBottom: 12 }}>Video not found.</div>
         <button
           onClick={() => navigate("/", { replace: true })}
           style={{
-            color: "#fff",
-            background: "#33b6ff",
-            border: "none",
-            borderRadius: 10,
-            fontWeight: 600,
-            fontSize: 16,
-            padding: "8px 28px",
-            cursor: "pointer",
-          }}
-        >
+            color: "#fff", background: "#33b6ff",
+            border: "none", borderRadius: 10, fontWeight: 600,
+            fontSize: 16, padding: "8px 28px", cursor: "pointer"
+          }}>
           Back to Feed
         </button>
       </div>
     );
   }
-
   if (loading) {
-    return <SkeletonShort />;
+    return (
+      <>
+        <SkeletonShort />
+      </>
+    );
   }
 
-  // Single video mode
+  // ---- Single video mode ----
   if (aloneVideo) {
     const v = aloneVideo;
     const urlParts = (v.url || "").split("/");
     const filename = urlParts[urlParts.length - 1];
     const liked = isLiked(filename);
     const prog = videoProgress[filename] || 0;
-    const allComments = (v.comments || []).map((c) => ({ ...c }));
+    const allComments = (v.comments || []).map((c, i) => ({
+      ...c
+    }));
     const caption = v.caption || "";
     const previewLimit = 90;
     const isTruncated = caption && caption.length > previewLimit;
@@ -1120,120 +1115,78 @@ export default function Feed() {
     const displayedCaption = !caption ? "" : showFull ? caption : truncateString(caption, previewLimit);
 
     return (
-      <div style={{ width: "100vw", height: "100dvh", position: "relative", background: "black", overflow: "hidden" }}>
+      <div
+        style={{
+          width: "100vw", height: "100dvh", position: "relative", background: "black",
+          overflow: "hidden"
+        }}
+      >
         {renderVideo({
-          v,
-          idx: 0,
-          filename,
-          prog,
-          liked,
-          isCurrent: true,
-          allComments,
-          caption,
-          showFull,
-          isTruncated,
-          displayedCaption,
-          inFeed: false,
+          v, idx: 0, filename, prog, liked, isCurrent: true, allComments,
+          caption, showFull, isTruncated, displayedCaption, inFeed: false
         })}
         <button
           onClick={() => navigate("/", { replace: true })}
           aria-label="Back to Feed"
           style={{
-            position: "absolute",
-            top: 20,
-            left: 16,
-            zIndex: 100,
-            background: "#222f",
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: 16,
-            padding: "6px 17px",
-            borderRadius: 15,
-            border: "none",
-            cursor: "pointer",
-            letterSpacing: ".02em",
-            boxShadow: "0 2px 10px #0003",
-          }}
-        >
+            position: "absolute", top: 20, left: 16, zIndex: 100,
+            background: "#222f", color: "#fff",
+            fontWeight: 600, fontSize: 16, padding: "6px 17px",
+            borderRadius: 15, border: "none", cursor: "pointer", letterSpacing: ".02em",
+            boxShadow: "0 2px 10px #0003"
+          }}>
           ← Feed
         </button>
       </div>
     );
   }
-
   if (!loading && shorts.length === 0) {
     return (
-      <div
-        style={{
-          color: "#bbb",
-          textAlign: "center",
-          marginTop: 120,
-          fontSize: 20,
-          background: "#0a0a0c",
-          minHeight: "100dvh",
-          letterSpacing: ".01em",
-        }}
-      >
+      <div style={{
+        fontFamily: "Inter, Arial,sans-serif",
+        color: "#bbb", textAlign: "center", marginTop: 120, fontSize: 20,
+        background: "#0a0a0c", minHeight: "100dvh", letterSpacing: ".01em"
+      }}>
         No shorts uploaded yet.
       </div>
     );
-    }
+  }
 
-  // STRICT vertical paged feed
+  // ---- STRICT YT/REELS STYLE PAGED FEED ----
   return (
     <div
       style={{
-        position: "relative",
-        height: "100dvh",
-        width: "100vw",
-        background: "black",
-        margin: 0,
-        padding: 0,
-        overflow: "hidden",
-        fontFamily: "Inter, Arial, sans-serif",
-      }}
-    >
-      {getPagedShorts().map((v) => {
+        position: "relative", height: "100dvh", width: "100vw", background: "black", margin: 0, padding: 0, overflow: "hidden",
+        fontFamily: "Inter, Arial,sans-serif"
+      }}>
+      {getPagedShorts().map((v, j) => {
         const idx = v._idx;
         const filename = v.url.split("/").pop();
         const liked = isLiked(filename);
         const prog = videoProgress[filename] || 0;
-        const allComments = (v.comments || []).map((c) => ({ ...c }));
+        const allComments = (v.comments || []).map((c, i) => ({
+          ...c
+        }));
         const caption = v.caption || "";
         const previewLimit = 90;
         const isTruncated = caption && caption.length > previewLimit;
         const showFull = expandedCaptions[filename];
         const displayedCaption = !caption ? "" : showFull ? caption : truncateString(caption, previewLimit);
         const isCurrent = idx === currentIdx;
-
         return (
           <div
             key={filename || idx}
             style={{
-              width: "100vw",
-              height: "100dvh",
-              position: "absolute",
-              left: 0,
-              top: 0,
+              width: "100vw", height: "100dvh", position: "absolute", left: 0, top: 0,
               transition: "transform 0.44s cubic-bezier(.5,1,.5,1)",
               willChange: "transform",
-              zIndex: isCurrent ? 2 : 1,
-              transform: `translateY(${(idx - currentIdx) * 100}%)`,
+              zIndex: idx === currentIdx ? 2 : 1,
+              transform: `translateY(${(idx - currentIdx) * 100}%)`
             }}
           >
             {renderVideo({
-              v,
-              idx,
-              filename,
-              prog,
-              liked,
-              isCurrent,
-              allComments,
-              caption,
-              showFull,
-              isTruncated,
-              displayedCaption,
-              inFeed: true,
+              v, idx, filename, prog, liked, isCurrent, allComments,
+              caption, showFull, isTruncated, displayedCaption, inFeed: true
             })}
           </div>
         );
