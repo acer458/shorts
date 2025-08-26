@@ -897,7 +897,16 @@ export default function Feed() {
             </div>
           )}
           <div
-            style={{ color: "#b2bec3", fontSize: 15, marginTop: 3, cursor: "pointer" }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 500,
+              background: "rgba(0,0,0,0.91)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "flex-end",
+              overscrollBehavior: "none"
+            }}
             onClick={() => setShowComments(filename)}
           >View all {v.comments ? v.comments.length : 0} comments</div>
         </div>
@@ -920,10 +929,18 @@ export default function Feed() {
                 border: '1px solid #262626',
                 touchAction: "none",
                 transition: isDraggingModal ? "none" : "transform 0.22s cubic-bezier(.43,1.5,.48,1.16)",
-                transform: modalDragY ? `translateY(${Math.min(modalDragY, 144)}px)` : "translateY(0)"
+                transform: modalDragY ? `translateY(${Math.min(modalDragY, 144)}px)` : "translateY(0)",
+                overscrollBehaviorY: "contain" // ADDED: prevent scroll chaining to feed
               }}
               onTouchStart={handleModalTouchStart}
-              onTouchMove={handleModalTouchMove}
+              onTouchMove={(e) => {
+                // ADDED: when dragging the sheet, block native scroll so feed won't move
+                if (isDraggingModal) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+                handleModalTouchMove(e);
+              }}
               onTouchEnd={handleModalTouchEnd}
               onClick={e => e.stopPropagation()}
             >
@@ -939,19 +956,32 @@ export default function Feed() {
                   tabIndex={0}
                 >×</span>
               </div>
+            
               <div
-                style={{ flex: 1, overflowY: 'auto', padding: '10px 0' }}
-                onTouchMove={e => e.stopPropagation()}
+                style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  padding: '10px 0',
+                  overscrollBehavior: 'contain' // ADDED: stop chaining at top/bottom
+                }}
+                onTouchMove={(e) => {
+                  // UPDATED: prevent feed scroll when list hits its edges on touch
+                  const el = e.currentTarget;
+                  const { scrollTop, scrollHeight, clientHeight } = el;
+                  const atTop = scrollTop <= 0;
+                  const atBottom = scrollTop + clientHeight >= scrollHeight;
+                  if (atTop || atBottom) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }
+                }}
                 onWheel={e => {
-                  // Prevent feed scroll when at top/bottom of comments on desktop
+                  // Keep: prevent feed scroll when at top/bottom of comments on desktop
                   const el = e.currentTarget;
                   const { scrollTop, scrollHeight, clientHeight } = el;
                   const up = e.deltaY < 0;
                   const down = e.deltaY > 0;
-                  if (
-                    (up && scrollTop === 0) ||
-                    (down && scrollTop + clientHeight >= scrollHeight)
-                  ) {
+                  if ((up && scrollTop === 0) || (down && scrollTop + clientHeight >= scrollHeight)) {
                     e.preventDefault();
                     e.stopPropagation();
                   }
