@@ -233,23 +233,45 @@ export default function Feed() {
   const spamAlertTimeout = useRef(null);
 
   // ---- Prevent body scroll and pull-to-refresh on mobile ----
-  // useEffect(() => {
-  //   const preventScroll = (e) => {
-  //     e.preventDefault();
-  //     return false;
-  //   };
-
-    if (!aloneVideo && !showComments) {
+  useEffect(() => {
+    const preventScroll = (e) => {
+      e.preventDefault();
+      return false;
+    };
+      //Prevent background scroll when comments modal is open
+  useEffect(() => {
+    const prev = {
+      overflow: document.body.style.overflow,
+      overscroll: document.body.style.overscrollBehaviorY,
+      touchAction: document.body.style.touchAction,
+    };
+    if (showComments) {
+      document.body.style.overflow = "hidden";
       document.body.style.overscrollBehaviorY = "none";
       document.body.style.touchAction = "none";
-      window.addEventListener("touchmove", preventScroll, { passive: false });
+    } else {
+      document.body.style.overflow = prev.overflow || "";
+      document.body.style.overscrollBehaviorY = prev.overscroll || "";
+      document.body.style.touchAction = prev.touchAction || "";
     }
     return () => {
-      document.body.style.overscrollBehaviorY = "";
-      document.body.style.touchAction = "";
-      window.removeEventListener("touchmove", preventScroll);
+      document.body.style.overflow = prev.overflow || "";
+      document.body.style.overscrollBehaviorY = prev.overscroll || "";
+      document.body.style.touchAction = prev.touchAction || "";
     };
-  }, [aloneVideo, showComments]);
+  }, [showComments]);
+  
+      if (!aloneVideo && !showComments) {
+        document.body.style.overscrollBehaviorY = "none";
+        document.body.style.touchAction = "none";
+        window.addEventListener("touchmove", preventScroll, { passive: false });
+      }
+      return () => {
+        document.body.style.overscrollBehaviorY = "";
+        document.body.style.touchAction = "";
+        window.removeEventListener("touchmove", preventScroll);
+      };
+    }, [aloneVideo, showComments]);
 
   // ---- FETCH ----
   useEffect(() => {
