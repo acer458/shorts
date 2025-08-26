@@ -248,9 +248,6 @@ const Header = () => {
 export default Header;
 
 
-// src/pages/About.jsx
-import React, { useState, useEffect } from "react";
-
 const About = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
