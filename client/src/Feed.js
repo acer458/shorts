@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 // ---- CONFIG ----
 const HOST = "https://shorts-t2dk.onrender.com";
-const COMMENT_SPAM_DELAY_MS = 5000; // 5 seconds delay between each comment per video
 
 // ---- UTILITIES ----
 function truncateString(str, maxLen = 90) {
@@ -43,7 +42,7 @@ function timeAgo(date) {
   if (!date) return "";
   const now = Date.now();
   const past = typeof date === "string" ? new Date(date).getTime() : date;
-  const diff = Math.round((now - past) / 1000);
+  const diff = Math.round((now - past) / 1000); // seconds ago
 
   if (diff < 10) return "Just now";
   if (diff < 60) return diff + " sec";
@@ -93,7 +92,7 @@ function PulseHeart({ visible }) {
       aria-hidden
       style={{
         position: "absolute", left: "50%", top: "50%", zIndex: 106,
-        transform: "translate(-50%,-50%)",
+        transform: "translate(-50%, -50%)",
         pointerEvents: "none", opacity: visible ? 1 : 0,
         animation: visible ? "heartPulseAnim .75s cubic-bezier(.1,1.6,.6,1)" : "none"
       }}
@@ -251,12 +250,6 @@ export default function Feed() {
   // "Replay-protection" overlay
   const [replayCounts, setReplayCounts] = useState({});
   const [overlayShown, setOverlayShown] = useState({});
-
-  // ----- SPAM PROTECTION -----
-  // Per video, timestamp of last successful comment
-  const lastCommentTimeRef = useRef({});
-  const [spamAlert, setSpamAlert] = useState({ show: false, message: "" });
-  const spamAlertTimeout = useRef(null);
 
   // ---- Prevent body scroll and pull-to-refresh on mobile ----
   useEffect(() => {
@@ -456,15 +449,6 @@ export default function Feed() {
   function handleAddComment(idx, filename) {
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
-
-    // ---- SPAM PROTECTION ----
-    const now = Date.now();
-    const lastTime = lastCommentTimeRef.current[filename] || 0;
-    if (now - lastTime < COMMENT_SPAM_DELAY_MS) {
-      handleSpam(`Please wait ${Math.ceil((COMMENT_SPAM_DELAY_MS - (now - lastTime)) / 1000)}s before commenting again.`);
-      return;
-    }
-    lastCommentTimeRef.current[filename] = now;
     axios
       .post(`${HOST}/shorts/${filename}/comment`, { name: "PropScholar User", text })
       .then(() => {
@@ -487,16 +471,7 @@ export default function Feed() {
             : prev
         );
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
-      })
-      .catch(() => {
-        // on failure, clear cooldown so user can retry
-        lastCommentTimeRef.current[filename] = 0;
       });
-  }
-  function handleSpam(message) {
-    setSpamAlert({ show: true, message });
-    if (spamAlertTimeout.current) clearTimeout(spamAlertTimeout.current);
-    spamAlertTimeout.current = setTimeout(() => setSpamAlert({ show: false, message: "" }), 2300);
   }
   const handleCaptionExpand = (filename) =>
     setExpandedCaptions((prev) => ({
@@ -666,7 +641,7 @@ export default function Feed() {
       ...c,
       index: i
     }));
-
+  
     return (
       <div
         key={filename}
@@ -678,29 +653,6 @@ export default function Feed() {
           overflow: "hidden"
         }}
       >
-        {/* Spam Alert UI */}
-        {isCurrent && spamAlert.show && (
-          <div
-            style={{
-              position: "fixed",
-              top: "30px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: "rgba(30,30,34,0.97)",
-              color: "#fff",
-              fontWeight: 500,
-              padding: "10px 28px",
-              borderRadius: "13px",
-              fontSize: 15,
-              boxShadow: "0 3px 24px #0005",
-              zIndex: 5005,
-              minWidth: 120,
-              letterSpacing: "0.02em",
-              textAlign: "center"
-            }}>
-            {spamAlert.message || "Please wait before commenting again."}
-          </div>
-        )}
         <video
           ref={el => el && (videoRefs.current[idx] = el)}
           src={HOST + v.url}
@@ -806,7 +758,7 @@ export default function Feed() {
             marginBottom: 6, width: 48, height: 48,
             borderRadius: "50%", overflow: "hidden"
           }}>
-            <img src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg' alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
+            <img src='https://res.cloudinary.com/dzozyqlqr/image/upload/v1754502047/Untitled_design_4_odnqn2.jpg' alt="" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
@@ -848,7 +800,7 @@ export default function Feed() {
           color: "#fff", padding: "20px 18px 28px 18px", zIndex: 6,
           display: "flex", flexDirection: "column", userSelect: "none"
         }}>
-          <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2, color: '#7381ff' }}>
+          <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
             @{v.author || "propscholar"}
           </div>
           {caption && (
@@ -973,13 +925,13 @@ export default function Feed() {
                         }}>
                           <span
                             className="comment-username"
-                            style={{ fontWeight: 600, fontSize: 14, marginRight: 5, color: "#5768ff" }}
+                            style={{ fontWeight: 600, fontSize: 14, marginRight: 5, color: "#fff" }}
                           >
                             {c.name}
                           </span>
                           <span
                             className="comment-text"
-                            style={{ fontSize: 14, color: "#d0d1d9" }}
+                            style={{ fontSize: 14, color: "#fff" }}
                           >
                             {c.text}
                           </span>
