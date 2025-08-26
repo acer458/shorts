@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Feed from "./Feed";
 import VideoPlayer from "./VideoPlayer";
 import AdminDashboard from "./AdminDashboard";
-import About from "./pages/About";  // Correct path here
+import About from "./pages/About";
 
 export default function App() {
   return (
