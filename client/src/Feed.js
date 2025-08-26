@@ -259,11 +259,11 @@ export default function Feed() {
   const spamAlertTimeout = useRef(null);
 
   // ---- Prevent body scroll and pull-to-refresh on mobile ----
-  useEffect(() => {
-    const preventScroll = (e) => {
-      e.preventDefault();
-      return false;
-    };
+  // useEffect(() => {
+  //   const preventScroll = (e) => {
+  //     e.preventDefault();
+  //     return false;
+  //   };
 
     if (!aloneVideo && !showComments) {
       document.body.style.overscrollBehaviorY = "none";
