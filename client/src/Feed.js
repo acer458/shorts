@@ -40,12 +40,70 @@ function fakeAvatar(i) {
 // ---- SVG ICONS ----
 function HeartSVG({ filled }) {
   return (
-    <svg aria-label={filled ? "Unlike" : "Like"} height="28" width="28" viewBox="0 0 48 48">
+    <svg
+      aria-label={filled ? "Unlike" : "Like"}
+      width="28"
+      height="28"
+      viewBox="0 0 48 48"
+      role="img"
+      style={{
+        display: "block",
+        transition: "transform .15s ease, filter .2s ease",
+        transform: filled ? "scale(1.02)" : "scale(1.0)",
+        // Optional extra CSS glow
+        filter: filled
+          ? "drop-shadow(0 0 10px rgba(237,73,86,0.35)) drop-shadow(0 0 18px rgba(255,72,112,0.18))"
+          : "none",
+      }}
+      className={filled ? "heart-burst" : ""}
+    >
+      <defs>
+        <linearGradient id="feedHeartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ff7a7a" />
+          <stop offset="55%" stopColor="#ed4956" />
+          <stop offset="100%" stopColor="#ff3d6e" />
+        </linearGradient>
+        <filter id="feedHeartGlow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="g1" />
+          <feColorMatrix
+            in="g1"
+            type="matrix"
+            values="
+              1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              0 0 0 0.32 0
+            "
+            result="glow1"
+          />
+          <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="g2" />
+          <feColorMatrix
+            in="g2"
+            type="matrix"
+            values="
+              1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              0 0 0 0.18 0
+            "
+            result="glow2"
+          />
+          <feMerge>
+            <feMergeNode in="glow2" />
+            <feMergeNode in="glow1" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+
       <path
-        fill={filled ? "#ed4956" : "none"}
-        stroke={filled ? "#ed4956" : "#fff"}
-        strokeWidth="3"
         d="M34.3 7.8c-3.4 0-6.5 1.7-8.3 4.4-1.8-2.7-4.9-4.4-8.3-4.4C11 7.8 7 12 7 17.2c0 3.7 2.6 7 6.6 11.1 3.1 3.1 9.3 8.6 10.1 9.3.6.5 1.5.5 2.1 0 .8-.7 7-6.2 10.1-9.3 4-4.1 6.6-7.4 6.6-11.1 0-5.2-4-9.4-8.6-9.4z"
+        fill={filled ? "url(#feedHeartGrad)" : "none"}
+        stroke={filled ? "#ed4956" : "#fff"}
+        strokeWidth={filled ? "0" : "3"}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        filter={filled ? "url(#feedHeartGlow)" : "none"}
       />
     </svg>
   );
@@ -1160,6 +1218,18 @@ export default function Feed() {
                 100% { opacity: 1; transform: scale(1); }
               }
             `}</style>
+            
+            {/* HEART_BURST_STYLE */}
+            <style>{`
+              .heart-burst {
+                animation: heartBurst .36s cubic-bezier(.2,.9,.25,1);
+              }
+              @keyframes heartBurst {
+                0%   { transform: scale(.88); filter: drop-shadow(0 0 0 rgba(237,73,86,0)); }
+                55%  { transform: scale(1.22); filter: drop-shadow(0 0 14px rgba(237,73,86,0.45)); }
+                100% { transform: scale(1.02); filter: drop-shadow(0 0 10px rgba(237,73,86,0.35)); }
+              }
+            `}</style>
           </div>
         )}
 
@@ -1225,9 +1295,32 @@ export default function Feed() {
                 e.stopPropagation();
                 handleLike(idx, filename);
               }}
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer", outline: 0 }}
+              // Larger hit area + prevent glow clipping
+              style={{
+                background: "none",
+                border: "none",
+                padding: 6,            // was 0
+                cursor: "pointer",
+                outline: 0,
+                lineHeight: 0,         // crisper rendering
+                borderRadius: 12,      // soft hit area
+                transition: "transform .14s ease",
+              }}
+              // Subtle press feedback on desktop
+              onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              // Keyboard focus parity with hover
+              onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
+              onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
             >
-              <HeartSVG filled={liked} />
+              {/* Gentle hover/focus pulse for desktop */}
+              <span
+                className={!liked ? "liked-pulse" : ""}
+                style={{ display: "inline-block" }}
+              >
+                <HeartSVG filled={liked} />
+              </span>
             </button>
             <span style={{ color: liked ? "#ed4956" : "#fff", fontSize: "13px", marginTop: "4px" }}>
               {v.likes || 0}
