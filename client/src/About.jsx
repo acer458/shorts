@@ -4,10 +4,19 @@ import React, { useState, useEffect } from "react";
 const About = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(false);
+  const [hoverStates, setHoverStates] = useState({
+    section: Array(6).fill(false),
+    link: Array(3).fill(false),
+    headerLink: Array(6).fill(false),
+    headerCta: false,
+  });
   
   useEffect(() => {
     const handleScroll = () => {
       setScrollPosition(window.scrollY);
+      // Show header when scrolled down a bit
+      setIsHeaderVisible(window.scrollY > 100);
     };
     
     const handleResize = () => {
@@ -22,6 +31,15 @@ const About = () => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+
+  const handleHover = (type, index, isHovered) => {
+    setHoverStates(prev => ({
+      ...prev,
+      [type]: type === 'headerCta' 
+        ? isHovered 
+        : prev[type].map((item, i) => i === index ? isHovered : item)
+    }));
+  };
 
   const styles = {
     page: {
@@ -231,6 +249,68 @@ const About = () => {
       opacity: 0.3,
       zIndex: 1,
     },
+    // Floating header styles
+    floatingHeader: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      background: "rgba(10, 10, 42, 0.95)",
+      backdropFilter: "blur(10px)",
+      padding: isMobile ? "12px 16px" : "16px 24px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      zIndex: 1000,
+      borderBottom: "1px solid rgba(74, 163, 255, 0.2)",
+      transform: isHeaderVisible ? "translateY(0)" : "translateY(-100%)",
+      transition: "transform 0.3s ease",
+      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+    },
+    headerLogo: {
+      width: isMobile ? 32 : 40,
+      height: isMobile ? 32 : 40,
+      borderRadius: "50%",
+      background: "linear-gradient(135deg, #4aa3ff 0%, #8a2be2 100%)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 4,
+    },
+    headerNav: {
+      display: "flex",
+      gap: isMobile ? 12 : 20,
+      alignItems: "center",
+      flexWrap: "wrap",
+      justifyContent: "center",
+    },
+    headerLink: {
+      color: "#fff",
+      textDecoration: "none",
+      fontSize: isMobile ? 13 : 14,
+      padding: isMobile ? "6px 10px" : "8px 14px",
+      borderRadius: "20px",
+      transition: "all 0.3s ease",
+      position: "relative",
+    },
+    headerLinkHover: {
+      background: "rgba(74, 163, 255, 0.15)",
+    },
+    headerCta: {
+      background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
+      borderRadius: "20px",
+      padding: isMobile ? "8px 14px" : "10px 18px",
+      color: "#fff",
+      textDecoration: "none",
+      fontSize: isMobile ? 13 : 14,
+      fontWeight: 500,
+      transition: "all 0.3s ease",
+      boxShadow: "0 4px 12px rgba(74, 163, 255, 0.3)",
+    },
+    headerCtaHover: {
+      transform: "translateY(-2px)",
+      boxShadow: "0 6px 16px rgba(74, 163, 255, 0.5)",
+    },
   };
 
   // Generate random particles
@@ -245,20 +325,112 @@ const About = () => {
     };
   });
 
-  const [hoverStates, setHoverStates] = useState({
-    section: Array(6).fill(false),
-    link: Array(3).fill(false),
-  });
-
-  const handleHover = (type, index, isHovered) => {
-    setHoverStates(prev => ({
-      ...prev,
-      [type]: prev[type].map((item, i) => i === index ? isHovered : item)
-    }));
-  };
-
   return (
     <main style={styles.page}>
+      {/* Floating Header */}
+      <header style={styles.floatingHeader}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={styles.headerLogo}>
+            <img 
+              src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png" 
+              alt="PropScholar Logo" 
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+            />
+          </div>
+          <span style={{ 
+            color: "#fff", 
+            fontWeight: 600, 
+            fontSize: isMobile ? 16 : 18,
+            background: "linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(74,163,255,1) 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}>
+            PropScholar
+          </span>
+        </div>
+        
+        <nav style={styles.headerNav}>
+          <a 
+            href="/" 
+            style={{
+              ...styles.headerLink,
+              ...(hoverStates.headerLink[0] && styles.headerLinkHover)
+            }}
+            onMouseEnter={() => handleHover('headerLink', 0, true)}
+            onMouseLeave={() => handleHover('headerLink', 0, false)}
+          >
+            Home
+          </a>
+          <a 
+            href="/platforms" 
+            style={{
+              ...styles.headerLink,
+              ...(hoverStates.headerLink[1] && styles.headerLinkHover)
+            }}
+            onMouseEnter={() => handleHover('headerLink', 1, true)}
+            onMouseLeave={() => handleHover('headerLink', 1, false)}
+          >
+            Platforms
+          </a>
+          <a 
+            href="/shop" 
+            style={{
+              ...styles.headerLink,
+              ...(hoverStates.headerLink[2] && styles.headerLinkHover)
+            }}
+            onMouseEnter={() => handleHover('headerLink', 2, true)}
+            onMouseLeave={() => handleHover('headerLink', 2, false)}
+          >
+            Shop
+          </a>
+          <a 
+            href="/faq" 
+            style={{
+              ...styles.headerLink,
+              ...(hoverStates.headerLink[3] && styles.headerLinkHover)
+            }}
+            onMouseEnter={() => handleHover('headerLink', 3, true)}
+            onMouseLeave={() => handleHover('headerLink', 3, false)}
+          >
+            FAQ
+          </a>
+          <a 
+            href="/community" 
+            style={{
+              ...styles.headerLink,
+              ...(hoverStates.headerLink[4] && styles.headerLinkHover)
+            }}
+            onMouseEnter={() => handleHover('headerLink', 4, true)}
+            onMouseLeave={() => handleHover('headerLink', 4, false)}
+          >
+            Community
+          </a>
+          <a 
+            href="/about" 
+            style={{
+              ...styles.headerLink,
+              color: "#4aa3ff",
+              ...(hoverStates.headerLink[5] && styles.headerLinkHover)
+            }}
+            onMouseEnter={() => handleHover('headerLink', 5, true)}
+            onMouseLeave={() => handleHover('headerLink', 5, false)}
+          >
+            About
+          </a>
+          <a 
+            href="/get-started" 
+            style={{
+              ...styles.headerCta,
+              ...(hoverStates.headerCta && styles.headerCtaHover)
+            }}
+            onMouseEnter={() => handleHover('headerCta', 0, true)}
+            onMouseLeave={() => handleHover('headerCta', 0, false)}
+          >
+            Get Started
+          </a>
+        </nav>
+      </header>
+
       {/* Background Glow Effects */}
       <div style={styles.glow}></div>
       <div style={styles.glow2}></div>
@@ -474,6 +646,22 @@ const About = () => {
             0% { box-shadow: 0 0 0 0 rgba(74, 163, 255, 0.7); }
             70% { box-shadow: 0 0 0 12px rgba(74, 163, 255, 0); }
             100% { box-shadow: 0 0 0 0 rgba(74, 163, 255, 0); }
+          }
+
+          @media (max-width: 768px) {
+            nav {
+              gap: 8px;
+            }
+            
+            .header-link {
+              font-size: 12px;
+              padding: 5px 8px;
+            }
+            
+            .header-cta {
+              font-size: 12px;
+              padding: 6px 10px;
+            }
           }
         `}
       </style>
