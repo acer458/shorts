@@ -267,6 +267,11 @@ const About = () => {
       transition: "transform 0.3s ease",
       boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
     },
+    headerLogoContainer: {
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+    },
     headerLogo: {
       width: isMobile ? 32 : 40,
       height: isMobile ? 32 : 40,
@@ -277,12 +282,18 @@ const About = () => {
       justifyContent: "center",
       padding: 4,
     },
+    headerTitle: {
+      color: "#fff", 
+      fontWeight: 600, 
+      fontSize: isMobile ? 16 : 18,
+      background: "linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(74,163,255,1) 100%)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+    },
     headerNav: {
       display: "flex",
       gap: isMobile ? 12 : 20,
       alignItems: "center",
-      flexWrap: "wrap",
-      justifyContent: "center",
     },
     headerLink: {
       color: "#fff",
@@ -291,10 +302,12 @@ const About = () => {
       padding: isMobile ? "6px 10px" : "8px 14px",
       borderRadius: "20px",
       transition: "all 0.3s ease",
-      position: "relative",
     },
     headerLinkHover: {
       background: "rgba(74, 163, 255, 0.15)",
+    },
+    headerLinkActive: {
+      color: "#4aa3ff",
     },
     headerCta: {
       background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
@@ -329,7 +342,7 @@ const About = () => {
     <main style={styles.page}>
       {/* Floating Header */}
       <header style={styles.floatingHeader}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={styles.headerLogoContainer}>
           <div style={styles.headerLogo}>
             <img 
               src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png" 
@@ -337,14 +350,7 @@ const About = () => {
               style={{ width: "100%", height: "100%", objectFit: "contain" }}
             />
           </div>
-          <span style={{ 
-            color: "#fff", 
-            fontWeight: 600, 
-            fontSize: isMobile ? 16 : 18,
-            background: "linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(74,163,255,1) 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}>
+          <span style={styles.headerTitle}>
             PropScholar
           </span>
         </div>
@@ -409,7 +415,7 @@ const About = () => {
             href="/about" 
             style={{
               ...styles.headerLink,
-              color: "#4aa3ff",
+              ...styles.headerLinkActive,
               ...(hoverStates.headerLink[5] && styles.headerLinkHover)
             }}
             onMouseEnter={() => handleHover('headerLink', 5, true)}
@@ -645,22 +651,12 @@ const About = () => {
           @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(74, 163, 255, 0.7); }
             70% { box-shadow: 0 0 0 12px rgba(74, 163, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(74, 163, 255, 0); }
+            100% { boxShadow: 0 0 0 0 rgba(74, 163, 255, 0); }
           }
 
           @media (max-width: 768px) {
             nav {
               gap: 8px;
-            }
-            
-            .header-link {
-              font-size: 12px;
-              padding: 5px 8px;
-            }
-            
-            .header-cta {
-              font-size: 12px;
-              padding: 6px 10px;
             }
           }
         `}
