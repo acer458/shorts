@@ -235,7 +235,86 @@ function SkeletonShort() {
     </div>
   );
 }
-
+// COMMENT_ROW_COMPONENTS
+function CommentSkeletonRow() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        paddingBottom: 14,
+        marginBottom: 18,
+        borderBottom: "1px solid #1a1a1a",
+      }}
+    >
+      {/* Avatar circle */}
+      <div
+        className="shimmer"
+        style={{
+          width: 30,
+          height: 30,
+          borderRadius: "50%",
+          background: "#1a1b20",
+          position: "relative",
+          overflow: "hidden",
+          flexShrink: 0,
+        }}
+      />
+      {/* Lines */}
+      <div style={{ flex: 1 }}>
+        <div
+          className="shimmer"
+          style={{
+            width: 110,
+            height: 12,
+            borderRadius: 6,
+            background: "#1a1b20",
+            marginBottom: 10,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        />
+        <div
+          className="shimmer"
+          style={{
+            width: "80%",
+            height: 10,
+            borderRadius: 6,
+            background: "#1a1b20",
+            marginBottom: 8,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        />
+        <div
+          className="shimmer"
+          style={{
+            width: "58%",
+            height: 10,
+            borderRadius: 6,
+            background: "#1a1b20",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        />
+      </div>
+      {/* Right-side heart placeholder */}
+      <div
+        className="shimmer"
+        style={{
+          width: 20,
+          height: 20,
+          borderRadius: 6,
+          background: "#1a1b20",
+          position: "relative",
+          overflow: "hidden",
+          flexShrink: 0,
+        }}
+      />
+    </div>
+  );
+}
 // ---- ANTI-INSPECT ----
 function useAntiInspect() {
   useEffect(() => {
@@ -317,6 +396,9 @@ export default function Feed() {
   const [isDraggingModal, setIsDraggingModal] = useState(false);
   const dragStartY = useRef(0);
   const dragStartedOnGrabber = useRef(false);
+  
+  // COMMENTS_LOADING_STATE
+  const [isCommentsLoading, setIsCommentsLoading] = useState(false);
 
   // Replay overlay
   const [replayCounts, setReplayCounts] = useState({});
@@ -1090,6 +1172,10 @@ export default function Feed() {
               onClick={(e) => {
                 e.stopPropagation();
                 setShowComments(filename);
+                setIsCommentsLoading(true); // start skeleton
+                // If comments come from API, set this false in the fetch .finally()
+                // For local data, simulate a short delay:
+                setTimeout(() => setIsCommentsLoading(false), 300);
               }}
               style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
             >
@@ -1225,6 +1311,27 @@ export default function Feed() {
             }}
             onClick={() => setShowComments(null)}
           >
+            {/* SKELETON_SHIMMER_STYLE */}
+            <style>
+              {`
+                .shimmer::after {
+                  content: "";
+                  position: absolute;
+                  inset: 0;
+                  transform: translateX(-100%);
+                  background: linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0) 0%,
+                    rgba(255,255,255,0.08) 50%,
+                    rgba(255,255,255,0) 100%
+                  );
+                  animation: shimmer-move 1.6s infinite;
+                }
+                @keyframes shimmer-move {
+                  100% { transform: translateX(100%); }
+                }
+              `}
+            </style>
             <div
               className="comments-modal"
               style={{
@@ -1329,92 +1436,131 @@ export default function Feed() {
                   }
                 }}
               >
-                {mappedComments.length === 0 ? (
-                  <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>
-                    No comments yet.
-                  </div>
-                ) : (
-                  mappedComments.map((c) => {
-                    const likeKey = `${filename}:${c.index}`;
-                    return (
-                      <div
-                        className="comment"
-                        key={likeKey}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 12,
-                          paddingBottom: 14,
-                          marginBottom: 18,
-                          borderBottom: "1px solid #1a1a1a",
-                        }}
-                      >
-                        <img
-                          src={fakeAvatar(c.index)}
-                          className="comment-avatar"
-                          alt=""
-                          style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
-                        />
-                        <div className="comment-content" style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              flexWrap: "wrap",
-                              gap: 8,
-                              wordBreak: "break-word",
-                            }}
-                          >
-                            <span
-                              className="comment-username"
-                              style={{ fontWeight: 600, fontSize: 14, marginRight: 5, color: "#5768ff" }}
-                            >
-                              {c.name}
-                            </span>
-                            <span className="comment-text" style={{ fontSize: 14, color: "#d0d1d9" }}>
-                              {c.text}
-                            </span>
-                          </div>
-                        </div>
-                        <button
+              {isCommentsLoading ? (
+                <>
+                  {[...Array(6)].map((_, i) => <CommentSkeletonRow key={`sk_${i}`} />)}
+                </>
+              ) : mappedComments.length === 0 ? (
+                <div style={{ color: "#ccc", textAlign: "center", padding: "40px 0" }}>
+                  No comments yet.
+                </div>
+              ) : (
+                mappedComments.map((c) => {
+                  const likeKey = `${filename}:${c.index}`;
+                  return (
+                    <div
+                      className="comment"
+                      key={likeKey}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        paddingBottom: 14,
+                        marginBottom: 18,
+                        borderBottom: "1px solid #1a1a1a",
+                      }}
+                    >
+                      <img
+                        src={fakeAvatar(c.index)}
+                        className="comment-avatar"
+                        alt=""
+                        style={{ width: 30, height: 30, borderRadius: "50%", marginRight: 10 }}
+                      />
+                      <div className="comment-content" style={{ flex: 1 }}>
+                        <div
                           style={{
-                            marginLeft: 8,
-                            background: "none",
-                            border: "none",
-                            padding: 0,
-                            cursor: "pointer",
                             display: "flex",
                             alignItems: "center",
+                            flexWrap: "wrap",
+                            gap: 8,
+                            wordBreak: "break-word",
                           }}
-                          onClick={() =>
-                            setCommentLikes((prev) => ({
-                              ...prev,
-                              [likeKey]: !prev[likeKey],
-                            }))
-                          }
-                          aria-label={commentLikes[likeKey] ? "Unlike comment" : "Like comment"}
-                          title={commentLikes[likeKey] ? "Unlike" : "Like"}
                         >
-                          <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
+                          <span
+                            className="comment-username"
+                            style={{ fontWeight: 600, fontSize: 14, marginRight: 5, color: "#5768ff" }}
+                          >
+                            {c.name}
+                          </span>
+                          <span className="comment-text" style={{ fontSize: 14, color: "#d0d1d9" }}>
+                            {c.text}
+                          </span>
+                        </div>
+                      </div>
+              
+                      {/* Comment like button (crisp + glow) */}
+                      <button
+                        style={{
+                          marginLeft: 8,
+                          background: "none",
+                          border: "none",
+                          padding: 6,              // prevents glow clipping, improves tap target
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          lineHeight: 0,           // crisp render baseline
+                          borderRadius: 10,        // soft hit area
+                        }}
+                        onClick={() =>
+                          setCommentLikes((prev) => ({
+                            ...prev,
+                            [likeKey]: !prev[likeKey],
+                          }))
+                        }
+                        aria-label={commentLikes[likeKey] ? "Unlike comment" : "Like comment"}
+                        title={commentLikes[likeKey] ? "Unlike" : "Like"}
+                      >
+                        <svg
+                          aria-hidden="true"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 48 48"
+                          role="img"
+                          style={{
+                            display: "block",
+                            // Optional CSS glow alternative:
+                            // filter: commentLikes[likeKey]
+                            //   ? "drop-shadow(0 0 5px rgba(237,73,86,0.45))"
+                            //   : "drop-shadow(0 0 3px rgba(255,255,255,0.18))",
+                          }}
+                        >
+                          <defs>
+                            <filter id="commentHeartGlow" x="-50%" y="-50%" width="200%" height="200%">
+                              <feGaussianBlur in="SourceGraphic" stdDeviation="1.3" result="blur" />
+                              <feColorMatrix
+                                in="blur"
+                                type="matrix"
+                                values="
+                                  1 0 0 0 0
+                                  0 1 0 0 0
+                                  0 0 1 0 0
+                                  0 0 0 0.55 0
+                                "
+                                result="softGlow"
+                              />
+                              <feMerge>
+                                <feMergeNode in="softGlow" />
+                                <feMergeNode in="SourceGraphic" />
+                              </feMerge>
+                            </filter>
+                          </defs>
+                          <path
+                            d="M34.3 7.8c-3.4 0-6.5 1.7-8.3 4.4-1.8-2.7-4.9-4.4-8.3-4.4C11 7.8 7 12 7 17.2c0 3.7 2.6 7 6.6 11.1 3.1 3.1 9.3 8.6 10.1 9.3.6.5 1.5.5 2.1 0 .8-.7 7-6.2 10.1-9.3 4-4.1 6.6-7.4 6.6-11.1 0-5.2-4-9.4-8.6-9.4z"
                             fill={commentLikes[likeKey] ? "#ed4956" : "none"}
                             stroke="#ed4956"
-                            strokeWidth="2"
-                            strokeLinecap="round"
+                            strokeWidth="2.2"
                             strokeLinejoin="round"
-                            style={{ transition: "fill 0.18s" }}
-                          >
-                            <path d="M12 21c-.67 0-1.29-.26-1.77-.73L3.18 13A4.07 4.07 0 0 1 2 9.81C2 7.11 4.13 5 6.81 5c1.36 0 2.71.55 3.69 1.54A5.002 5.002 0 0 1 17.19 5C19.87 5 22 7.11 22 9.81c0 1.13-.44 2.26-1.18 3.19l-7.05 7.26c-.48.47-1.1.74-1.77.74Z" />
-                          </svg>
-                        </button>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+                            strokeLinecap="round"
+                            filter={commentLikes[likeKey] ? "url(#commentHeartGlow)" : "none"}
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  );
+                })
+              )}
 
+              // </div> shivamtest
               {/* Input */}
               <div
                 style={{
