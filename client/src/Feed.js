@@ -1467,7 +1467,7 @@ export default function Feed() {
               gap: 8,
               fontWeight: 600,
               fontSize: 12,
-              marginBottom: 6, // a bit more breathing room above caption
+              marginBottom: 4.5, // a bit more breathing room above caption
               color: "#0054ff",
             }}
           >
@@ -1475,8 +1475,8 @@ export default function Feed() {
             <img
               src={"https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg"}
               alt="PropScholar"
-              width={23}
-              height={23}
+              width={26}
+              height={26}
               style={{
                 display: "block",
                 borderRadius: "50%",              // perfect circle
@@ -1506,7 +1506,7 @@ export default function Feed() {
               <div
                 style={{
                   fontWeight: 400,
-                  fontSize: 13,
+                  fontSize: 15,
                   color: "#edf7ff",
                   lineHeight: 1.4,
                   maxHeight: showFull ? "none" : "2.8em",
