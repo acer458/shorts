@@ -525,120 +525,6 @@ const About = () => {
             By using our platform one can prove themselves by providing a skill-based test and hence passing, claiming, and earning a scholarship from us.
           </p>
         </section>
-
-        <section 
-          style={{
-            ...styles.section,
-            ...(hoverStates.section[2] && styles.sectionHover)
-          }}
-          onMouseEnter={() => handleHover('section', 2, true)}
-          onMouseLeave={() => handleHover('section', 2, false)}
-        >
-          <h2 style={styles.subtitle}>Our Core Values</h2>
-
-          <h3 style={styles.subtitleSmall}>
-            <span style={styles.icon}>✨</span>Commitment to Our Word
-          </h3>
-          <p style={styles.paragraph}>We deliver what we say.</p>
-
-          <h3 style={styles.subtitleSmall}>
-            <span style={styles.icon}>🎯</span>Client-Centered Focus
-          </h3>
-          <p style={styles.paragraph}>Our team is focused to deliver what our clients want.</p>
-
-          <h3 style={styles.subtitleSmall}>
-            <span style={styles.icon}>🌟</span>B
-          </h3>
-          <p style={styles.paragraph}>
-            We are committed to provide the best support in the industry. For us, support is the image of the company.
-          </p>
-
-          <h3 style={styles.subtitleSmall}>
-            <span style={styles.icon}>⚡</span>Simplest Evaluation Process
-          </h3>
-          <p style={styles.paragraph}>We have created an evaluation tailored to be fair and transparent.</p>
-        </section>
-
-        <section 
-          style={{
-            ...styles.section,
-            ...(hoverStates.section[3] && styles.sectionHover)
-          }}
-          onMouseEnter={() => handleHover('section', 3, true)}
-          onMouseLeave={() => handleHover('section', 3, false)}
-        >
-          <h2 style={styles.subtitle}>The Community</h2>
-          <p style={styles.paragraph}>
-            We want to create a community of skilled individuals and enthusiasts who are committed and want to join us in making the trading process skill-based and devoid of capital barriers. Our Discord is an active place where we are committed to providing 24×7 support.
-          </p>
-          <div style={styles.links}>
-            <a 
-              href="https://discord.com/invite/yourserver" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              style={{
-                ...styles.linkItem,
-                ...(hoverStates.link[0] && styles.linkItemHover)
-              }}
-              onMouseEnter={() => handleHover('link', 0, true)}
-              onMouseLeave={() => handleHover('link', 0, false)}
-            >
-              <span>🎮</span> Discord
-              <span style={{
-                ...styles.linkItemBefore,
-                ...(hoverStates.link[0] && styles.linkItemBeforeHover)
-              }}></span>
-            </a>
-            <a 
-              href="https://instagram.com/propscholar" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              style={{
-                ...styles.linkItem,
-                ...(hoverStates.link[1] && styles.linkItemHover)
-              }}
-              onMouseEnter={() => handleHover('link', 1, true)}
-              onMouseLeave={() => handleHover('link', 1, false)}
-            >
-              <span>📸</span> Instagram
-              <span style={{
-                ...styles.linkItemBefore,
-                ...(hoverStates.link[1] && styles.linkItemBeforeHover)
-              }}></span>
-            </a>
-            <a 
-              href="https://twitter.com/propscholar" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              style={{
-                ...styles.linkItem,
-                ...(hoverStates.link[2] && styles.linkItemHover)
-              }}
-              onMouseEnter={() => handleHover('link', 2, true)}
-              onMouseLeave={() => handleHover('link', 2, false)}
-            >
-              <span>🐦</span> Twitter
-              <span style={{
-                ...styles.linkItemBefore,
-                ...(hoverStates.link[2] && styles.linkItemBeforeHover)
-              }}></span>
-            </a>
-          </div>
-        </section>
-
-        <section 
-          style={{
-            ...styles.section,
-            ...(hoverStates.section[4] && styles.sectionHover)
-          }}
-          onMouseEnter={() => handleHover('section', 4, true)}
-          onMouseLeave={() => handleHover('section', 4, false)}
-        >
-          <h2 style={styles.subtitle}>Our Journey</h2>
-          <p style={styles.paragraph}>
-            At PropScholar, we are committed to making trading accessible to everyone. Pass our evaluation with your skill and earn a scholarship.
-          </p>
-        </section>
       </div>
 
       <style>
@@ -651,7 +537,7 @@ const About = () => {
           @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(74, 163, 255, 0.7); }
             70% { box-shadow: 0 0 0 12px rgba(74, 163, 255, 0); }
-            100% { boxShadow: 0 0 0 0 rgba(74, 163, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 163, 255, 0); }
           }
 
           @media (max-width: 768px) {
