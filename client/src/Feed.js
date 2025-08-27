@@ -752,7 +752,7 @@ export default function Feed() {
 
     lastCommentTimeRef.current[filename] = now;
     axios
-      .post(`${HOST}/shorts/${filename}/comment`, { name: "PropScholar User", text })
+      .post(`${HOST}/shorts/${filename}/comment`, { name: " User", text })
       .then(() => {
         setShorts((prev) =>
           prev.map((v, i) =>
@@ -761,7 +761,7 @@ export default function Feed() {
                   ...v,
                   comments: [
                     ...(v.comments || []),
-                    { name: "PropScholar User", text, createdAt: Date.now() },
+                    { name: " User", text, createdAt: Date.now() },
                   ],
                 }
               : v
@@ -1466,23 +1466,23 @@ export default function Feed() {
               alignItems: "center",
               gap: 8,
               fontWeight: 600,
-              fontSize: 16,
+              fontSize: 12,
               marginBottom: 6, // a bit more breathing room above caption
-              color: "#fff",
+              color: "#0054ff",
             }}
           >
             {/* Circular company logo avatar */}
             <img
               src={"https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg"}
               alt="PropScholar"
-              width={28}
-              height={28}
+              width={20}
+              height={2-}
               style={{
                 display: "block",
                 borderRadius: "50%",              // perfect circle
                 aspectRatio: "1 / 1",
                 objectFit: "cover",
-                border: "1px solid rgba(255,255,255,0.35)", // subtle ring
+                // border: "1px solid rgba(255,255,255,0.35)", // subtle ring
                 // slight blue glow that follows image shape
                 filter: "drop-shadow(0 0 8px rgba(88,140,255,0.28)) drop-shadow(0 0 16px rgba(88,140,255,0.16))",
               }}
@@ -1497,7 +1497,7 @@ export default function Feed() {
                 textShadow: "0 0 10px rgba(88,140,255,0.35)", // subtle blue glow on text
               }}
             >
-              @{v.author || "propscholar"}
+              @{v.author || "PropScholar"}
             </span>
           </div>
 
@@ -1551,7 +1551,7 @@ export default function Feed() {
               style={{
                 background: "none",
                 border: "none",
-                color: "#9bbcff",
+                color: "#475166",
                 fontWeight: 600,
                 fontSize: 14,
                 cursor: "pointer",
