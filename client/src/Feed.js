@@ -1460,9 +1460,47 @@ export default function Feed() {
             pointerEvents: "auto",
           }}
         >
-          <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2, color: "#7381ff" }}>
-            @{v.author || "propscholar"}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontWeight: 600,
+              fontSize: 16,
+              marginBottom: 6, // a bit more breathing room above caption
+              color: "#fff",
+            }}
+          >
+            {/* Circular company logo avatar */}
+            <img
+              src={"https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg"}
+              alt="PropScholar"
+              width={28}
+              height={28}
+              style={{
+                display: "block",
+                borderRadius: "50%",              // perfect circle
+                aspectRatio: "1 / 1",
+                objectFit: "cover",
+                border: "1px solid rgba(255,255,255,0.35)", // subtle ring
+                // slight blue glow that follows image shape
+                filter: "drop-shadow(0 0 8px rgba(88,140,255,0.28)) drop-shadow(0 0 16px rgba(88,140,255,0.16))",
+              }}
+              loading="lazy"
+              decoding="async"
+            />
+          
+            {/* Handle with soft blue text glow */}
+            <span
+              style={{
+                color: "#fff",
+                textShadow: "0 0 10px rgba(88,140,255,0.35)", // subtle blue glow on text
+              }}
+            >
+              @{v.author || "propscholar"}
+            </span>
           </div>
+
           {caption && (
             <div style={{ display: "flex", alignItems: "flex-end", minHeight: "26px", maxWidth: 500 }}>
               <div
