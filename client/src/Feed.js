@@ -1482,7 +1482,7 @@ export default function Feed() {
                 borderRadius: "50%",              // perfect circle
                 aspectRatio: "1 / 1",
                 objectFit: "cover",
-                // border: "1px solid rgba(255,255,255,0.35)", // subtle ring
+                border: "1px solid rgba(255,255,255,0.35)", // subtle ring
                 // slight blue glow that follows image shape
                 filter: "drop-shadow(0 0 8px rgba(88,140,255,0.28)) drop-shadow(0 0 16px rgba(88,140,255,0.16))",
               }}
