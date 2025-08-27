@@ -71,29 +71,73 @@ function PulseHeart({ visible }) {
         transform: "translate(-50%,-50%)",
         pointerEvents: "none",
         opacity: visible ? 1 : 0,
-        animation: visible ? "heartPulse2 .9s cubic-bezier(.16,.9,.24,1)" : "none",
-        filter: "drop-shadow(0 0 14px rgba(237,73,86,0.32))",
+        animation: visible ? "heartPulse3 .92s cubic-bezier(.16,.9,.24,1)" : "none",
       }}
     >
-      <svg viewBox="0 0 96 96" width={92} height={92} style={{ display: "block" }}>
+      <svg viewBox="0 0 96 96" width={94} height={94} style={{ display: "block" }}>
+        <defs>
+          {/* Gradient for the heart */}
+          <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ff7a7a" />
+            <stop offset="50%" stopColor="#ed4956" />
+            <stop offset="100%" stopColor="#ff3d6e" />
+          </linearGradient>
+
+          {/* Layered glow: inner + outer for depth */}
+          <filter id="heartOuterGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="g1" />
+            <feColorMatrix
+              in="g1"
+              type="matrix"
+              values="
+                1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 0.35 0
+              "
+              result="glow1"
+            />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="g2" />
+            <feColorMatrix
+              in="g2"
+              type="matrix"
+              values="
+                1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 0.18 0
+              "
+              result="glow2"
+            />
+            <feMerge>
+              <feMergeNode in="glow2" />
+              <feMergeNode in="glow1" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
         <path
           d="M48 86C48 86 12 60 12 32.5 12 18.8 24.5 10 36 10c6.2 0 11.9 3.3 12 3.3S53.8 10 60 10c11.5 0 24 8.8 24 22.5C84 60 48 86 48 86Z"
-          fill="#ed4956"
+          fill="url(#heartGrad)"
           stroke="#ed4956"
           strokeWidth="7"
+          filter="url(#heartOuterGlow)"
         />
       </svg>
+
       <style>{`
-        @keyframes heartPulse2 {
-          0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.8);   filter: drop-shadow(0 0 0 rgba(237,73,86,0)); }
-          38%  { opacity: 1; transform: translate(-50%,-50%) scale(1.18);  filter: drop-shadow(0 0 20px rgba(237,73,86,0.45)); }
-          62%  { opacity: 1; transform: translate(-50%,-50%) scale(0.96);  filter: drop-shadow(0 0 12px rgba(237,73,86,0.35)); }
-          100% { opacity: 0; transform: translate(-50%,-50%) scale(1.0);   filter: drop-shadow(0 0 0 rgba(237,73,86,0)); }
+        @keyframes heartPulse3 {
+          0%   { opacity: 0; transform: translate(-50%,-50%) scale(.85); }
+          35%  { opacity: 1; transform: translate(-50%,-50%) scale(1.18); }
+          60%  { opacity: 1; transform: translate(-50%,-50%) scale(.96); }
+          100% { opacity: 0; transform: translate(-50%,-50%) scale(1.0); }
         }
       `}</style>
     </div>
   );
 }
+
 
 function MuteMicIcon({ muted }) {
   return muted ? (
