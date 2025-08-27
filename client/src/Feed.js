@@ -494,10 +494,6 @@ export default function Feed() {
   const [videoProgress, setVideoProgress] = useState({});
   const [commentLikes, setCommentLikes] = useState({});
 
-  // COMMENT_CLICK_PULSE_STATE
-  const [commentPulse, setCommentPulse] = useState(false);
-
-
   // Bottom sheet drag
   const [modalDragY, setModalDragY] = useState(0);
   const [isDraggingModal, setIsDraggingModal] = useState(false);
@@ -1207,7 +1203,6 @@ export default function Feed() {
               animation: "pauseOverlayIn .32s cubic-bezier(.2,.9,.25,1)",
             }}
           >
-
             <div
               style={{
                 filter: "drop-shadow(0 0 10px rgba(255,255,255,0.25))",
@@ -1216,7 +1211,6 @@ export default function Feed() {
             >
               <PauseIcon />
             </div>
-            
             <style>{`
               @keyframes pauseOverlayIn {
                 0% { opacity: 0; transform: scale(.88); }
@@ -1224,9 +1218,7 @@ export default function Feed() {
                 100% { opacity: 1; transform: scale(1); }
               }
             `}</style>
-            
             <style>{`
-              /* Desktop affordance: gentle hover/focus pulse for the main feed comment icon */
               .comment-icon-wrap:hover,
               .comment-icon-wrap:focus-within {
                 animation: commentPulse 1.15s ease-in-out infinite;
@@ -1235,16 +1227,6 @@ export default function Feed() {
                 0%   { transform: scale(1.00); }
                 50%  { transform: scale(1.04); }
                 100% { transform: scale(1.00); }
-              }
-            
-              /* One-shot white-glow burst when the comment button is clicked */
-              .comment-click-burst {
-                animation: commentClickBurst .38s cubic-bezier(.2,.9,.25,1);
-              }
-              @keyframes commentClickBurst {
-                0%   { transform: scale(.88); filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
-                55%  { transform: scale(1.18); filter: drop-shadow(0 0 16px rgba(255,255,255,0.45)); }
-                100% { transform: scale(1.02); filter: drop-shadow(0 0 12px rgba(255,255,255,0.35)); }
               }
             `}</style>
             
@@ -1318,11 +1300,48 @@ export default function Feed() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <button
+              aria-label={liked ? "Unlike" : "Like"}
+              disabled={likePending[filename]}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLike(idx, filename);
+              }}
+              // Larger hit area + prevent glow clipping
+              style={{
+                background: "none",
+                border: "none",
+                padding: 6,            // was 0
+                cursor: "pointer",
+                outline: 0,
+                lineHeight: 0,         // crisper rendering
+                borderRadius: 12,      // soft hit area
+                transition: "transform .14s ease",
+              }}
+              // Subtle press feedback on desktop
+              onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              // Keyboard focus parity with hover
+              onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
+              onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+            >
+              {/* Gentle hover/focus pulse for desktop */}
+              <span
+                className={!liked ? "liked-pulse" : ""}
+                style={{ display: "inline-block" }}
+              >
+                <HeartSVG filled={liked} />
+              </span>
+            </button>
+            <span style={{ color: liked ? "#ed4956" : "#fff", fontSize: "13px", marginTop: "4px" }}>
+              {v.likes || 0}
+            </span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <button
               aria-label="Comment"
               onClick={(e) => {
                 e.stopPropagation();
-                setCommentPulse(true);
-                setTimeout(() => setCommentPulse(false), 380); // match animation duration
                 setShowComments(filename);
                 setIsCommentsLoading(true); // start skeleton
                 // If comments come from API, set this false in the fetch .finally()
@@ -1332,7 +1351,7 @@ export default function Feed() {
               style={{
                 background: "none",
                 border: "none",
-                padding: 6,               // larger hit area + prevents glow clipping
+                padding: 6,                // more hit area + prevents glow clipping
                 cursor: "pointer",
                 lineHeight: 0,
                 borderRadius: 12,
@@ -1344,66 +1363,64 @@ export default function Feed() {
               onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
               onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
             >
-              <span className={commentPulse ? "comment-click-burst" : ""} style={{ display: "inline-block" }}>
-                <svg
-                  aria-label="Comment"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  role="img"
-                  style={{
-                    display: "block",
-                    // Smooth white glow (tune radii/alpha to taste)
-                    filter: "drop-shadow(0 0 10px rgba(255,255,255,0.38)) drop-shadow(0 0 20px rgba(255,255,255,0.22))",
-                    transition: "filter .18s ease, transform .14s ease",
-                  }}
-                >
-                  <defs>
-                    {/* Optional deeper SVG glow layer */}
-                    <filter id="feedCommentGlow" x="-60%" y="-60%" width="220%" height="220%">
-                      <feGaussianBlur in="SourceGraphic" stdDeviation="2.0" result="g1" />
-                      <feColorMatrix
-                        in="g1"
-                        type="matrix"
-                        values="
-                          1 0 0 0 0
-                          0 1 0 0 0
-                          0 0 1 0 0
-                          0 0 0 0.38 0
-                        "
-                        result="glow1"
-                      />
-                      <feGaussianBlur in="SourceGraphic" stdDeviation="5.0" result="g2" />
-                      <feColorMatrix
-                        in="g2"
-                        type="matrix"
-                        values="
-                          1 0 0 0 0
-                          0 1 0 0 0
-                          0 0 1 0 0
-                          0 0 0 0.24 0
-                        "
-                        result="glow2"
-                      />
-                      <feMerge>
-                        <feMergeNode in="glow2" />
-                        <feMergeNode in="glow1" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
-                  </defs>
-                  <path
-                    d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z"
-                    fill="none"
-                    stroke="#fff"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    // If you want the SVG filter too, uncomment this line:
-                    filter="url(#feedCommentGlow)"
-                  />
-                </svg>
-              </span>
+              <svg
+                aria-label="Comment"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                role="img"
+                style={{
+                  display: "block",
+                  // Lightweight, path-aware CSS glow (fast)
+                  filter: "drop-shadow(0 0 8px rgba(255,255,255,0.32)) drop-shadow(0 0 16px rgba(255,255,255,0.20))",
+                  transition: "filter .18s ease, transform .14s ease",
+                }}
+              >
+                <defs>
+                  {/* Optional SVG glow for extra depth */}
+                  <filter id="feedCommentGlow" x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="g1" />
+                    <feColorMatrix
+                      in="g1"
+                      type="matrix"
+                      values="
+                      1 0 0 0 0
+                      0 1 0 0 0
+                      0 0 1 0 0
+                      0 0 0 0.32 0
+                      "
+                      result="glow1"
+                    />
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="4.2" result="g2" />
+                    <feColorMatrix
+                      in="g2"
+                      type="matrix"
+                      values="
+                      1 0 0 0 0
+                      0 1 0 0 0
+                      0 0 1 0 0
+                      0 0 0 0.18 0
+                      "
+                      result="glow2"
+                    />
+                    <feMerge>
+                      <feMergeNode in="glow2" />
+                      <feMergeNode in="glow1" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <path
+                  d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z"
+                  fill="none"
+                  stroke="#fff"            // soft white stroke to match glow
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  filter="url(#feedCommentGlow)" // optional extra glow layer
+                />
+              </svg>
             </button>
+
             <span style={{ color: "#fff", fontSize: "13px", marginTop: "4px" }}>{v.comments?.length || 0}</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
