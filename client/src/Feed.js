@@ -1476,13 +1476,13 @@ export default function Feed() {
               src={"https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg"}
               alt="PropScholar"
               width={20}
-              height={2-}
+              height={20}
               style={{
                 display: "block",
                 borderRadius: "50%",              // perfect circle
                 aspectRatio: "1 / 1",
                 objectFit: "cover",
-                border: "1px solid rgba(255,255,255,0.35)", // subtle ring
+                // border: "1px solid rgba(255,255,255,0.35)", // subtle ring
                 // slight blue glow that follows image shape
                 filter: "drop-shadow(0 0 8px rgba(88,140,255,0.28)) drop-shadow(0 0 16px rgba(88,140,255,0.16))",
               }}
