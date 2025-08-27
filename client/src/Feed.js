@@ -2021,10 +2021,15 @@ export default function Feed() {
         height: "100dvh",
         width: "100vw",
         background: "black",
+        borderRadius: "18px",
+        boxShadow: "0 10px 28px rgba(0,0,0,0.38)",   // depth
+        outline: "1px solid rgba(255,255,255,0.06)", // faint edge
         margin: 0,
         padding: 0,
-        overflow: "hidden",
-        fontFamily: "Inter, Arial,sans-serif",
+        overflow: "hidden",                           // clip children to rounded corners
+        WebkitBackfaceVisibility: "hidden",           // smoother corners on Safari
+        backfaceVisibility: "hidden",
+        fontFamily: "Inter, Arial, sans-serif",
       }}
     >
       {getPagedShorts().map((v) => {
