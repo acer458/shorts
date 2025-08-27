@@ -1372,7 +1372,7 @@ export default function Feed() {
                 style={{
                   display: "block",
                   // Lightweight, path-aware CSS glow (fast)
-                  filter: "drop-shadow(0 0 6px rgba(124,164,255,0.28)) drop-shadow(0 0 12px rgba(80,130,255,0.16))",
+                  filter: "drop-shadow(0 0 8px rgba(255,255,255,0.32)) drop-shadow(0 0 16px rgba(255,255,255,0.20))",
                   transition: "filter .18s ease, transform .14s ease",
                 }}
               >
@@ -1384,10 +1384,10 @@ export default function Feed() {
                       in="g1"
                       type="matrix"
                       values="
-                        0.65 0   0   0 0
-                        0    0.75 0   0 0
-                        0    0   1   0 0
-                        0    0   0 0.32 0
+                      1 0 0 0 0
+                      0 1 0 0 0
+                      0 0 1 0 0
+                      0 0 0 0.32 0
                       "
                       result="glow1"
                     />
@@ -1396,10 +1396,10 @@ export default function Feed() {
                       in="g2"
                       type="matrix"
                       values="
-                        0.65 0   0   0 0
-                        0    0.75 0   0 0
-                        0    0   1   0 0
-                        0    0   0 0.18 0
+                      1 0 0 0 0
+                      0 1 0 0 0
+                      0 0 1 0 0
+                      0 0 0 0.18 0
                       "
                       result="glow2"
                     />
@@ -1413,7 +1413,7 @@ export default function Feed() {
                 <path
                   d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z"
                   fill="none"
-                  stroke="#9bbcff"            // soft bluish stroke to match glow
+                  stroke="#fff"            // soft white stroke to match glow
                   strokeLinejoin="round"
                   strokeWidth="2"
                   filter="url(#feedCommentGlow)" // optional extra glow layer
