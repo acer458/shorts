@@ -1519,9 +1519,9 @@ export default function Feed() {
                           style={{
                             display: "block",
                             // Optional CSS glow alternative:
-                            // filter: commentLikes[likeKey]
-                            //   ? "drop-shadow(0 0 5px rgba(237,73,86,0.45))"
-                            //   : "drop-shadow(0 0 3px rgba(255,255,255,0.18))",
+                            filter: commentLikes[likeKey]
+                              ? "drop-shadow(0 0 5px rgba(237,73,86,0.45))"
+                              : "drop-shadow(0 0 3px rgba(255,255,255,0.18))",
                           }}
                         >
                           <defs>
