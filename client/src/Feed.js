@@ -907,7 +907,7 @@ export default function Feed() {
         }, SINGLE_DELAY);
       },
     };
-  // }
+  }
   // ---- Seek ----
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
