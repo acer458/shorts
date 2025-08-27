@@ -1218,6 +1218,17 @@ export default function Feed() {
                 100% { opacity: 1; transform: scale(1); }
               }
             `}</style>
+            <style>{`
+              .comment-icon-wrap:hover,
+              .comment-icon-wrap:focus-within {
+                animation: commentPulse 1.15s ease-in-out infinite;
+              }
+              @keyframes commentPulse {
+                0%   { transform: scale(1.00); }
+                50%  { transform: scale(1.04); }
+                100% { transform: scale(1.00); }
+              }
+            `}</style>
             
             {/* HEART_BURST_STYLE */}
             <style>{`
@@ -1337,18 +1348,79 @@ export default function Feed() {
                 // For local data, simulate a short delay:
                 setTimeout(() => setIsCommentsLoading(false), 300);
               }}
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 6,                // more hit area + prevents glow clipping
+                cursor: "pointer",
+                lineHeight: 0,
+                borderRadius: 12,
+                transition: "transform .14s ease",
+              }}
+              onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
+              onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
             >
-              <svg aria-label="Comment" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
+              <svg
+                aria-label="Comment"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                role="img"
+                style={{
+                  display: "block",
+                  // Lightweight, path-aware CSS glow (fast)
+                  filter: "drop-shadow(0 0 6px rgba(124,164,255,0.28)) drop-shadow(0 0 12px rgba(80,130,255,0.16))",
+                  transition: "filter .18s ease, transform .14s ease",
+                }}
+              >
+                <defs>
+                  {/* Optional SVG glow for extra depth */}
+                  <filter id="feedCommentGlow" x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="g1" />
+                    <feColorMatrix
+                      in="g1"
+                      type="matrix"
+                      values="
+                        0.65 0   0   0 0
+                        0    0.75 0   0 0
+                        0    0   1   0 0
+                        0    0   0 0.32 0
+                      "
+                      result="glow1"
+                    />
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="4.2" result="g2" />
+                    <feColorMatrix
+                      in="g2"
+                      type="matrix"
+                      values="
+                        0.65 0   0   0 0
+                        0    0.75 0   0 0
+                        0    0   1   0 0
+                        0    0   0 0.18 0
+                      "
+                      result="glow2"
+                    />
+                    <feMerge>
+                      <feMergeNode in="glow2" />
+                      <feMergeNode in="glow1" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
                 <path
                   d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z"
                   fill="none"
-                  stroke="#fff"
+                  stroke="#9bbcff"            // soft bluish stroke to match glow
                   strokeLinejoin="round"
                   strokeWidth="2"
+                  filter="url(#feedCommentGlow)" // optional extra glow layer
                 />
               </svg>
             </button>
+
             <span style={{ color: "#fff", fontSize: "13px", marginTop: "4px" }}>{v.comments?.length || 0}</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -1371,7 +1443,6 @@ export default function Feed() {
             <span style={{ color: "#fff", fontSize: "13px", marginTop: "4px" }}>Share</span>
           </div>
         </div>
-
         {/* Bottom info and open comments button */}
         <div
           style={{
