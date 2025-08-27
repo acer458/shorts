@@ -794,7 +794,10 @@ export default function Feed() {
     };
 
     return {
-      onClick: () => {
+      // Use event param to stop bubbling; schedule single-click only if dblclick didn't happen
+      onClick: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (clickTimer) return;
         clickTimer = setTimeout(() => {
           clickTimer = null;
@@ -809,7 +812,9 @@ export default function Feed() {
           }
         }, SINGLE_DELAY);
       },
+    
       onDoubleClick: (e) => {
+        // Kill any pending single click, then like + pulse; do not pause
         e.preventDefault();
         e.stopPropagation();
         if (clickTimer) {
@@ -818,12 +823,15 @@ export default function Feed() {
         }
         likeThenPulse();
       },
+    
       onTouchEnd: (e) => {
         if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
         const now = Date.now();
         const isDouble = now - lastTap < 260;
         lastTap = now;
+    
         if (isDouble) {
+          // Treat as double tap only; never fall-through to single pause
           e.preventDefault();
           e.stopPropagation();
           if (clickTimer) {
@@ -831,25 +839,26 @@ export default function Feed() {
             clickTimer = null;
           }
           likeThenPulse();
-        } else {
-          if (clickTimer) clearTimeout(clickTimer);
-          clickTimer = setTimeout(() => {
-            clickTimer = null;
-            const vid = videoRefs.current[idx];
-            if (vid) {
-              if (vid.paused) {
-                vid.play();
-                setShowPause(false);
-              } else {
-                vid.pause();
-                setShowPause(true);
-              }
-            }
-          }, SINGLE_DELAY);
+          return;
         }
+    
+        // Single tap path (delayed to allow possible dbl tap)
+        if (clickTimer) clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => {
+          clickTimer = null;
+          const vid = videoRefs.current[idx];
+          if (!vid) return;
+          if (vid.paused) {
+            vid.play();
+            setShowPause(false);
+          } else {
+            vid.pause();
+            setShowPause(true);
+          }
+        }, SINGLE_DELAY);
       },
     };
-  }
+
 
   // ---- Seek ----
   function handleSeek(idx, e, isTouch = false) {
