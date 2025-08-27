@@ -71,10 +71,11 @@ function PulseHeart({ visible }) {
         transform: "translate(-50%,-50%)",
         pointerEvents: "none",
         opacity: visible ? 1 : 0,
-        animation: visible ? "heartPulseAnim .75s cubic-bezier(.1,1.6,.6,1)" : "none",
+        animation: visible ? "heartPulse2 .9s cubic-bezier(.16,.9,.24,1)" : "none",
+        filter: "drop-shadow(0 0 14px rgba(237,73,86,0.32))",
       }}
     >
-      <svg viewBox="0 0 96 96" width={90} height={90} style={{ display: "block" }}>
+      <svg viewBox="0 0 96 96" width={92} height={92} style={{ display: "block" }}>
         <path
           d="M48 86C48 86 12 60 12 32.5 12 18.8 24.5 10 36 10c6.2 0 11.9 3.3 12 3.3S53.8 10 60 10c11.5 0 24 8.8 24 22.5C84 60 48 86 48 86Z"
           fill="#ed4956"
@@ -83,17 +84,17 @@ function PulseHeart({ visible }) {
         />
       </svg>
       <style>{`
-        @keyframes heartPulseAnim {
-          0% { opacity: 0; transform: translate(-50%,-50%) scale(0);}
-          14% { opacity: 0.92; transform: translate(-50%,-50%) scale(1.22);}
-          27% { opacity: 1; transform: translate(-50%,-50%) scale(0.89);}
-          44%, 82% { opacity: 0.92; transform: translate(-50%,-50%) scale(1);}
-          100% { opacity: 0; transform: translate(-50%,-50%) scale(0);}
+        @keyframes heartPulse2 {
+          0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.8);   filter: drop-shadow(0 0 0 rgba(237,73,86,0)); }
+          38%  { opacity: 1; transform: translate(-50%,-50%) scale(1.18);  filter: drop-shadow(0 0 20px rgba(237,73,86,0.45)); }
+          62%  { opacity: 1; transform: translate(-50%,-50%) scale(0.96);  filter: drop-shadow(0 0 12px rgba(237,73,86,0.35)); }
+          100% { opacity: 0; transform: translate(-50%,-50%) scale(1.0);   filter: drop-shadow(0 0 0 rgba(237,73,86,0)); }
         }
       `}</style>
     </div>
   );
 }
+
 function MuteMicIcon({ muted }) {
   return muted ? (
     <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -781,7 +782,7 @@ export default function Feed() {
   function handleVideoEvents(idx, filename) {
     let clickTimer = null;
     let lastTap = 0;
-    const SINGLE_DELAY = 250;
+    const SINGLE_DELAY = 270;
 
     const likeThenPulse = () => {
       if (!isLiked(filename)) {
@@ -1086,21 +1087,31 @@ export default function Feed() {
           <div
             style={{
               position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
+              inset: 0,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               zIndex: 105,
               background: "rgba(0,0,0,0.26)",
               pointerEvents: "none",
-              animation: "fadeInPause .29s",
+              animation: "pauseOverlayIn .32s cubic-bezier(.2,.9,.25,1)",
             }}
           >
-            <PauseIcon />
-            <style>{`@keyframes fadeInPause { from {opacity:0; transform:scale(.85);} to {opacity:1; transform:scale(1);} }`}</style>
+            <div
+              style={{
+                filter: "drop-shadow(0 0 10px rgba(255,255,255,0.25))",
+                transform: "translateZ(0)",
+              }}
+            >
+              <PauseIcon />
+            </div>
+            <style>{`
+              @keyframes pauseOverlayIn {
+                0% { opacity: 0; transform: scale(.88); }
+                60% { opacity: 1; transform: scale(1.02); }
+                100% { opacity: 1; transform: scale(1); }
+              }
+            `}</style>
           </div>
         )}
 
@@ -1286,7 +1297,7 @@ export default function Feed() {
 
           <div style={{ marginTop: 8 }}>
             <button
-              onClick={() => setShowComments(filename)}
+              onClick={(e) => { e.stopPropagation(); setShowComments(filename); }}
               style={{
                 background: "none",
                 border: "none",
