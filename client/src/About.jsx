@@ -547,7 +547,7 @@ const About = () => {
           <p style={styles.paragraph}>Our team is focused to deliver what our clients want.</p>
 
           <h3 style={styles.subtitleSmall}>
-            <span style={styles.icon}>🌟</span>Best Support in the Industry
+            <span style={styles.icon}>🌟</span>B
           </h3>
           <p style={styles.paragraph}>
             We are committed to provide the best support in the industry. For us, support is the image of the company.
