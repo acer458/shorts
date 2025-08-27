@@ -839,11 +839,15 @@ export default function Feed() {
     };
 
     return {
-      // Use event param to stop bubbling; schedule single-click only if dblclick didn't happen
       onClick: (e) => {
+        // Always block bubbling so nested buttons don’t cause parent toggles
         e.preventDefault();
         e.stopPropagation();
+    
+        // If a timer already exists, do nothing (waiting to see if dblclick happens)
         if (clickTimer) return;
+    
+        // Schedule single click (pause/play) — will be canceled by dblclick
         clickTimer = setTimeout(() => {
           clickTimer = null;
           const vid = videoRefs.current[idx];
@@ -859,7 +863,7 @@ export default function Feed() {
       },
     
       onDoubleClick: (e) => {
-        // Kill any pending single click, then like + pulse; do not pause
+        // Treat as like-only, kill pending single click
         e.preventDefault();
         e.stopPropagation();
         if (clickTimer) {
@@ -876,7 +880,7 @@ export default function Feed() {
         lastTap = now;
     
         if (isDouble) {
-          // Treat as double tap only; never fall-through to single pause
+          // Double tap: like only, never pause
           e.preventDefault();
           e.stopPropagation();
           if (clickTimer) {
@@ -887,7 +891,7 @@ export default function Feed() {
           return;
         }
     
-        // Single tap path (delayed to allow possible dbl tap)
+        // Single tap: schedule pause/play, cancellable if a second tap arrives
         if (clickTimer) clearTimeout(clickTimer);
         clickTimer = setTimeout(() => {
           clickTimer = null;
@@ -903,7 +907,7 @@ export default function Feed() {
         }, SINGLE_DELAY);
       },
     };
-  }
+  // }
   // ---- Seek ----
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
