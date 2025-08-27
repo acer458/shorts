@@ -884,7 +884,7 @@ export default function Feed() {
   function handleVideoEvents(idx, filename) {
     let clickTimer = null;
     let lastTap = 0;
-    const SINGLE_DELAY = 700;
+    const SINGLE_DELAY = 600;
 
     const likeThenPulse = () => {
       if (!isLiked(filename)) {
