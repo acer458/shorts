@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 
 // Configurable social icons URLs
 const socialIcons = {
-  discord: "https://upload.wikimedia.org/wikipedia/commons/9/98/Discord_logo.svg", // Change Discord icon URL here
-  instagram: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/2048px-Instagram_logo_2016.svg.png", // Change Instagram icon URL here
+  discord: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663423/Untitled_design_5_xpanov.png", // Change Discord icon URL here
+  instagram: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663376/Untitled_design_2_ekcm2e.png", // Change Instagram icon URL here
 };
 
 // Navigation items
