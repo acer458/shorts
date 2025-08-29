@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from "react";
 
+const navItems = [
+  { label: "Home", href: "/" },
+  { label: "Platforms", href: "/platforms" },
+  { label: "Shop", href: "/shop" },
+  { label: "FAQ", href: "/faq" },
+  { label: "Community", href: "/community" },
+  { label: "About", href: "/about" },
+];
+
 const About = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [hoverStates, setHoverStates] = useState({
-    headerLink: Array(6).fill(false),
+    headerLink: Array(navItems.length).fill(false),
     headerCta: false,
+    section: Array(2).fill(false),
   });
 
   useEffect(() => {
@@ -30,35 +40,40 @@ const About = () => {
       background: "linear-gradient(135deg, #000000 0%, #0a0a2a 30%, #1a1a4a 100%)",
       color: "#fff",
       minHeight: "100vh",
-      padding: isMobile ? "40px 16px" : "60px 24px",
+      padding: isMobile ? "40px 8px" : "60px 0",
       fontFamily: "'Inter', Arial, sans-serif",
       lineHeight: 1.6,
       maxWidth: "100%",
       margin: 0,
       position: "relative",
-      overflow: "hidden",
+      overflowX: "hidden",
     },
     container: {
+      width: "100%",
       maxWidth: 900,
       margin: "0 auto",
       position: "relative",
       zIndex: 2,
-      paddingTop: 64,
+      paddingTop: 80,
+      paddingLeft: isMobile ? 0 : 24,
+      paddingRight: isMobile ? 0 : 24,
     },
     floatingHeaderWrapper: {
       position: "fixed",
-      top: 12,
+      top: 0,
       left: 0,
       right: 0,
+      width: "100vw",
       display: "flex",
       justifyContent: "center",
       zIndex: 2000,
       pointerEvents: "auto",
-      // Removed pointerEvents none on wrapper for visibility
+      background: "transparent",
     },
     floatingHeader: {
-      maxWidth: 1150,
-      margin: "0 12px",
+      width: "100%",
+      maxWidth: 1200,
+      margin: "0 auto",
       borderRadius: "18px",
       background: "linear-gradient(90deg, #10132b 85%, #21235a 100%)",
       boxShadow:
@@ -66,21 +81,20 @@ const About = () => {
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
-      padding: isMobile ? "12px 16px" : "18px 40px",
+      padding: isMobile ? "10px 8px" : "18px 40px",
       border: "1px solid rgba(74,163,255,0.14)",
       color: "#fff",
       userSelect: "none",
-      // Always visible, no transform toggle
     },
     headerLogoContainer: {
       display: "flex",
       alignItems: "center",
-      gap: "14px",
-      minWidth: isMobile ? 130 : 200,
+      gap: isMobile ? "10px" : "16px",
+      minWidth: isMobile ? 90 : 180,
     },
     headerLogo: {
-      width: isMobile ? 34 : 44,
-      height: isMobile ? 34 : 44,
+      width: isMobile ? 32 : 42,
+      height: isMobile ? 32 : 42,
       borderRadius: "50%",
       background: "linear-gradient(135deg, #4aa3ff 0%, #8a2be2 100%)",
       display: "flex",
@@ -100,18 +114,24 @@ const About = () => {
     },
     headerNav: {
       display: "flex",
-      gap: isMobile ? 12 : 26,
+      gap: isMobile ? 6 : 20,
       alignItems: "center",
+      flexWrap: isMobile ? "nowrap" : "wrap",
+      overflowX: isMobile ? "auto" : "visible",
+      maxWidth: isMobile ? "calc(100vw - 150px)" : "unset", // keep within screen
+      msOverflowStyle: "none",
+      scrollbarWidth: "none",
     },
     headerLink: {
       color: "#fff",
       textDecoration: "none",
       fontSize: isMobile ? 13 : 14,
-      padding: isMobile ? "6px 10px" : "8px 14px",
+      padding: isMobile ? "6px 8px" : "8px 14px",
       borderRadius: "20px",
       cursor: "pointer",
       transition: "all 0.3s ease",
       userSelect: "none",
+      whiteSpace: "nowrap",
     },
     headerLinkHover: {
       background: "rgba(74, 163, 255, 0.15)",
@@ -124,7 +144,7 @@ const About = () => {
     headerCta: {
       background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
       borderRadius: "20px",
-      padding: isMobile ? "8px 14px" : "10px 18px",
+      padding: isMobile ? "8px 10px" : "10px 18px",
       color: "#fff",
       textDecoration: "none",
       fontSize: isMobile ? 13 : 14,
@@ -133,13 +153,16 @@ const About = () => {
       boxShadow: "0 4px 12px rgba(74, 163, 255, 0.3)",
       cursor: "pointer",
       userSelect: "none",
+      whiteSpace: "nowrap",
+      marginLeft: isMobile ? 6 : 16,
+      flexShrink: 0,
     },
     headerCtaHover: {
       transform: "translateY(-2px)",
       boxShadow: "0 6px 16px rgba(74, 163, 255, 0.5)",
     },
     title: {
-      fontSize: isMobile ? "1.8rem" : "clamp(2rem, 4vw, 2.8rem)",
+      fontSize: isMobile ? "1.7rem" : "2.3rem",
       margin: 0,
       paddingBottom: 12,
       background:
@@ -164,14 +187,14 @@ const About = () => {
     paragraph: {
       fontSize: isMobile ? 14 : 15,
       marginBottom: 14,
-      color: "rgba(255, 255, 255, 0.9)",
+      color: "rgba(255, 255, 255, 0.92)",
       lineHeight: 1.7,
     },
     section: {
       background: "rgba(255, 255, 255, 0.07)",
       backdropFilter: "blur(12px)",
       borderRadius: "20px",
-      padding: isMobile ? "20px" : "28px",
+      padding: isMobile ? "16px" : "28px",
       marginBottom: "30px",
       border: "1px solid rgba(255, 255, 255, 0.12)",
       boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.4), 0 0 15px rgba(74, 163, 255, 0.25)",
@@ -181,16 +204,14 @@ const About = () => {
       transform: "translateY(-3px)",
       boxShadow: "0 12px 40px 0 rgba(0, 0, 0, 0.5), 0 0 20px rgba(74, 163, 255, 0.4)",
     },
+    subtitle: {
+      fontWeight: 700,
+      letterSpacing: "0.02em",
+      fontSize: isMobile ? 16 : 18,
+      color: "#fff",
+      marginBottom: 8,
+    },
   };
-
-  const navItems = [
-    { label: "Home", href: "/" },
-    { label: "Platforms", href: "/platforms" },
-    { label: "Shop", href: "/shop" },
-    { label: "FAQ", href: "/faq" },
-    { label: "Community", href: "/community" },
-    { label: "About", href: "/about" },
-  ];
 
   return (
     <>
@@ -206,7 +227,6 @@ const About = () => {
             </div>
             <span style={styles.headerTitle}>PropScholar</span>
           </div>
-
           <nav style={styles.headerNav}>
             {navItems.map((item, index) => (
               <a
@@ -219,6 +239,7 @@ const About = () => {
                 }}
                 onMouseEnter={() => handleHover("headerLink", index, true)}
                 onMouseLeave={() => handleHover("headerLink", index, false)}
+                tabIndex={0}
               >
                 {item.label}
               </a>
@@ -231,13 +252,13 @@ const About = () => {
               }}
               onMouseEnter={() => handleHover("headerCta", 0, true)}
               onMouseLeave={() => handleHover("headerCta", 0, false)}
+              tabIndex={0}
             >
               Get Started
             </a>
           </nav>
         </header>
       </div>
-
       <main style={styles.page}>
         <div style={styles.container}>
           <div style={styles.header}>
@@ -255,7 +276,7 @@ const About = () => {
           <section
             style={{
               ...styles.section,
-              ...(hoverStates.section && styles.sectionHover),
+              ...(hoverStates.section[0] && styles.sectionHover),
             }}
             onMouseEnter={() => handleHover("section", 0, true)}
             onMouseLeave={() => handleHover("section", 0, false)}
@@ -268,7 +289,7 @@ const About = () => {
           <section
             style={{
               ...styles.section,
-              ...(hoverStates.section && styles.sectionHover),
+              ...(hoverStates.section[1] && styles.sectionHover),
             }}
             onMouseEnter={() => handleHover("section", 1, true)}
             onMouseLeave={() => handleHover("section", 1, false)}
@@ -283,6 +304,14 @@ const About = () => {
           </section>
         </div>
       </main>
+      {/* Hide header scrollbar for aesthetics */}
+      <style>
+        {`
+        @media (max-width: 767px) {
+          header nav::-webkit-scrollbar { display: none; }
+        }
+        `}
+      </style>
     </>
   );
 };
