@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
 
+// Configurable social icons URLs
+const socialIcons = {
+  discord: "https://upload.wikimedia.org/wikipedia/commons/9/98/Discord_logo.svg", // Change Discord icon URL here
+  instagram: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/2048px-Instagram_logo_2016.svg.png", // Change Instagram icon URL here
+};
+
 // Navigation items
 const navItems = [
   { label: "Home", href: "/" },
@@ -114,7 +120,7 @@ const CommunityBlock = () => {
           rel="noopener noreferrer"
         >
           <img
-            src="https://upload.wikimedia.org/wikipedia/commons/9/98/Discord_logo.svg"
+            src={socialIcons.discord}
             alt="Discord Logo"
             style={styles.socialBtnImg}
           />
@@ -199,7 +205,7 @@ const Footer = () => {
       height: 32,
       objectFit: "contain",
       borderRadius: "50%",
-      background: "none"
+      background: "none",
     },
     brand: {
       fontWeight: 700,
@@ -221,7 +227,7 @@ const Footer = () => {
       fontWeight: 500,
       fontSize: 15,
       minWidth: 130,
-      justifyContent: "flex-end"
+      justifyContent: "flex-end",
     },
     lowerLink: {
       color: "#e6eaff",
@@ -248,59 +254,61 @@ const Footer = () => {
       letterSpacing: 0.01,
     },
   };
-
   return (
     <footer style={styles.wrapper}>
       {/* Top row: Three columns, centered */}
       <div style={styles.colsRow}>
         <div style={styles.col}>
           <div style={{ ...styles.colTitle, ...styles.company }}>Company</div>
-          <a href="https://propscholar.com/about" style={styles.link}>About Us</a>
-          <a href="#" style={styles.link}>Terms & Conditions</a>
-          <a href="#" style={styles.link}>Privacy Policy</a>
-          <a href="help.propscholar.com" style={styles.link}>FAQ</a>
+          <a href="https://propscholar.com/about" style={styles.link} target="_blank" rel="noopener noreferrer">
+            About Us
+          </a>
+          <a href="#" style={styles.link} target="_blank" rel="noopener noreferrer">
+            Terms & Conditions
+          </a>
+          <a href="#" style={styles.link} target="_blank" rel="noopener noreferrer">
+            Privacy Policy
+          </a>
+          <a href="https://help.propscholar.com" style={styles.link} target="_blank" rel="noopener noreferrer">
+            FAQ
+          </a>
         </div>
         <div style={styles.col}>
           <div style={{ ...styles.colTitle, ...styles.contact }}>Contact</div>
           <div style={{ marginBottom: 9 }}>Email Support</div>
-          <a
-            href="mailto:support@propscholar.shop"
-            style={{ ...styles.link, color: "#4aa3ff" }}>
+          <a href="mailto:support@propscholar.shop" style={{ ...styles.link, color: "#4aa3ff" }} target="_blank" rel="noopener noreferrer">
             support@propscholar.shop
           </a>
         </div>
         <div style={styles.col}>
           <div style={{ ...styles.colTitle, ...styles.social }}>Socials</div>
-          <a href="#" style={styles.link}>
-            <span role="img" aria-label="Instagram" style={{marginRight:6}}>
-              <svg width="18" height="18" fill="none"><circle cx="9" cy="9" r="7" stroke="#e6eaff" strokeWidth="1.5"/><rect x="5" y="5" width="8" height="8" rx="3" stroke="#e6eaff" strokeWidth="1.2"/><circle cx="12.5" cy="5.5" r="1" fill="#e6eaff"/></svg>
-            </span>
+          <a href="https://instagram.com/yourprofile" style={styles.link} target="_blank" rel="noopener noreferrer">
+            <img src={socialIcons.instagram} alt="Instagram" style={{ width: 18, height: 18, marginRight: 8 }} />
             Instagram
           </a>
-          <a href="https://x.com/propscholar" style={styles.link}>
-            <span role="img" aria-label="X" style={{marginRight:6}}>
-              <svg width="18" height="18" fill="none"><path d="M17 4.47c-.49.21-1.01.35-1.56.41A2.50 2.50 0 0 0 16.5 3.02c-.5.3-1.04.52-1.62.64A2.5 2.5 0 0 0 8.5 5.7c-3.02 0-4.95-2.5-4.95-4.56 0-.27.03-.54.08-.79C2.28.71 1.37 1.37 1.05 2.26c-.28.71-.31 1.59.33 2.04A2.54 2.54 0 0 1 .6 3.51c0 .04.01.09.01.13 0 1.4.53 2.52 1.49 3.18a2.5 2.5 0 0 1-1.13-.03c.02.75.59 1.38 1.29 1.46a2.5 2.5 0 0 1-1.18.04c.33 1.03 1.28 1.78 2.4 1.8A4.99 4.99 0 0 1 1 15.07c.63.52 1.35.83 2.13.89a7.06 7.06 0 0 1-5.51-.01 9.42 9.42 0 0 0 5.19 1.51c10.43 0 16.14-8.18 16.14-15.26 0-.23-.01-.45-.02-.68A11.52 11.52 0 0 0 17 4.47Z" fill="#e6eaff"/></svg>
-            </span>
+          <a href="https://x.com/propscholar" style={styles.link} target="_blank" rel="noopener noreferrer">
+            <svg width="18" height="18" fill="none" style={{ marginRight: 6 }} aria-hidden="true">
+              <path
+                d="M17 4.47c-.49.21-1.01.35-1.56.41A2.50 2.50 0 0 0 16.5 3.02c-.5.3-1.04.52-1.62.64A2.5 2.5 0 0 0 8.5 5.7c-3.02 0-4.95-2.5-4.95-4.56 0-.27.03-.54.08-.79C2.28.71 1.37 1.37 1.05 2.26c-.28.71-.31 1.59.33 2.04A2.54 2.54 0 0 1 .6 3.51c0 .04.01.09.01.13 0 1.4.53 2.52 1.49 3.18a2.5 2.5 0 0 1-1.13-.03c.02.75.59 1.38 1.29 1.46a2.5 2.5 0 0 1-1.18.04c.33 1.03 1.28 1.78 2.4 1.8A4.99 4.99 0 0 1 1 15.07c.63.52 1.35.83 2.13.89a7.06 7.06 0 0 1-5.51-.01 9.42 9.42 0 0 0 5.19 1.51c10.43 0 16.14-8.18 16.14-15.26 0-.23-.01-.45-.02-.68A11.52 11.52 0 0 0 17 4.47Z"
+                fill="#e6eaff"
+              />
+            </svg>
             X
           </a>
-          <a href="https://www.trustpilot.com/review/propscholar.com" style={styles.link}>
-            <span role="img" aria-label="Trustpilot" style={{marginRight:6}}>
-              <svg width="18" height="18" fill="none"><polygon points="9,2 11,7 16,7 12,10.5 13.5,16 9,12.8 4.5,16 6,10.5 2,7 7,7" stroke="#e6eaff" strokeWidth="1.2" fill="none"/></svg>
-            </span>
+          <a href="https://www.trustpilot.com/review/propscholar.com" style={styles.link} target="_blank" rel="noopener noreferrer">
+            <svg width="18" height="18" fill="none" style={{ marginRight: 6 }} aria-hidden="true">
+              <polygon points="9,2 11,7 16,7 12,10.5 13.5,16 9,12.8 4.5,16 6,10.5 2,7 7,7" stroke="#e6eaff" strokeWidth="1.2" fill="none" />
+            </svg>
             Trustpilot
           </a>
-          <a href="https://discord.gg/ZXqcq5Mj" style={styles.link}>
-            <span role="img" aria-label="Discord" style={{marginRight:6}}>
-              <svg width="18" height="18" fill="none"><circle cx="9" cy="9" r="8" stroke="#e6eaff" strokeWidth="1.5"/><ellipse cx="6.5" cy="10.6" rx="1.2" ry="1" fill="#e6eaff"/><ellipse cx="11.5" cy="10.6" rx="1.2" ry="1" fill="#e6eaff"/><path d="M6.9 7.3c1-.2 2.1-.2 3.2 0" stroke="#e6eaff" strokeWidth="1"/></svg>
-            </span>
+          <a href="https://discord.gg/ZXqcq5Mj" style={styles.link} target="_blank" rel="noopener noreferrer">
+            <img src={socialIcons.discord} alt="Discord" style={{ width: 18, height: 18, marginRight: 8 }} />
             Discord
           </a>
         </div>
       </div>
-
       {/* Divider Line */}
       <div style={styles.divider} />
-
       {/* Lower bar: Logo (left), Copyright (center), Terms/Privacy (right) */}
       <div style={styles.lowerBar}>
         <div style={styles.logoRow}>
@@ -315,11 +323,10 @@ const Footer = () => {
           © 2025 PropScholar. All rights reserved.
         </div>
         <div style={styles.lowerLinks}>
-          <a href="#" style={styles.lowerLink}>Terms</a>
-          <a href="#" style={styles.lowerLink}>Privacy</a>
+          <a href="#" style={styles.lowerLink} target="_blank" rel="noopener noreferrer">Terms</a>
+          <a href="#" style={styles.lowerLink} target="_blank" rel="noopener noreferrer">Privacy</a>
         </div>
       </div>
-
       {/* Disclaimer */}
       <div style={styles.disclaimer}>
         <span style={styles.disclaimerTitle}>Disclaimer:</span>
@@ -328,7 +335,6 @@ const Footer = () => {
     </footer>
   );
 };
-
 // Header Component
 const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) => {
   const styles = {
@@ -470,17 +476,15 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
     hamburgerBarsOpen2: { opacity: 0 },
     hamburgerBarsOpen3: { transform: "rotate(-45deg) translate(5px, -3px)" },
   };
-
   function handleHamburgerKey(e) {
     if (e.key === " " || e.key === "Enter") setMenuOpen((prev) => !prev);
   }
-
   return (
     <div style={styles.floatingHeaderWrapper}>
       <header style={styles.floatingHeader}>
         <div style={styles.headerLogoContainer}>
           <img
-            src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
+            src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar\_u6jhij.png"
             alt="PropScholar Logo"
             style={styles.headerLogo}
           />
@@ -533,7 +537,6 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
     </div>
   );
 };
-
 // Main Page Component
 const MainPage = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -543,7 +546,6 @@ const MainPage = () => {
     headerCta: false,
     section: [false, false],
   });
-
   useEffect(() => {
     function onResize() {
       setIsMobile(window.innerWidth < 768);
@@ -552,7 +554,6 @@ const MainPage = () => {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
-
   const handleHover = (type, index, isHovered) => {
     setHoverStates((prev) => ({
       ...prev,
@@ -561,7 +562,6 @@ const MainPage = () => {
         : prev[type].map((item, i) => (i === index ? isHovered : item)),
     }));
   };
-
   // Styles for Main content and sections
   const styles = {
     page: {
@@ -623,7 +623,6 @@ const MainPage = () => {
     },
     sectionHover: { transform: "translateY(-3px)" },
   };
-
   return (
     <>
       <Header
@@ -633,7 +632,6 @@ const MainPage = () => {
         hoverStates={hoverStates}
         handleHover={handleHover}
       />
-
       <main style={styles.page}>
         <div style={styles.container}>
           <header>
@@ -677,12 +675,9 @@ const MainPage = () => {
           </section>
         </div>
       </main>
-
       <CommunityBlock />
-
       <Footer />
     </>
   );
 };
-
 export default MainPage;
