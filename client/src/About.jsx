@@ -1,9 +1,24 @@
 import React, { useState, useEffect } from "react";
 
-// Configurable social icons URLs
+// Configurable social icons URLs for images (Discord, Instagram) and SVG for X
 const socialIcons = {
-  discord: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663423/Untitled_design_5_xpanov.png", // Change Discord icon URL here
-  instagram: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663376/Untitled_design_2_ekcm2e.png", // Change Instagram icon URL here
+  discord: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663423/Untitled_design_5_xpanov.png", // Discord icon image URL
+  instagram: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663376/Untitled_design_2_ekcm2e.png", // Instagram icon image URL
+  x: (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#e6eaff"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  ),
 };
 
 // Navigation items
@@ -72,6 +87,7 @@ const CommunityBlock = () => {
       display: "flex",
       justifyContent: "center",
       marginTop: "22px",
+      gap: 12,
     },
     socialBtn: {
       display: "flex",
@@ -83,7 +99,7 @@ const CommunityBlock = () => {
       fontWeight: 600,
       fontSize: "1.09rem",
       padding: "10px 26px",
-      borderRadius: "13px",
+      borderRadius: "50px",
       cursor: "pointer",
       textDecoration: "none",
       transition: "background 0.17s, box-shadow 0.21s",
@@ -92,7 +108,7 @@ const CommunityBlock = () => {
       width: "25px",
       height: "25px",
       objectFit: "contain",
-      borderRadius: "5px",
+      borderRadius: "50%",
       background: "none",
     },
   };
@@ -118,6 +134,7 @@ const CommunityBlock = () => {
           style={styles.socialBtn}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Discord"
         >
           <img
             src={socialIcons.discord}
@@ -169,11 +186,23 @@ const Footer = () => {
     link: {
       color: "#e6eaff",
       textDecoration: "none",
-      display: "block",
+      display: "flex",
+      alignItems: "center",
       marginBottom: 13,
       fontWeight: 500,
       fontSize: 16,
       transition: "color 0.16s",
+      gap: 8,
+      borderRadius: "50%",
+      padding: 2,
+    },
+    linkImg: {
+      width: 18,
+      height: 18,
+      objectFit: "contain",
+      borderRadius: "50%",
+      background: "none",
+      display: "block",
     },
     divider: {
       width: "92%",
@@ -254,13 +283,19 @@ const Footer = () => {
       letterSpacing: 0.01,
     },
   };
+
   return (
     <footer style={styles.wrapper}>
       {/* Top row: Three columns, centered */}
       <div style={styles.colsRow}>
         <div style={styles.col}>
           <div style={{ ...styles.colTitle, ...styles.company }}>Company</div>
-          <a href="https://propscholar.com/about" style={styles.link} target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://propscholar.com/about"
+            style={styles.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             About Us
           </a>
           <a href="#" style={styles.link} target="_blank" rel="noopener noreferrer">
@@ -269,40 +304,69 @@ const Footer = () => {
           <a href="#" style={styles.link} target="_blank" rel="noopener noreferrer">
             Privacy Policy
           </a>
-          <a href="https://help.propscholar.com" style={styles.link} target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://help.propscholar.com"
+            style={styles.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             FAQ
           </a>
         </div>
         <div style={styles.col}>
           <div style={{ ...styles.colTitle, ...styles.contact }}>Contact</div>
           <div style={{ marginBottom: 9 }}>Email Support</div>
-          <a href="mailto:support@propscholar.shop" style={{ ...styles.link, color: "#4aa3ff" }} target="_blank" rel="noopener noreferrer">
+          <a
+            href="mailto:support@propscholar.shop"
+            style={{ ...styles.link, color: "#4aa3ff" }}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             support@propscholar.shop
           </a>
         </div>
         <div style={styles.col}>
           <div style={{ ...styles.colTitle, ...styles.social }}>Socials</div>
-          <a href="https://instagram.com/yourprofile" style={styles.link} target="_blank" rel="noopener noreferrer">
-            <img src={socialIcons.instagram} alt="Instagram" style={{ width: 18, height: 18, marginRight: 8 }} />
+          <a
+            href="https://instagram.com/yourprofile"
+            style={styles.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src={socialIcons.instagram}
+              alt="Instagram"
+              style={styles.linkImg}
+            />
             Instagram
           </a>
-          <a href="https://x.com/propscholar" style={styles.link} target="_blank" rel="noopener noreferrer">
-            <svg width="18" height="18" fill="none" style={{ marginRight: 6 }} aria-hidden="true">
-              <path
-                d="M17 4.47c-.49.21-1.01.35-1.56.41A2.50 2.50 0 0 0 16.5 3.02c-.5.3-1.04.52-1.62.64A2.5 2.5 0 0 0 8.5 5.7c-3.02 0-4.95-2.5-4.95-4.56 0-.27.03-.54.08-.79C2.28.71 1.37 1.37 1.05 2.26c-.28.71-.31 1.59.33 2.04A2.54 2.54 0 0 1 .6 3.51c0 .04.01.09.01.13 0 1.4.53 2.52 1.49 3.18a2.5 2.5 0 0 1-1.13-.03c.02.75.59 1.38 1.29 1.46a2.5 2.5 0 0 1-1.18.04c.33 1.03 1.28 1.78 2.4 1.8A4.99 4.99 0 0 1 1 15.07c.63.52 1.35.83 2.13.89a7.06 7.06 0 0 1-5.51-.01 9.42 9.42 0 0 0 5.19 1.51c10.43 0 16.14-8.18 16.14-15.26 0-.23-.01-.45-.02-.68A11.52 11.52 0 0 0 17 4.47Z"
-                fill="#e6eaff"
-              />
-            </svg>
+          <a
+            href="https://x.com/propscholar"
+            style={{
+              ...styles.link,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              borderRadius: 0,
+              padding: 0,
+            }}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {socialIcons.x}
             X
           </a>
-          <a href="https://www.trustpilot.com/review/propscholar.com" style={styles.link} target="_blank" rel="noopener noreferrer">
-            <svg width="18" height="18" fill="none" style={{ marginRight: 6 }} aria-hidden="true">
-              <polygon points="9,2 11,7 16,7 12,10.5 13.5,16 9,12.8 4.5,16 6,10.5 2,7 7,7" stroke="#e6eaff" strokeWidth="1.2" fill="none" />
-            </svg>
-            Trustpilot
-          </a>
-          <a href="https://discord.gg/ZXqcq5Mj" style={styles.link} target="_blank" rel="noopener noreferrer">
-            <img src={socialIcons.discord} alt="Discord" style={{ width: 18, height: 18, marginRight: 8 }} />
+          <a
+            href="https://discord.gg/ZXqcq5Mj"
+            style={styles.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src={socialIcons.discord}
+              alt="Discord"
+              style={styles.linkImg}
+            />
             Discord
           </a>
         </div>
@@ -323,18 +387,35 @@ const Footer = () => {
           © 2025 PropScholar. All rights reserved.
         </div>
         <div style={styles.lowerLinks}>
-          <a href="#" style={styles.lowerLink} target="_blank" rel="noopener noreferrer">Terms</a>
-          <a href="#" style={styles.lowerLink} target="_blank" rel="noopener noreferrer">Privacy</a>
+          <a href="#" style={styles.lowerLink} target="_blank" rel="noopener noreferrer">
+            Terms
+          </a>
+          <a href="#" style={styles.lowerLink} target="_blank" rel="noopener noreferrer">
+            Privacy
+          </a>
         </div>
       </div>
       {/* Disclaimer */}
       <div style={styles.disclaimer}>
         <span style={styles.disclaimerTitle}>Disclaimer:</span>
-        PropScholar is a government-registered business under the MSME (Udyam) initiative. All Test/Evaluation accounts provided by PropScholar are simulated and do not involve real financial transactions or live market exposure. We are strictly an educational platform, and our programs are designed to assess trading skills in a simulated environment. Our evaluation process is entirely skill-based, and successful participants may be eligible for a scholarship award. PropScholar does not act as or offer services as a broker, custodian, or financial advisor. Participation in our programs is voluntary, and program fees are not to be considered deposits or investments of any kind. All program fees are used solely to cover operational expenses, including but not limited to staffing, technology infrastructure, and other business-related costs. Nothing contained on our platform or in our materials constitutes a solicitation or offer to buy or sell any financial instrument, including but not limited to futures, options, or foreign exchange products.
+        PropScholar is a government-registered business under the MSME (Udyam) initiative. All
+        Test/Evaluation accounts provided by PropScholar are simulated and do not involve real
+        financial transactions or live market exposure. We are strictly an educational platform,
+        and our programs are designed to assess trading skills in a simulated environment. Our
+        evaluation process is entirely skill-based, and successful participants may be eligible
+        for a scholarship award. PropScholar does not act as or offer services as a broker,
+        custodian, or financial advisor. Participation in our programs is voluntary, and program
+        fees are not to be considered deposits or investments of any kind. All program fees are
+        used solely to cover operational expenses, including but not limited to staffing,
+        technology infrastructure, and other business-related costs. Nothing contained on our
+        platform or in our materials constitutes a solicitation or offer to buy or sell any
+        financial instrument, including but not limited to futures, options, or foreign exchange
+        products.
       </div>
     </footer>
   );
 };
+
 // Header Component
 const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) => {
   const styles = {
@@ -484,7 +565,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       <header style={styles.floatingHeader}>
         <div style={styles.headerLogoContainer}>
           <img
-            src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar\_u6jhij.png"
+            src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
             alt="PropScholar Logo"
             style={styles.headerLogo}
           />
