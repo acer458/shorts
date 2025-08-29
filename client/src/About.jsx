@@ -255,10 +255,10 @@ const Footer = () => {
       <div style={styles.colsRow}>
         <div style={styles.col}>
           <div style={{ ...styles.colTitle, ...styles.company }}>Company</div>
-          <a href="#" style={styles.link}>About Us</a>
+          <a href="https://propscholar.com/about" style={styles.link}>About Us</a>
           <a href="#" style={styles.link}>Terms & Conditions</a>
           <a href="#" style={styles.link}>Privacy Policy</a>
-          <a href="#" style={styles.link}>FAQ</a>
+          <a href="help.propscholar.com" style={styles.link}>FAQ</a>
         </div>
         <div style={styles.col}>
           <div style={{ ...styles.colTitle, ...styles.contact }}>Contact</div>
@@ -277,19 +277,19 @@ const Footer = () => {
             </span>
             Instagram
           </a>
-          <a href="#" style={styles.link}>
-            <span role="img" aria-label="Twitter" style={{marginRight:6}}>
+          <a href="https://x.com/propscholar" style={styles.link}>
+            <span role="img" aria-label="X" style={{marginRight:6}}>
               <svg width="18" height="18" fill="none"><path d="M17 4.47c-.49.21-1.01.35-1.56.41A2.50 2.50 0 0 0 16.5 3.02c-.5.3-1.04.52-1.62.64A2.5 2.5 0 0 0 8.5 5.7c-3.02 0-4.95-2.5-4.95-4.56 0-.27.03-.54.08-.79C2.28.71 1.37 1.37 1.05 2.26c-.28.71-.31 1.59.33 2.04A2.54 2.54 0 0 1 .6 3.51c0 .04.01.09.01.13 0 1.4.53 2.52 1.49 3.18a2.5 2.5 0 0 1-1.13-.03c.02.75.59 1.38 1.29 1.46a2.5 2.5 0 0 1-1.18.04c.33 1.03 1.28 1.78 2.4 1.8A4.99 4.99 0 0 1 1 15.07c.63.52 1.35.83 2.13.89a7.06 7.06 0 0 1-5.51-.01 9.42 9.42 0 0 0 5.19 1.51c10.43 0 16.14-8.18 16.14-15.26 0-.23-.01-.45-.02-.68A11.52 11.52 0 0 0 17 4.47Z" fill="#e6eaff"/></svg>
             </span>
-            Twitter
+            X
           </a>
-          <a href="#" style={styles.link}>
+          <a href="https://www.trustpilot.com/review/propscholar.com" style={styles.link}>
             <span role="img" aria-label="Trustpilot" style={{marginRight:6}}>
               <svg width="18" height="18" fill="none"><polygon points="9,2 11,7 16,7 12,10.5 13.5,16 9,12.8 4.5,16 6,10.5 2,7 7,7" stroke="#e6eaff" strokeWidth="1.2" fill="none"/></svg>
             </span>
             Trustpilot
           </a>
-          <a href="#" style={styles.link}>
+          <a href="https://discord.gg/ZXqcq5Mj" style={styles.link}>
             <span role="img" aria-label="Discord" style={{marginRight:6}}>
               <svg width="18" height="18" fill="none"><circle cx="9" cy="9" r="8" stroke="#e6eaff" strokeWidth="1.5"/><ellipse cx="6.5" cy="10.6" rx="1.2" ry="1" fill="#e6eaff"/><ellipse cx="11.5" cy="10.6" rx="1.2" ry="1" fill="#e6eaff"/><path d="M6.9 7.3c1-.2 2.1-.2 3.2 0" stroke="#e6eaff" strokeWidth="1"/></svg>
             </span>
