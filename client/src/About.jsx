@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 const socialIcons = {
   discord: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663423/Untitled_design_5_xpanov.png", // Discord icon image URL
   instagram: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663376/Untitled_design_2_ekcm2e.png", // Instagram icon image URL
-  x: (
+  x: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663475/Untitled_design_6_vxz0op.png"
     <svg
       width="18"
       height="18"
