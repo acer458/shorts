@@ -29,7 +29,7 @@ const About = () => {
   }, []);
 
   const handleHover = (type, index, isHovered) => {
-    setHoverStates((prev) => ({
+    setHoverStates(prev => ({
       ...prev,
       [type]:
         type === "headerCta"
@@ -59,7 +59,6 @@ const About = () => {
       zIndex: 2,
       paddingTop: 64,
     },
-    // Move header lower on both desktop and mobile
     floatingHeaderWrapper: {
       position: "fixed",
       top: isMobile ? 10 : 32,  // Moves header lower (desktop: 32px, mobile: 10px)
@@ -209,7 +208,6 @@ const About = () => {
     hamburgerBarsOpen3: {
       transform: "rotate(-45deg) translate(5px, -3px)",
     },
-    // Rest are unchanged
     title: {
       fontSize: isMobile ? "1.3rem" : "clamp(2rem, 4vw, 2.8rem)",
       margin: 0,
@@ -236,7 +234,7 @@ const About = () => {
       fontSize: isMobile ? 13 : 15,
       marginBottom: 14,
       color: "rgba(255, 255, 255, 0.93)",
-      lineHeight: 1.70,
+      lineHeight: 1.7,
     },
     section: {
       background: "rgba(255, 255, 255, 0.07)",
@@ -255,7 +253,7 @@ const About = () => {
   };
 
   function handleHamburgerKey(e) {
-    if (e.key === " " || e.key === "Enter") setMenuOpen((prev) => !prev);
+    if (e.key === " " || e.key === "Enter") setMenuOpen(prev => !prev);
   }
 
   return (
@@ -276,7 +274,7 @@ const About = () => {
               aria-expanded={menuOpen}
               aria-controls="nav"
               style={styles.hamburger}
-              onClick={() => setMenuOpen((open) => !open)}
+              onClick={() => setMenuOpen(open => !open)}
               onKeyDown={handleHamburgerKey}
               tabIndex={0}
             >
@@ -356,10 +354,10 @@ const About = () => {
               ...(hoverStates.section[0] && styles.sectionHover),
             }}
             onMouseEnter={() =>
-              setHoverStates((prev) => ({ ...prev, section: [true, prev.section[1]] }))
+              setHoverStates(prev => ({ ...prev, section: [true, prev.section[1]] }))
             }
             onMouseLeave={() =>
-              setHoverStates((prev) => ({ ...prev, section: [false, prev.section[1]] }))
+              setHoverStates(prev => ({ ...prev, section: [false, prev.section[1]] }))
             }
           >
             <h2 style={{ fontWeight: 700, fontSize: isMobile ? 15 : 22, marginBottom: 8 }}>
@@ -375,10 +373,10 @@ const About = () => {
               ...(hoverStates.section[1] && styles.sectionHover),
             }}
             onMouseEnter={() =>
-              setHoverStates((prev) => ({ ...prev, section: [prev.section[0], true] }))
+              setHoverStates(prev => ({ ...prev, section: [prev.section[0], true] }))
             }
             onMouseLeave={() =>
-              setHoverStates((prev) => ({ ...prev, section: [prev.section[0], false] }))
+              setHoverStates(prev => ({ ...prev, section: [prev.section[0], false] }))
             }
           >
             <h2 style={{ fontWeight: 700, fontSize: isMobile ? 15 : 22, marginBottom: 8 }}>
@@ -396,10 +394,6 @@ const About = () => {
     </>
   );
 };
-
-export default About;
-
-// To change any button or nav link, simply edit the href value above in the navItems list or in the Get Started <a> tag!
 
 const Footer = () => {
   const footerStyles = {
@@ -633,20 +627,20 @@ const Footer = () => {
           style={footerStyles.logoImg}
           alt="PropScholar Logo"
         />
-        <span style={{
-          fontWeight: 700,
-          fontSize: 18,
-          background: "linear-gradient(90deg,#4aa3ff 15%, #fff 90%)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent"
-        }}>
+        <span
+          style={{
+            fontWeight: 700,
+            fontSize: 18,
+            background: "linear-gradient(90deg,#4aa3ff 15%, #fff 90%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
           PropScholar
         </span>
       </div>
       <div style={footerStyles.copyright}>
-        <span>
-          © 2025 PropScholar. All rights reserved.
-        </span>
+        <span>© 2025 PropScholar. All rights reserved.</span>
         <span style={footerStyles.policyLinks}>
           <a href="#" /* PASTE TERMS LINK HERE */ style={footerStyles.policyLink}>
             Terms
@@ -664,4 +658,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export { About, Footer };
