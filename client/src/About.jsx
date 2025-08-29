@@ -660,3 +660,81 @@ const CombinedPage = () => {
 };
 
 export default CombinedPage;
+
+
+// ... (navItems and socialIcons same as last code, omitted for brevity)
+// The About section remains unchanged, keep your About page code
+// Below is ONLY the footer part, which should be placed **after** your main About content
+
+const CombinedPage = () => {
+  // ... (all About code and styles as above, omitted for brevity)
+
+  // Insert after your About/main content:
+  return (
+    <>
+      {/* -- About section here, as in previous examples -- */}
+
+      {/* Footer starts here */}
+      <footer style={styles.footerWrapper}>
+        <div style={styles.footerContainer}>
+          {/* Company Links */}
+          <div style={styles.footerCol}>
+            <div style={{ ...styles.footerColTitle, ...styles.footerCompany }}>
+              Company
+            </div>
+            <a href="#" style={styles.footerLink}>About Us</a>
+            <a href="#" style={styles.footerLink}>Terms & Conditions</a>
+            <a href="#" style={styles.footerLink}>Privacy Policy</a>
+            <a href="#" style={styles.footerLink}>FAQ</a>
+          </div>
+          {/* Contact */}
+          <div style={styles.footerCol}>
+            <div style={{ ...styles.footerColTitle, ...styles.footerContact }}>
+              Contact
+            </div>
+            <div style={{ marginBottom: 8 }}>Email Support</div>
+            <a href="mailto:support@propscholar.shop" style={{ ...styles.footerLink, color: "#4aa3ff" }}>
+              support@propscholar.shop
+            </a>
+          </div>
+          {/* Socials */}
+          <div style={styles.footerCol}>
+            <div style={{ ...styles.footerColTitle, ...styles.footerSocial }}>
+              Socials
+            </div>
+            <div style={styles.footerSocialRow}>{socialIcons.instagram}<a href="#" style={styles.footerLink}>Instagram</a></div>
+            <div style={styles.footerSocialRow}>{socialIcons.twitter}<a href="#" style={styles.footerLink}>Twitter</a></div>
+            <div style={styles.footerSocialRow}>{socialIcons.trustpilot}<a href="#" style={styles.footerLink}>Trustpilot</a></div>
+            <div style={styles.footerSocialRow}>{socialIcons.discord}<a href="#" style={styles.footerLink}>Discord</a></div>
+          </div>
+        </div>
+        <div style={styles.footerDivider} />
+        <div style={styles.footerLogoRow}>
+          <img src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
+            style={styles.footerLogoImg} alt="PropScholar Logo" />
+          <span style={{
+            fontWeight: 700,
+            fontSize: 18,
+            background: "linear-gradient(90deg,#4aa3ff 15%, #fff 90%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent", }}>
+            PropScholar
+          </span>
+        </div>
+        <div style={styles.footerCopyright}>
+          <span>© 2025 PropScholar. All rights reserved.</span>
+          <span style={styles.footerPolicyLinks}>
+            <a href="#" style={styles.footerPolicyLink}>Terms</a>
+            <a href="#" style={styles.footerPolicyLink}>Privacy</a>
+          </span>
+        </div>
+        <div style={styles.footerDisclaimer}>
+          <div style={styles.footerDisclaimerTitle}>Disclaimer:</div>
+          PropScholar is a government-registered business under the MSME (Udyam) initiative. All Test/Evaluation accounts provided by PropScholar are simulated and do not involve real financial transactions or live market exposure. We are strictly an educational platform, and our programs are designed to assess trading skills in a simulated environment. Our evaluation process is entirely skill-based, and successful participants may be eligible for a scholarship award. PropScholar does not act as or offer services as a broker, custodian, or financial advisor. Participation in our programs is voluntary, and program fees are not to be considered deposits or investments of any kind. All program fees are used solely to cover operational expenses, including but not limited to staffing, technology infrastructure, and other business-related costs. Nothing contained on our platform or in our materials constitutes a solicitation or offer to buy or sell any financial instrument, including but not limited to futures, options, or foreign exchange products.
+        </div>
+      </footer>
+    </>
+  );
+};
+
+export default CombinedPage;
