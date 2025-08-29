@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 
 // Community block social button config
 const COMMUNITY_SOCIAL = {
-  label: "Discord", // Button text
-  href: "https://discord.com/invite/your-community", // Change this link
-  iconUrl: "https://upload.wikimedia.org/wikipedia/commons/9/98/Discord_logo.svg", // Change this icon URL
+  label: "Discord",
+  href: "https://discord.com/invite/your-community", // CHANGE THIS LINK
+  iconUrl: "https://upload.wikimedia.org/wikipedia/commons/9/98/Discord_logo.svg", // CHANGE ICON
 };
 
 const navItems = [
@@ -37,16 +37,15 @@ const CombinedPage = () => {
   const handleHover = (type, index, isHovered) => {
     setHoverStates((prev) => ({
       ...prev,
-      [type]:
-        type === "headerCta"
-          ? isHovered
-          : prev[type].map((item, i) => (i === index ? isHovered : item)),
+      [type]: type === "headerCta"
+        ? isHovered
+        : prev[type].map((item, i) => (i === index ? isHovered : item)),
     }));
   };
 
   // Styles
   const styles = {
-    /* General page */
+    /* Page */
     page: {
       background: "linear-gradient(135deg, #000000 0%, #0a0a2a 30%, #1a1a4a 100%)",
       color: "#fff",
@@ -111,6 +110,7 @@ const CombinedPage = () => {
       background: "none",
       border: "none",
       boxShadow: "none",
+      marginRight: 4,
     },
     headerTitle: {
       fontWeight: 700,
@@ -118,6 +118,7 @@ const CombinedPage = () => {
       background: "linear-gradient(90deg, #fff 0%, #4aa3ff 100%)",
       WebkitBackgroundClip: "text",
       WebkitTextFillColor: "transparent",
+      marginLeft: 4
     },
     headerNav: {
       display: isMobile ? (menuOpen ? "flex" : "none") : "flex",
@@ -204,7 +205,7 @@ const CombinedPage = () => {
     hamburgerBarsOpen2: { opacity: 0 },
     hamburgerBarsOpen3: { transform: "rotate(-45deg) translate(5px, -3px)" },
 
-    /* Typography */
+    /* Content Typography */
     title: {
       fontSize: isMobile ? "1.3rem" : "clamp(2rem, 4vw, 2.8rem)",
       margin: 0,
@@ -245,93 +246,17 @@ const CombinedPage = () => {
     },
     sectionHover: { transform: "translateY(-3px)" },
 
-    /* Footer */
-    footerWrapper: {
-      width: "100%",
-      background: "linear-gradient(135deg, #151834 0%, #181c3b 100%)",
-      color: "#e6eaff",
-      padding: "56px 0 0 0",
-      marginTop: 40,
-      fontFamily: "'Inter', Arial, sans-serif",
-      fontSize: 16,
-      letterSpacing: "0.01em",
-    },
-    footerContainer: {
-      maxWidth: 1200,
-      margin: "0 auto",
-      padding: "0 24px",
-      display: "flex",
-      gap: 32,
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      flexWrap: "wrap",
-    },
-    footerCol: { flex: "1 1 220px", minWidth: 160 },
-    footerColTitle: { fontWeight: 700, fontSize: 20, marginBottom: 14, marginTop: 0 },
-    footerCompany: { color: "#4aa3ff" },
-    footerContact: { color: "#ffcb29" },
-    footerSocial: { color: "#31d17a" },
-    footerLink: {
-      color: "#e6eaff",
-      textDecoration: "none",
-      display: "block",
-      marginBottom: 12,
-      fontWeight: 500,
-      fontSize: 16,
-      transition: "color 0.16s",
-    },
-    footerSocialRow: { display: "flex", alignItems: "center", gap: 10, marginBottom: 13 },
-    footerLogoImg: {
-      width: 34,
-      height: 34,
-      objectFit: "contain",
-      borderRadius: "50%",
-      background: "none",
-    },
-    footerLogoRow: {
-      display: "flex",
-      alignItems: "center",
-      gap: 12,
-      marginBottom: 10,
-    },
-    footerCopyrightRow: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      flexWrap: "wrap",
-      gap: 16,
-      margin: "0 24px 12px 24px",
-      fontSize: 15,
-      color: "#8b98b7",
-    },
-    footerPolicyLinks: { display: "flex", gap: 23, fontSize: 15 },
-    footerPolicyLink: {
-      color: "#e6eaff",
-      textDecoration: "none",
-      fontWeight: 500,
-      opacity: 0.7,
-      transition: "opacity 0.2s",
-    },
-    footerDisclaimer: { margin: "28px 18px 0 18px", color: "#b0b7cc", fontSize: 13.2, lineHeight: 1.6 },
-    footerDisclaimerTitle: {
-      fontWeight: 700,
-      color: "#f3f3f7",
-      marginBottom: 3,
-      fontSize: 14,
-      letterSpacing: 0.01,
-    },
-
     /* Community Block */
     communityWrapper: {
       maxWidth: 1100,
       margin: "54px auto",
       padding: "56px 24px 36px 24px",
       borderRadius: "30px",
-      background: "rgba(255,255,255,0.07)",
-      boxShadow: "0 4px 38px 0 rgba(74,163,255,0.19)",
+      background: "rgba(255,255,255,0.11)", // Glassmorphism: light, not black!
+      boxShadow: "0 4px 34px 0 rgba(74,163,255,0.09)",
       textAlign: "center",
-      color: "rgba(235, 235, 255, 0.96)",
-      backdropFilter: "blur(8px)",
+      color: "#222",
+      backdropFilter: "blur(20px)",
     },
     iconTitleRow: {
       display: "flex",
@@ -357,8 +282,9 @@ const CombinedPage = () => {
     communityTitle: {
       fontSize: "2rem",
       fontWeight: 800,
-      color: "#fff",
+      color: "#24224a",
       margin: 0,
+      letterSpacing: 1.2,
     },
     communityDesc: {
       margin: "20px 0 36px 0",
@@ -366,7 +292,7 @@ const CombinedPage = () => {
       maxWidth: 700,
       marginLeft: "auto",
       marginRight: "auto",
-      color: "#e5e6ed",
+      color: "#37406a",
       lineHeight: 1.7,
     },
     btnRow: {
@@ -381,7 +307,7 @@ const CombinedPage = () => {
       gap: "12px",
       background: "rgba(40, 40, 70, 0.93)",
       border: "1.8px solid #4aa3ff",
-      boxShadow: "0 2px 11px 0px rgba(74,163,255,0.12)",
+      boxShadow: "0 2px 11px 0px rgba(74,163,255,0.11)",
       color: "#fff",
       fontWeight: 600,
       fontSize: "1.07rem",
@@ -397,6 +323,88 @@ const CombinedPage = () => {
       objectFit: "contain",
       borderRadius: "5px",
       background: "none",
+    },
+
+    /* Footer Bar (all inside) */
+    footerBar: {
+      width: "100%",
+      background: "linear-gradient(135deg, #151834 0%, #181c3b 100%)",
+      color: "#e6eaff",
+      marginTop: 44,
+      fontSize: 15,
+      padding: "34px 0 18px 0",
+      boxShadow: "0 2px 24px 0 rgba(44,63,130,0.08)",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+    },
+    footerRow: {
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 32,
+      maxWidth: 1100,
+      width: "100%",
+      marginBottom: 10,
+      padding: "0 18px",
+    },
+    footerLogoRow: {
+      display: "flex",
+      alignItems: "center",
+      gap: 9,
+    },
+    footerLogoImg: {
+      width: 30,
+      height: 30,
+      objectFit: "contain",
+      borderRadius: "50%",
+    },
+    footerBrand: {
+      fontWeight: 700,
+      fontSize: 17,
+      background: "linear-gradient(90deg,#4aa3ff 15%, #fff 90%)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      marginLeft: 4,
+    },
+    footerLinks: {
+      display: "flex",
+      gap: 18,
+      alignItems: "center",
+      fontWeight: 500,
+      fontSize: 16,
+      marginLeft: 16,
+    },
+    footerLink: {
+      color: "#e6eaff",
+      textDecoration: "none",
+      opacity: 0.75,
+      transition: "opacity 0.14s",
+      fontWeight: 500,
+    },
+    footerRights: {
+      marginLeft: 16,
+      color: "#8b98b7",
+      fontSize: 15,
+    },
+    footerDisclaimer: {
+      marginTop: 5,
+      marginLeft: 12,
+      marginRight: 12,
+      color: "#b0b7cc",
+      fontSize: 13.5,
+      lineHeight: 1.45,
+      maxWidth: 1100,
+      textAlign: "left",
+    },
+    footerDisclaimerTitle: {
+      fontWeight: 700,
+      color: "#f3f3f7",
+      marginBottom: 3,
+      fontSize: 14,
+      letterSpacing: 0.01,
+      display: "block",
     },
   };
 
@@ -479,7 +487,7 @@ const CombinedPage = () => {
         </header>
       </div>
 
-      {/* About Main Content */}
+      {/* About Content */}
       <main style={styles.page}>
         <div style={styles.container}>
           <header>
@@ -538,7 +546,7 @@ const CombinedPage = () => {
         </div>
       </main>
 
-      {/* Community Block */}
+      {/* Community Block - Now glassmorphism light background */}
       <section style={styles.communityWrapper}>
         <div style={styles.iconTitleRow}>
           <div style={styles.blockIconWrap}>
@@ -575,158 +583,32 @@ const CombinedPage = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={styles.footerWrapper}>
-        <div style={styles.footerContainer}>
-          {/* Company */}
-          <div style={styles.footerCol}>
-            <div style={{ ...styles.footerColTitle, ...styles.footerCompany }}>Company</div>
-            <a href="#" style={styles.footerLink}>
-              About Us
-            </a>
-            <a href="#" style={styles.footerLink}>
-              Terms & Conditions
-            </a>
-            <a href="#" style={styles.footerLink}>
-              Privacy Policy
-            </a>
-            <a href="#" style={styles.footerLink}>
-              FAQ
-            </a>
-          </div>
-          {/* Contact */}
-          <div style={styles.footerCol}>
-            <div style={{ ...styles.footerColTitle, ...styles.footerContact }}>Contact</div>
-            <div style={{ marginBottom: 8 }}>Email Support</div>
-            <a
-              href="mailto:support@propscholar.shop"
-              style={{ ...styles.footerLink, color: "#4aa3ff" }}
-            >
-              support@propscholar.shop
-            </a>
-          </div>
-          {/* Socials */}
-          <div style={styles.footerCol}>
-            <div style={{ ...styles.footerColTitle, ...styles.footerSocial }}>Socials</div>
-            <div style={styles.footerSocialRow}>
-              <svg
-                width="18"
-                height="18"
-                fill="none"
-                style={{ marginRight: 6 }}
-                aria-hidden="true"
-              >
-                <circle cx="9" cy="9" r="7" stroke="#e6eaff" strokeWidth="1.5" />
-                <rect x="5" y="5" width="8" height="8" rx="3" stroke="#e6eaff" strokeWidth="1.2" />
-                <circle cx="12.5" cy="5.5" r="1" fill="#e6eaff" />
-              </svg>
-              <a href="#" style={styles.footerLink} target="_blank" rel="noopener">
-                Instagram
-              </a>
-            </div>
-            <div style={styles.footerSocialRow}>
-              <svg
-                width="18"
-                height="18"
-                fill="none"
-                style={{ marginRight: 6 }}
-                aria-hidden="true"
-              >
-                <path
-                  d="M17 4.47c-.49.21-1.01.35-1.56.41A2.50 2.50 0 0 0 16.5 3.02c-.5.3-1.04.52-1.62.64A2.5 2.5 0 0 0 8.5 5.7c-3.02 0-4.95-2.5-4.95-4.56 0-.27.03-.54.08-.79C2.28.71 1.37 1.37 1.05 2.26c-.28.71-.31 1.59.33 2.04A2.54 2.54 0 0 1 .6 3.51c0 .04.01.09.01.13 0 1.4.53 2.52 1.49 3.18a2.5 2.5 0 0 1-1.13-.03c.02.75.59 1.38 1.29 1.46a2.5 2.5 0 0 1-1.18.04c.33 1.03 1.28 1.78 2.4 1.8A4.99 4.99 0 0 1 1 15.07c.63.52 1.35.83 2.13.89a7.06 7.06 0 0 1-5.51-.01 9.42 9.42 0 0 0 5.19 1.51c10.43 0 16.14-8.18 16.14-15.26 0-.23-.01-.45-.02-.68A11.52 11.52 0 0 0 17 4.47Z"
-                  fill="#e6eaff"
-                />
-              </svg>
-              <a href="#" style={styles.footerLink} target="_blank" rel="noopener">
-                Twitter
-              </a>
-            </div>
-            <div style={styles.footerSocialRow}>
-              <svg
-                width="18"
-                height="18"
-                fill="none"
-                style={{ marginRight: 6 }}
-                aria-hidden="true"
-              >
-                <polygon
-                  points="9,2 11,7 16,7 12,10.5 13.5,16 9,12.8 4.5,16 6,10.5 2,7 7,7"
-                  stroke="#e6eaff"
-                  strokeWidth="1.2"
-                  fill="none"
-                />
-              </svg>
-              <a href="#" style={styles.footerLink} target="_blank" rel="noopener">
-                Trustpilot
-              </a>
-            </div>
-            <div style={styles.footerSocialRow}>
-              <svg
-                width="18"
-                height="18"
-                fill="none"
-                style={{ marginRight: 6 }}
-                aria-hidden="true"
-              >
-                <circle cx="9" cy="9" r="8" stroke="#e6eaff" strokeWidth="1.5" />
-                <ellipse cx="6.5" cy="10.6" rx="1.2" ry="1" fill="#e6eaff" />
-                <ellipse cx="11.5" cy="10.6" rx="1.2" ry="1" fill="#e6eaff" />
-                <path d="M6.9 7.3c1-.2 2.1-.2 3.2 0" stroke="#e6eaff" strokeWidth="1" />
-              </svg>
-              <a href="#" style={styles.footerLink} target="_blank" rel="noopener">
-                Discord
-              </a>
-            </div>
-          </div>
-        </div>
-        {/* No divider */}
-        <div style={styles.footerCopyrightRow}>
+      {/* Unified Footer Bar - everything inside */}
+      <footer style={styles.footerBar}>
+        <div style={styles.footerRow}>
           <div style={styles.footerLogoRow}>
             <img
               src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
               style={styles.footerLogoImg}
               alt="PropScholar Logo"
             />
-            <span
-              style={{
-                fontWeight: 700,
-                fontSize: 18,
-                background: "linear-gradient(90deg,#4aa3ff 15%, #fff 90%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              PropScholar
-            </span>
+            <span style={styles.footerBrand}>PropScholar</span>
           </div>
-          <span style={styles.footerPolicyLinks}>
-            <a href="#" style={styles.footerPolicyLink}>
-              Terms
-            </a>
-            <a href="#" style={styles.footerPolicyLink}>
-              Privacy
-            </a>
-            <span style={{ paddingLeft: 12 }}>© 2025 PropScholar. All rights reserved.</span>
-          </span>
+          <div style={styles.footerLinks}>
+            <a href="#" style={styles.footerLink}>Terms</a>
+            <a href="#" style={styles.footerLink}>Privacy</a>
+          </div>
+          <div style={styles.footerRights}>
+            © 2025 PropScholar. All rights reserved.
+          </div>
         </div>
         <div style={styles.footerDisclaimer}>
-          <div style={styles.footerDisclaimerTitle}>Disclaimer:</div>
-          PropScholar is a government-registered business under the MSME (Udyam) initiative. All
-          Test/Evaluation accounts provided by PropScholar are simulated and do not involve real
-          financial transactions or live market exposure. We are strictly an educational platform,
-          and our programs are designed to assess trading skills in a simulated environment. Our
-          evaluation process is entirely skill-based, and successful participants may be eligible
-          for a scholarship award. PropScholar does not act as or offer services as a broker,
-          custodian, or financial advisor. Participation in our programs is voluntary, and program
-          fees are not to be considered deposits or investments of any kind. All program fees are
-          used solely to cover operational expenses, including but not limited to staffing,
-          technology infrastructure, and other business-related costs. Nothing contained on our
-          platform or in our materials constitutes a solicitation or offer to buy or sell any
-          financial instrument, including but not limited to futures, options, or foreign exchange
-          products.
+          <span style={styles.footerDisclaimerTitle}>Disclaimer:</span>
+          PropScholar is a government-registered business under the MSME (Udyam) initiative. All Test/Evaluation accounts provided by PropScholar are simulated and do not involve real financial transactions or live market exposure. We are strictly an educational platform, and our programs are designed to assess trading skills in a simulated environment. Our evaluation process is entirely skill-based, and successful participants may be eligible for a scholarship award. PropScholar does not act as or offer services as a broker, custodian, or financial advisor. Participation in our programs is voluntary, and program fees are not to be considered deposits or investments of any kind. All program fees are used solely to cover operational expenses, including but not limited to staffing, technology infrastructure, and other business-related costs. Nothing contained on our platform or in our materials constitutes a solicitation or offer to buy or sell any financial instrument, including but not limited to futures, options, or foreign exchange products.
         </div>
       </footer>
     </>
   );
 };
+
 export default CombinedPage;
