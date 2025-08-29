@@ -400,3 +400,268 @@ const About = () => {
 export default About;
 
 // To change any button or nav link, simply edit the href value above in the navItems list or in the Get Started <a> tag!
+
+const Footer = () => {
+  const footerStyles = {
+    wrapper: {
+      width: "100%",
+      background: "linear-gradient(135deg, #151834 0%, #181c3b 100%)",
+      color: "#e6eaff",
+      padding: "56px 0 0 0",
+      marginTop: 40,
+      fontFamily: "'Inter', Arial, sans-serif",
+      fontSize: 16,
+      letterSpacing: "0.01em",
+    },
+    container: {
+      maxWidth: 1200,
+      margin: "0 auto",
+      padding: "0 24px",
+      display: "flex",
+      gap: 32,
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      flexWrap: "wrap",
+    },
+    col: {
+      flex: "1 1 220px",
+      minWidth: 160,
+    },
+    colTitle: {
+      fontWeight: 700,
+      fontSize: 20,
+      marginBottom: 14,
+      marginTop: 0,
+    },
+    company: { color: "#4aa3ff" },
+    contact: { color: "#ffcb29" },
+    social: { color: "#31d17a" },
+    link: {
+      color: "#e6eaff",
+      textDecoration: "none",
+      display: "block",
+      marginBottom: 12,
+      fontWeight: 500,
+      fontSize: 16,
+      transition: "color 0.16s",
+    },
+    linkHover: { color: "#4aa3ff" },
+    socialRow: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: 13,
+    },
+    logoRow: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      marginTop: 44,
+      marginBottom: 10,
+      marginLeft: 2,
+    },
+    logoImg: {
+      width: 34,
+      height: 34,
+      objectFit: "contain",
+      borderRadius: "50%",
+      background: "radial-gradient(circle at 33% 33%, #4aa3ff 35%, #181c3b 100%)",
+    },
+    divider: {
+      width: "100%",
+      height: 1,
+      margin: "38px 0 20px 0",
+      background: "rgba(128,150,255,0.18)",
+    },
+    copyright: {
+      color: "#8b98b7",
+      fontSize: 15,
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      flexWrap: "wrap",
+      padding: "0 24px 12px 24px",
+      maxWidth: 1200,
+      margin: "0 auto",
+      width: "100%",
+    },
+    disclaimer: {
+      margin: "28px 18px 0 18px",
+      color: "#b0b7cc",
+      fontSize: 13.2,
+      lineHeight: 1.6,
+    },
+    disclaimerTitle: {
+      fontWeight: 700,
+      color: "#f3f3f7",
+      marginBottom: 3,
+      fontSize: 14,
+      letterSpacing: 0.01,
+    },
+    policyLinks: {
+      display: "flex",
+      gap: 23,
+      fontSize: 15,
+    },
+    policyLink: {
+      color: "#e6eaff",
+      textDecoration: "none",
+      fontWeight: 500,
+      opacity: 0.7,
+      transition: "opacity 0.2s",
+    },
+  };
+
+  // Social icons SVGs!
+  const socialIcons = {
+    instagram: (
+      <svg width="18" height="18" fill="none"><circle cx="9" cy="9" r="7" stroke="#e6eaff" strokeWidth="1.5"/><rect x="5" y="5" width="8" height="8" rx="3" stroke="#e6eaff" strokeWidth="1.2"/><circle cx="12.5" cy="5.5" r="1" fill="#e6eaff"/></svg>
+    ),
+    twitter: (
+      <svg width="18" height="18" fill="none"><path d="M17 4.47c-.49.21-1.01.35-1.56.41A2.50 2.50 0 0 0 16.5 3.02c-.5.3-1.04.52-1.62.64A2.5 2.5 0 0 0 8.5 5.7c-3.02 0-4.95-2.5-4.95-4.56 0-.27.03-.54.08-.79C2.28.71 1.37 1.37 1.05 2.26c-.28.71-.31 1.59.33 2.04A2.54 2.54 0 0 1 .6 3.51c0 .04.01.09.01.13 0 1.4.53 2.52 1.49 3.18a2.5 2.5 0 0 1-1.13-.03c.02.75.59 1.38 1.29 1.46a2.5 2.5 0 0 1-1.18.04c.33 1.03 1.28 1.78 2.4 1.8A4.99 4.99 0 0 1 1 15.07c.63.52 1.35.83 2.13.89a7.06 7.06 0 0 1-5.51-.01 9.42 9.42 0 0 0 5.19 1.51c10.43 0 16.14-8.18 16.14-15.26 0-.23-.01-.45-.02-.68A11.52 11.52 0 0 0 17 4.47Z" fill="#e6eaff"/></svg>
+    ),
+    trustpilot: (
+      <svg width="18" height="18" fill="none"><polygon points="9,2 11,7 16,7 12,10.5 13.5,16 9,12.8 4.5,16 6,10.5 2,7 7,7" stroke="#e6eaff" strokeWidth="1.2" fill="none"/></svg>
+    ),
+    discord: (
+      <svg width="18" height="18" fill="none"><circle cx="9" cy="9" r="8" stroke="#e6eaff" strokeWidth="1.5"/><ellipse cx="6.5" cy="10.6" rx="1.2" ry="1" fill="#e6eaff"/><ellipse cx="11.5" cy="10.6" rx="1.2" ry="1" fill="#e6eaff"/><path d="M6.9 7.3c1-.2 2.1-.2 3.2 0" stroke="#e6eaff" strokeWidth="1"/></svg>
+    ),
+  };
+
+  return (
+    <footer style={footerStyles.wrapper}>
+      <div style={footerStyles.container}>
+        {/* Company Links */}
+        <div style={footerStyles.col}>
+          <div style={{ ...footerStyles.colTitle, ...footerStyles.company }}>
+            Company
+          </div>
+          <a
+            href="#" // PASTE YOUR "About Us" LINK HERE
+            style={footerStyles.link}
+          >
+            About Us
+          </a>
+          <a
+            href="#" // PASTE YOUR "Terms & Conditions" LINK HERE
+            style={footerStyles.link}
+          >
+            Terms & Conditions
+          </a>
+          <a
+            href="#" // PASTE YOUR "Privacy Policy" LINK HERE
+            style={footerStyles.link}
+          >
+            Privacy Policy
+          </a>
+          <a
+            href="#" // PASTE YOUR "FAQ" LINK HERE
+            style={footerStyles.link}
+          >
+            FAQ
+          </a>
+        </div>
+        {/* Contact */}
+        <div style={footerStyles.col}>
+          <div style={{ ...footerStyles.colTitle, ...footerStyles.contact }}>
+            Contact
+          </div>
+          <div style={{ marginBottom: 8 }}>Email Support</div>
+          <a
+            href="mailto:support@propscholar.shop" // EDIT SUPPORT EMAIL (IF NEEDED)
+            style={{ ...footerStyles.link, color: "#4aa3ff" }}
+          >
+            support@propscholar.shop
+          </a>
+        </div>
+        {/* Socials */}
+        <div style={footerStyles.col}>
+          <div style={{ ...footerStyles.colTitle, ...footerStyles.social }}>
+            Socials
+          </div>
+          <div style={footerStyles.socialRow}>
+            {socialIcons.instagram}
+            <a
+              href="#" // PASTE YOUR INSTAGRAM LINK HERE
+              style={footerStyles.link}
+              target="_blank"
+              rel="noopener"
+            >
+              Instagram
+            </a>
+          </div>
+          <div style={footerStyles.socialRow}>
+            {socialIcons.twitter}
+            <a
+              href="#" // PASTE YOUR TWITTER LINK HERE
+              style={footerStyles.link}
+              target="_blank"
+              rel="noopener"
+            >
+              Twitter
+            </a>
+          </div>
+          <div style={footerStyles.socialRow}>
+            {socialIcons.trustpilot}
+            <a
+              href="#" // PASTE YOUR TRUSTPILOT LINK HERE
+              style={footerStyles.link}
+              target="_blank"
+              rel="noopener"
+            >
+              Trustpilot
+            </a>
+          </div>
+          <div style={footerStyles.socialRow}>
+            {socialIcons.discord}
+            <a
+              href="#" // PASTE YOUR DISCORD LINK HERE
+              style={footerStyles.link}
+              target="_blank"
+              rel="noopener"
+            >
+              Discord
+            </a>
+          </div>
+        </div>
+      </div>
+      <div style={footerStyles.divider} />
+      <div style={footerStyles.logoRow}>
+        <img
+          // PASTE YOUR LOGO URL HERE (if needed)
+          src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
+          style={footerStyles.logoImg}
+          alt="PropScholar Logo"
+        />
+        <span style={{
+          fontWeight: 700,
+          fontSize: 18,
+          background: "linear-gradient(90deg,#4aa3ff 15%, #fff 90%)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent"
+        }}>
+          PropScholar
+        </span>
+      </div>
+      <div style={footerStyles.copyright}>
+        <span>
+          © 2025 PropScholar. All rights reserved.
+        </span>
+        <span style={footerStyles.policyLinks}>
+          <a href="#" /* PASTE TERMS LINK HERE */ style={footerStyles.policyLink}>
+            Terms
+          </a>
+          <a href="#" /* PASTE PRIVACY LINK HERE */ style={footerStyles.policyLink}>
+            Privacy
+          </a>
+        </span>
+      </div>
+      <div style={footerStyles.disclaimer}>
+        <div style={footerStyles.disclaimerTitle}>Disclaimer:</div>
+        PropScholar is a government-registered business under the MSME (Udyam) initiative. All Test/Evaluation accounts provided by PropScholar are simulated and do not involve real financial transactions or live market exposure. We are strictly an educational platform, and our programs are designed to assess trading skills in a simulated environment. Our evaluation process is entirely skill-based, and successful participants may be eligible for a scholarship award. PropScholar does not act as or offer services as a broker, custodian, or financial advisor. Participation in our programs is voluntary, and program fees are not to be considered deposits or investments of any kind. All program fees are used solely to cover operational expenses, including but not limited to staffing, technology infrastructure, and other business-related costs. Nothing contained on our platform or in our materials constitutes a solicitation or offer to buy or sell any financial instrument, including but not limited to futures, options, or foreign exchange products.
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
