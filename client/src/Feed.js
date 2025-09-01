@@ -1448,9 +1448,47 @@ export default function Feed() {
             <button
               aria-label="Share"
               onClick={() => handleShare(filename)}
-              style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+              style={{
+                // Base
+                background: "none",
+                border: "none",
+                padding: 6,              // small padding so glow isn't clipped
+                cursor: "pointer",
+                lineHeight: 0,
+                borderRadius: 12,
+            
+                // Subtle white–gray “gradient” glow:
+                // 1) soft drop-shadows for depth
+                filter:
+                  "drop-shadow(0 0 6px rgba(255,255,255,0.20)) drop-shadow(0 3px 10px rgba(0,0,0,0.25))",
+            
+                // 2) faint radial highlight behind icon via background
+                //    appears like a gentle white→transparent halo
+                backgroundImage:
+                  "radial-gradient(120% 120% at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(240,240,245,0.10) 45%, rgba(255,255,255,0) 70%)",
+            
+                // balance on dark backdrop
+                transition: "transform .14s ease, filter .18s ease, background-image .2s ease",
+              }}
+              onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
+              onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
             >
-              <svg aria-label="Share Post" fill="#fff" height="24" viewBox="0 0 24 24" width="24">
+              <svg
+                aria-label="Share Post"
+                fill="#fff"
+                height="24"
+                viewBox="0 0 24 24"
+                width="24"
+                style={{
+                  display: "block",
+                  // keep icon crisp and allow its own subtle glow
+                  filter: "drop-shadow(0 0 6px rgba(255,255,255,0.20))",
+                  transition: "filter .18s ease",
+                }}
+              >
                 <line fill="none" stroke="#fff" strokeLinejoin="round" strokeWidth="2" x1="22" x2="9.218" y1="3" y2="10.083" />
                 <polygon
                   fill="none"
@@ -1461,7 +1499,7 @@ export default function Feed() {
                 />
               </svg>
             </button>
-            <span style={{ color: "#fff", fontSize: "13px", marginTop: "4px" }}>Share</span>
+            // <span style={{ color: "#fff", fontSize: "13px", marginTop: "4px" }}>Share</span>
           </div>
         </div>
         {/* Bottom info and open comments button */}
