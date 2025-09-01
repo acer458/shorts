@@ -1499,7 +1499,6 @@ export default function Feed() {
                 />
               </svg>
             </button>
-            // <span style={{ color: "#fff", fontSize: "13px", marginTop: "4px" }}>Share</span>
           </div>
         </div>
         {/* Bottom info and open comments button */}
