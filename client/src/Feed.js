@@ -1446,7 +1446,7 @@ export default function Feed() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <button
-              aria-label="Share"
+              // aria-label="Share"
               onClick={() => handleShare(filename)}
               style={{
                 // Base
