@@ -1561,10 +1561,11 @@ export default function Feed() {
             <div
               onClick={(e) => e.stopPropagation()}
               style={{
-                position: "absolute",
-                right: 12,
-                bottom: 30,
-                zIndex: 1200,
+                position: "fixed",             // take out of parent stacking quirks
+                right: 16,
+                bottom: 140,                   // align near actions; adjust if needed
+                zIndex: 9999,                  // above pause overlay
+                isolation: "isolate",          // new stacking context for children
                 pointerEvents: "auto",
               }}
             >
