@@ -1587,11 +1587,13 @@ export default function Feed() {
                   transform: "translateY(8px) scale(0.96)",
                   opacity: 0,
                   animation: "menuIn .26s cubic-bezier(.22,1,.36,1) forwards",
+                  position: "relative",
+                  zIndex: 1,
                 }}
               >
                 <style>
                   {`
-                  @keyframes menuIn {
+                  @keyframes pauseOverlayIn {
                     0%   { opacity: 0; transform: translateY(12px) scale(.94); }
                     60%  { opacity: 1; transform: translateY(0)    scale(1.02); }
                     100% { opacity: 1; transform: translateY(0)    scale(1.0); }
