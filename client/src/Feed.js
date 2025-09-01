@@ -752,7 +752,7 @@ export default function Feed() {
 
     lastCommentTimeRef.current[filename] = now;
     axios
-      .post(`${HOST}/shorts/${filename}/comment`, { name: " User", text })
+      .post(`${HOST}/shorts/${filename}/comment`, { name: " PropScholar User", text })
       .then(() => {
         setShorts((prev) =>
           prev.map((v, i) =>
@@ -761,7 +761,7 @@ export default function Feed() {
                   ...v,
                   comments: [
                     ...(v.comments || []),
-                    { name: " User", text, createdAt: Date.now() },
+                    { name: "PropScholar User", text, createdAt: Date.now() },
                   ],
                 }
               : v
@@ -1269,13 +1269,34 @@ export default function Feed() {
         >
           <div
             style={{
-              width: `${Math.min(prog * 100, 100)}%`,
+              width: `${Math.min(Math.max(prog * 100, 0), 100)}%`,
               height: "100%",
-              background: "rgb(42, 131, 254)",
+              background:
+                "linear-gradient(90deg, #2a83fe 0%, #3aa0ff 35%, #6bc6ff 65%, #9fe1ff 100%)",
+              boxShadow:
+                "0 0 6px rgba(58,160,255,0.55), 0 0 14px rgba(107,198,255,0.35)",
               transition: "width 0.22s cubic-bezier(.4,1,.5,1)",
+              borderRadius: 2,
               pointerEvents: "none",
             }}
           />
+          {/* Optional head glow to emphasize the moving edge */}
+          {prog > 0 && (
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                right: 0,
+                bottom: 0,
+                top: 0,
+                width: 0,
+                boxShadow:
+                  "0 0 10px 4px rgba(107,198,255,0.45), 0 0 18px 8px rgba(58,160,255,0.25)",
+                borderRadius: 2,
+                pointerEvents: "none",
+              }}
+            />
+          )}
         </div>
 
         {/* Right side actions */}
