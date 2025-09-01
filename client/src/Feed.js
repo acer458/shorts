@@ -1610,7 +1610,7 @@ export default function Feed() {
                   `}
                 </style>
         
-                <button className="nav-item" onClick={() => window.open("https:propscholar.com", "_blank", "noopener,noreferrer")}>
+                <button className="nav-item" onClick={() => window.open("https://propscholar.com", "_blank", "noopener,noreferrer")}>
                   <span></span> <span>Home</span>
                 </button>
                 <div className="nav-sep" />
