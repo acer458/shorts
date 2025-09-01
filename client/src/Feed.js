@@ -1572,23 +1572,22 @@ export default function Feed() {
               <div
                 role="menu"
                 aria-label="Navigation menu"
-                aria-modal="true"
                 style={{
                   minWidth: 200,
-                  background:
-                    "linear-gradient(180deg, rgba(20,20,24,0.92) 0%, rgba(18,18,22,0.92) 100%)",
+                  background: "linear-gradient(180deg, rgba(20,20,24,0.92) 0%, rgba(18,18,22,0.92) 100%)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   borderRadius: 14,
-                  boxShadow:
-                    "0 18px 48px rgba(0,0,0,0.45), 0 4px 16px rgba(0,0,0,0.35), 0 0 24px rgba(255,255,255,0.06)",
+                  boxShadow: "0 18px 48px rgba(0,0,0,0.45), 0 4px 16px rgba(0,0,0,0.35), 0 0 24px rgba(255,255,255,0.06)",
                   backdropFilter: "blur(12px) saturate(140%)",
                   overflow: "hidden",
-                  transformOrigin: "calc(100% - 12px) 100%",
-                  transform: "translateY(8px) scale(0.96)",
-                  opacity: 0,
-                  animation: "menuIn .26s cubic-bezier(.22,1,.36,1) forwards",
+                  position: "relative",
+                  zIndex: 10,
+                  transform: "none",           // remove transform that might position off-screen
+                  opacity: 1,                  // force visible
+                  // animation: "menuIn .26s cubic-bezier(.22,1,.36,1) forwards", // disable animation temporarily
                 }}
               >
+
                 <style>
                   {`
                   @keyframes pauseOverlayIn {
