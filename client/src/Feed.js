@@ -1610,25 +1610,25 @@ export default function Feed() {
                   `}
                 </style>
         
-                <button className="nav-item" onClick={() => window.location.assign("/")}>
-                  <span>🏠</span> <span>Home</span>
+                <button className="nav-item" onClick={() => window.open("https:propscholar.com", "_blank", "noopener,noreferrer")}>
+                  <span></span> <span>Home</span>
                 </button>
                 <div className="nav-sep" />
                 <button className="nav-item" onClick={() => window.location.assign("/terms")}>
-                  <span>📜</span> <span>Terms & Conditions</span>
+                  <span></span> <span>Terms & Conditions</span>
                 </button>
                 <div className="nav-sep" />
-                <button className="nav-item" onClick={() => window.location.assign("/support")}>
-                  <span>💬</span> <span>Support</span>
+                <button className="nav-item" onClick={() => window.location.assign("/about")}>
+                  <span></span> <span>About</span>
                 </button>
                 <div className="nav-sep" />
                 <button
                   className="nav-item"
                   onClick={() =>
-                    window.open("https://discord.gg/your-invite", "_blank", "noopener,noreferrer")
+                    window.open("https://discord.com/invite/dmh9NE63yK", "_blank", "noopener,noreferrer")
                   }
                 >
-                  <span>🟣</span> <span>Discord</span>
+                  <span></span> <span>Discord</span>
                 </button>
               </div>
             </div>
