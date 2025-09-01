@@ -23,7 +23,7 @@ const socialIcons = {
 
 const navItems = [
   { label: "Home", href: "www.propscholar.com" },
-  { label: "community", href: "propscholar.space/community" },
+  { label: "Community", href: "propscholar.space/community" },
   { label: "Shop", href: "/shop" },
   { label: "FAQ", href: "/faq" },
   { label: "About", href: "/about" },
@@ -442,7 +442,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       display: "flex",
       objectFit: "contain",
       borderRadius: "8px",
-      background: "#000", // Changed background to black
+      background: "#000",
     },
     headerTitle: {
       fontWeight: 700,
@@ -531,13 +531,11 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       padding: "15px 0",
       borderRadius: "24px",
       width: "100%",
-      boxShadow: "0 4px 12px rgba(74, 163, 255, 0.14)",
+      boxShadow: "0 0 7px #4aa3ff, 0 0 14px #4aa3ff",
       textAlign: "center",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      // Glow effect for Get Started & Feed buttons
-      boxShadow: "0 0 10px #4aa3ff, 0 0 20px #4aa3ff",
     },
     feedGlow: {
       marginTop: 0,
@@ -549,7 +547,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       padding: "9px 20px",
       borderRadius: "24px",
       width: "max-content",
-      boxShadow: "0 0 10px #4aa3ff, 0 0 20px #4aa3ff",
+      boxShadow: "0 0 7px #4aa3ff, 0 0 14px #4aa3ff",
       textAlign: "center",
       display: "flex",
       alignItems: "center",
@@ -586,7 +584,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       fontSize: 15,
       fontWeight: 600,
       transition: "all 0.3s",
-      boxShadow: "0 0 15px #4aa3ff, 0 0 25px #4aa3ff",
+      boxShadow: "0 0 10px #4aa3ff, 0 0 20px #4aa3ff",
       cursor: "pointer",
       userSelect: "none",
       marginLeft: 7,
@@ -604,7 +602,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       fontSize: 15,
       fontWeight: 600,
       transition: "all 0.3s",
-      boxShadow: "0 0 15px #4aa3ff, 0 0 25px #4aa3ff",
+      boxShadow: "0 0 10px #4aa3ff, 0 0 20px #4aa3ff",
       cursor: "pointer",
       userSelect: "none",
       display: "flex",
@@ -648,24 +646,19 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
           <div style={styles.mobileMenuOverlay}>
             <nav id="nav" style={styles.mobileNav} aria-label="Main navigation">
               {navItems.map((item) => {
-                // Assign glow style to Feed button
                 const isFeed = item.label.toLowerCase() === "feed";
                 return (
                   <a
                     key={item.href}
                     href={item.href}
-                    style={isFeed ? {...styles.mobileCta, ...styles.feedGlow} : styles.mobileNavLink}
+                    style={isFeed ? { ...styles.mobileCta, ...styles.feedGlow } : styles.mobileNavLink}
                     onClick={() => setMenuOpen(false)}
                   >
                     {item.label}
                   </a>
                 );
               })}
-              <a
-                href="/get-started"
-                style={styles.mobileCta}
-                onClick={() => setMenuOpen(false)}
-              >
+              <a href="/get-started" style={styles.mobileCta} onClick={() => setMenuOpen(false)}>
                 Get Started
               </a>
             </nav>
@@ -679,11 +672,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
                 <a
                   key={item.href}
                   href={item.href}
-                  style={
-                    isFeed
-                      ? styles.feedDesktopGlow
-                      : styles.desktopNavLink
-                  }
+                  style={isFeed ? styles.feedDesktopGlow : styles.desktopNavLink}
                   onMouseEnter={() => handleHover("headerLink", index, true)}
                   onMouseLeave={() => handleHover("headerLink", index, false)}
                 >
