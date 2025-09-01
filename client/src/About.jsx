@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 
-// Configurable social icons URLs for images (Discord, Instagram) and SVG for X
+// Configurable social icons URLs
 const socialIcons = {
-  discord: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663423/Untitled_design_5_xpanov.png", // Discord icon image URL
-  instagram: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663376/Untitled_design_2_ekcm2e.png", // Instagram icon image URL
-  x: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663475/Untitled_design_6_vxz0op.png"
+  discord: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663423/Untitled_design_5_xpanov.png",
+  instagram: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663376/Untitled_design_2_ekcm2e.png",
+  x: (
     <svg
       width="18"
       height="18"
@@ -21,7 +21,6 @@ const socialIcons = {
   ),
 };
 
-// Navigation items
 const navItems = [
   { label: "Home", href: "/" },
   { label: "Platforms", href: "/platforms" },
@@ -31,7 +30,6 @@ const navItems = [
   { label: "About", href: "/about" },
 ];
 
-// Community Block Component
 const CommunityBlock = () => {
   const styles = {
     wrapper: {
@@ -112,7 +110,6 @@ const CommunityBlock = () => {
       background: "none",
     },
   };
-
   return (
     <section style={styles.wrapper}>
       <div style={styles.iconRow}>
@@ -148,7 +145,6 @@ const CommunityBlock = () => {
   );
 };
 
-// Footer Component
 const Footer = () => {
   const styles = {
     wrapper: {
@@ -283,7 +279,6 @@ const Footer = () => {
       letterSpacing: 0.01,
     },
   };
-
   return (
     <footer style={styles.wrapper}>
       {/* Top row: Three columns, centered */}
@@ -416,7 +411,6 @@ const Footer = () => {
   );
 };
 
-// Header Component
 const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) => {
   const styles = {
     floatingHeaderWrapper: {
@@ -424,10 +418,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       top: isMobile ? 10 : 32,
       left: 0,
       right: 0,
-      display: "flex",
-      justifyContent: "center",
       zIndex: 2000,
-      pointerEvents: "auto",
       background: "transparent",
     },
     floatingHeader: {
@@ -436,33 +427,24 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       margin: "0 auto",
       borderRadius: "18px",
       background: "linear-gradient(90deg, #10132b 85%, #21235a 100%)",
-      boxShadow: "none",
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
       padding: isMobile ? "9px 3px" : "18px 40px",
-      border: "none",
       color: "#fff",
-      userSelect: "none",
-      overflow: "hidden",
+      border: "none",
+      overflow: "visible",
     },
     headerLogoContainer: {
       display: "flex",
       alignItems: "center",
       gap: isMobile ? 7 : 14,
       minWidth: isMobile ? 65 : 170,
-      flexShrink: 0,
     },
     headerLogo: {
       width: isMobile ? 24 : 48,
       height: isMobile ? 24 : 48,
       display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "none",
-      border: "none",
-      boxShadow: "none",
-      marginRight: 4,
     },
     headerTitle: {
       fontWeight: 700,
@@ -470,96 +452,138 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       background: "linear-gradient(90deg, #fff 0%, #4aa3ff 100%)",
       WebkitBackgroundClip: "text",
       WebkitTextFillColor: "transparent",
-      marginLeft: 4
+      marginLeft: 4,
     },
-    headerNav: {
-      display: isMobile ? (menuOpen ? "flex" : "none") : "flex",
-      flexDirection: isMobile ? "column" : "row",
-      alignItems: isMobile ? "flex-start" : "center",
-      gap: isMobile ? 0 : 22,
-      position: isMobile ? "absolute" : "static",
-      top: "46px",
-      right: "10px",
-      background: isMobile ? "rgba(16,19,43,0.97)" : "none",
-      borderRadius: isMobile ? "12px" : 0,
-      boxShadow: "none",
-      minWidth: isMobile ? 120 : undefined,
-      width: isMobile ? "max-content" : undefined,
-      zIndex: isMobile ? 5000 : "auto",
-      padding: isMobile ? "7px 6px" : 0,
+    hamburger: {
+      display: isMobile ? "flex" : "none",
+      width: 38,
+      height: 38,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: 12,
+      background: "rgba(19,28,53,0.93)",
+      borderRadius: "8px",
+      border: "none",
+      cursor: "pointer",
+      zIndex: 5101,
+      boxShadow: "0 2px 10px rgba(34,58,110,0.07)",
+      transition: "background 0.18s",
+    },
+    hamburgerIcon: {
+      width: 26,
+      height: 22,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+    },
+    hamburgerLine: {
+      height: 3,
+      width: "100%",
+      background: "#4aa3ff",
+      borderRadius: 2,
       transition: "all 0.3s",
     },
-    headerLink: {
+    // Mobile menu overlay and nav styles
+    mobileMenuOverlay: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: "rgba(20, 24, 43, 0.98)",
+      zIndex: 5100,
+      display: menuOpen ? "flex" : "none",
+      flexDirection: "column",
+      alignItems: "center",
+      animation: menuOpen ? "fadeInMenu 0.2s" : "",
+    },
+    mobileNav: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      marginTop: 80,
+      gap: 18,
+      width: "90%",
+    },
+    mobileNavLink: {
+      fontSize: 18,
+      color: "#e6eaff",
+      textDecoration: "none",
+      borderRadius: "10px",
+      padding: "14px 0",
+      width: "100%",
+      textAlign: "center",
+      fontWeight: 600,
+      transition: "background 0.13s",
+      background: "none",
+      boxShadow: "none",
+      cursor: "pointer",
+    },
+    mobileCta: {
+      marginTop: 44,
+      background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
       color: "#fff",
       textDecoration: "none",
-      fontSize: isMobile ? 12.5 : 15,
-      padding: isMobile ? "8px 0" : "8px 14px",
-      borderRadius: "20px",
+      fontSize: 17,
+      fontWeight: 600,
+      padding: "15px 0",
+      borderRadius: "24px",
+      width: "100%",
+      boxShadow: "0 4px 12px rgba(74, 163, 255, 0.14)",
+    },
+    closeBtn: {
+      position: "absolute",
+      top: 28,
+      right: 28,
+      background: "none",
+      border: "none",
+      color: "#4aa3ff",
+      fontSize: 36,
       cursor: "pointer",
-      transition: "all 0.3s",
-      userSelect: "none",
-      width: isMobile ? "100%" : "auto",
-      display: "block",
-      textAlign: isMobile ? "left" : "center",
-      marginLeft: isMobile ? 0 : undefined,
-      marginBottom: isMobile ? 2 : 0,
+      zIndex: 5102,
+      padding: 0,
+      lineHeight: 1,
     },
-    headerLinkHover: { background: "rgba(74, 163, 255, 0.13)" },
-    headerLinkActive: {
-      background: "linear-gradient(90deg, #4aa3ff 15%, #8a2be2 95%)",
+    desktopHeaderNav: {
+      display: "flex",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 22,
+      position: "static",
+    },
+    desktopNavLink: {
       color: "#fff",
+      textDecoration: "none",
+      fontSize: 15,
+      padding: "8px 14px",
+      borderRadius: "20px",
+      fontWeight: 500,
+      cursor: "pointer",
+      background: "none",
+      transition: "background 0.3s",
+      marginLeft: 0,
+      marginBottom: 0,
     },
-    headerCta: {
+    desktopCta: {
       background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
       borderRadius: "20px",
-      padding: isMobile ? "8px 11px" : "10px 18px",
+      padding: "10px 18px",
       color: "#fff",
       textDecoration: "none",
-      fontSize: isMobile ? 12.5 : 15,
+      fontSize: 15,
       fontWeight: 500,
       transition: "all 0.3s",
       boxShadow: "0 4px 12px rgba(74, 163, 255, 0.3)",
       cursor: "pointer",
       userSelect: "none",
-      marginTop: isMobile ? 7 : 0,
-      width: isMobile ? "100%" : undefined,
-      textAlign: isMobile ? "center" : "left",
+      marginLeft: 7,
     },
-    headerCtaHover: {
-      transform: "translateY(-2px)",
-      boxShadow: "0 6px 16px rgba(74, 163, 255, 0.5)",
-    },
-    hamburger: {
-      display: isMobile ? "flex" : "none",
-      width: 30,
-      height: 30,
-      alignItems: "center",
-      justifyContent: "center",
-      marginLeft: 10,
-      background: "none",
-      border: "none",
-      cursor: "pointer",
-      zIndex: 5100,
-      position: "relative",
-    },
-    hamburgerBars: {
-      display: "block",
-      background: "#4aa3ff",
-      height: 3,
-      borderRadius: 2,
-      width: 22,
-      margin: "0 auto",
-      transition: "all 0.4s",
-      position: "relative",
-    },
-    hamburgerBarsMid: { margin: "4px 0" },
-    hamburgerBarsOpen1: { transform: "rotate(45deg) translate(5px, 4px)" },
-    hamburgerBarsOpen2: { opacity: 0 },
-    hamburgerBarsOpen3: { transform: "rotate(-45deg) translate(5px, -3px)" },
   };
+
   function handleHamburgerKey(e) {
     if (e.key === " " || e.key === "Enter") setMenuOpen((prev) => !prev);
   }
+
   return (
     <div style={styles.floatingHeaderWrapper}>
       <header style={styles.floatingHeader}>
@@ -570,55 +594,81 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
             style={styles.headerLogo}
           />
           <span style={styles.headerTitle}>PropScholar</span>
-          <button
-            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
-            aria-expanded={menuOpen}
-            aria-controls="nav"
-            style={styles.hamburger}
-            onClick={() => setMenuOpen((open) => !open)}
-            onKeyDown={handleHamburgerKey}
-            tabIndex={0}
-          >
-            <span style={{ ...styles.hamburgerBars, ...(menuOpen ? styles.hamburgerBarsOpen1 : {}) }} />
-            <span style={{ ...styles.hamburgerBars, ...styles.hamburgerBarsMid, ...(menuOpen ? styles.hamburgerBarsOpen2 : {}) }} />
-            <span style={{ ...styles.hamburgerBars, ...(menuOpen ? styles.hamburgerBarsOpen3 : {}) }} />
-          </button>
-        </div>
-        <nav id="nav" style={styles.headerNav} aria-label="Main navigation">
-          {navItems.map((item, index) => (
-            <a
-              key={item.href}
-              href={item.href}
-              style={{
-                ...styles.headerLink,
-                ...(hoverStates.headerLink[index] && styles.headerLinkHover),
-                ...(item.href === "/about" && styles.headerLinkActive),
-              }}
-              onMouseEnter={() => handleHover("headerLink", index, true)}
-              onMouseLeave={() => handleHover("headerLink", index, false)}
-              tabIndex={menuOpen || !isMobile ? 0 : -1}
+          {isMobile && (
+            <button
+              aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={menuOpen}
+              aria-controls="nav"
+              style={styles.hamburger}
+              onClick={() => setMenuOpen((open) => !open)}
+              onKeyDown={handleHamburgerKey}
+              tabIndex={0}
             >
-              {item.label}
+              <div style={styles.hamburgerIcon}>
+                <span style={styles.hamburgerLine}></span>
+                <span style={styles.hamburgerLine}></span>
+                <span style={styles.hamburgerLine}></span>
+              </div>
+            </button>
+          )}
+        </div>
+        {isMobile ? (
+          <div style={styles.mobileMenuOverlay}>
+            <button
+              aria-label="Close menu"
+              style={styles.closeBtn}
+              onClick={() => setMenuOpen(false)}
+            >
+              &times;
+            </button>
+            <nav id="nav" style={styles.mobileNav} aria-label="Main navigation">
+              {navItems.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  style={styles.mobileNavLink}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.label}
+                </a>
+              ))}
+              <a
+                href="/get-started"
+                style={styles.mobileCta}
+                onClick={() => setMenuOpen(false)}
+              >
+                Get Started
+              </a>
+            </nav>
+          </div>
+        ) : (
+          <nav id="nav" style={styles.desktopHeaderNav} aria-label="Main navigation">
+            {navItems.map((item, index) => (
+              <a
+                key={item.href}
+                href={item.href}
+                style={styles.desktopNavLink}
+                onMouseEnter={() => handleHover("headerLink", index, true)}
+                onMouseLeave={() => handleHover("headerLink", index, false)}
+              >
+                {item.label}
+              </a>
+            ))}
+            <a
+              href="/get-started"
+              style={styles.desktopCta}
+              onMouseEnter={() => handleHover("headerCta", 0, true)}
+              onMouseLeave={() => handleHover("headerCta", 0, false)}
+            >
+              Get Started
             </a>
-          ))}
-          <a
-            href="/get-started"
-            style={{
-              ...styles.headerCta,
-              ...(hoverStates.headerCta && styles.headerCtaHover),
-            }}
-            onMouseEnter={() => handleHover("headerCta", 0, true)}
-            onMouseLeave={() => handleHover("headerCta", 0, false)}
-            tabIndex={menuOpen || !isMobile ? 0 : -1}
-          >
-            Get Started
-          </a>
-        </nav>
+          </nav>
+        )}
       </header>
     </div>
   );
 };
-// Main Page Component
+
 const MainPage = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -643,7 +693,7 @@ const MainPage = () => {
         : prev[type].map((item, i) => (i === index ? isHovered : item)),
     }));
   };
-  // Styles for Main content and sections
+
   const styles = {
     page: {
       background: "linear-gradient(135deg, #000000 0%, #0a0a2a 30%, #1a1a4a 100%)",
@@ -704,6 +754,7 @@ const MainPage = () => {
     },
     sectionHover: { transform: "translateY(-3px)" },
   };
+
   return (
     <>
       <Header
@@ -761,4 +812,5 @@ const MainPage = () => {
     </>
   );
 };
+
 export default MainPage;
