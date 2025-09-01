@@ -1582,10 +1582,9 @@ export default function Feed() {
                   overflow: "hidden",
                   position: "relative",
                   zIndex: 10,
-                  transform: "translateY(8px) scale(0.96)",
-                  opacity: 0,
-                  animation: "menuIn .26s cubic-bezier(.22,1,.36,1) forwards",
-                  
+                  transform: "none",           // remove transform that might position off-screen
+                  opacity: 1,                  // force visible
+                  // animation: "menuIn .26s cubic-bezier(.22,1,.36,1) forwards", // disable animation temporarily
                 }}
               >
 
