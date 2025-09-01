@@ -14,6 +14,7 @@ export default function App() {
         <Route path="/shorts/:filename" element={<VideoPlayer />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/about" element={<About />} />
+        <Route path="/community" element={<Community />} />
         <Route path="*" element={<Feed />} /> {/* Correct catch-all path */}
       </Routes>
     </BrowserRouter>
