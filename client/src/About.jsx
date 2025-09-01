@@ -22,12 +22,12 @@ const socialIcons = {
 };
 
 const navItems = [
-  { label: "Home", href: "/" },
-  { label: "Platforms", href: "/platforms" },
+  { label: "Home", href: "www.propscholar.com" },
+  { label: "community", href: "propscholar.space/community" },
   { label: "Shop", href: "/shop" },
   { label: "FAQ", href: "/faq" },
-  { label: "Community", href: "/community" },
   { label: "About", href: "/about" },
+  { label: "Feed", href: "propscholar.space" },
 ];
 
 const CommunityBlock = () => {
@@ -369,7 +369,7 @@ const Footer = () => {
       <div style={styles.lowerBar}>
         <div style={styles.logoRow}>
           <img
-            src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
+            src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg"
             alt="PropScholar Logo"
             style={styles.logoImg}
           />
