@@ -494,6 +494,9 @@ export default function Feed() {
   const [videoProgress, setVideoProgress] = useState({});
   const [commentLikes, setCommentLikes] = useState({});
 
+  const [moreOpen, setMoreOpen] = useState({});
+
+
   // Bottom sheet drag
   const [modalDragY, setModalDragY] = useState(0);
   const [isDraggingModal, setIsDraggingModal] = useState(false);
@@ -1323,6 +1326,7 @@ export default function Feed() {
 
         {/* Right side actions */}
         <div
+          data-actions="right"
           style={{
             position: "absolute",
             right: "12px",
