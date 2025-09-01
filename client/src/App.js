@@ -3,8 +3,6 @@ import Feed from "./Feed";
 import VideoPlayer from "./VideoPlayer";
 import AdminDashboard from "./AdminDashboard";
 import About from "./About";
-import About from "./Community";
-
 
 export default function App() {
   return (
