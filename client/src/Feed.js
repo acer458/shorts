@@ -1280,7 +1280,6 @@ export default function Feed() {
               pointerEvents: "none",
             }}
           />
-          {/* Optional head glow to emphasize the moving edge */}
           {prog > 0 && (
             <div
               aria-hidden
@@ -1298,6 +1297,7 @@ export default function Feed() {
             />
           )}
         </div>
+
 
         {/* Right side actions */}
         <div
