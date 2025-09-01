@@ -1564,7 +1564,7 @@ export default function Feed() {
                 position: "fixed",             // take out of parent stacking quirks
                 right: 12,
                 bottom: 30,                   // align near actions; adjust if needed
-                zIndex: 1500,                  // above pause overlay
+                zIndex: 1200,                  // above pause overlay
                 isolation: "isolate",          // new stacking context for children
                 pointerEvents: "auto",
                 background: "rgba(255,0,0,0.1)",
@@ -1588,8 +1588,6 @@ export default function Feed() {
                   transform: "translateY(8px) scale(0.96)",
                   opacity: 0,
                   animation: "menuIn .26s cubic-bezier(.22,1,.36,1) forwards",
-                  position: "relative",
-                  zIndex: 1,
                 }}
               >
                 <style>
