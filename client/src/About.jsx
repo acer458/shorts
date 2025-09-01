@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-// Configurable social icons URLs
+// Social icons URLs
 const socialIcons = {
   discord: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663423/Untitled_design_5_xpanov.png",
   instagram: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663376/Untitled_design_2_ekcm2e.png",
@@ -439,9 +439,12 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       minWidth: isMobile ? 65 : 170,
     },
     headerLogo: {
-      width: isMobile ? 24 : 48,
-      height: isMobile ? 24 : 48,
+      width: isMobile ? 28 : 48,
+      height: isMobile ? 28 : 48,
       display: "flex",
+      objectFit: "contain",
+      borderRadius: "8px",
+      background: "#fff",
     },
     headerTitle: {
       fontWeight: 700,
@@ -472,7 +475,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       transform: "translateY(-50%)"
     },
     hamburgerIcon: {
-      width: 26,
+      width: 28,
       height: 22,
       display: "flex",
       flexDirection: "column",
@@ -536,19 +539,6 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       alignItems: "center",
       justifyContent: "center"
     },
-    closeBtn: {
-      position: "absolute",
-      top: 28,
-      right: 28,
-      background: "none",
-      border: "none",
-      color: "#4aa3ff",
-      fontSize: 36,
-      cursor: "pointer",
-      zIndex: 5102,
-      padding: 0,
-      lineHeight: 1,
-    },
     desktopHeaderNav: {
       display: "flex",
       flexDirection: "row",
@@ -589,9 +579,8 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
     },
   };
 
-  function handleHamburgerKey(e) {
-    if (e.key === " " || e.key === "Enter") setMenuOpen((prev) => !prev);
-  }
+  // Toggle menu on hamburger click; close on menu item click.
+  const handleHamburgerClick = () => setMenuOpen(open => !open);
 
   return (
     <div style={styles.floatingHeaderWrapper}>
@@ -606,13 +595,12 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
         </div>
         {isMobile && (
           <button
-            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-label="Toggle navigation menu"
             aria-expanded={menuOpen}
             aria-controls="nav"
             style={styles.hamburger}
-            onClick={() => setMenuOpen((open) => !open)}
-            onKeyDown={handleHamburgerKey}
             tabIndex={0}
+            onClick={handleHamburgerClick}
           >
             <div style={styles.hamburgerIcon}>
               <span style={styles.hamburgerLine}></span>
@@ -621,15 +609,8 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
             </div>
           </button>
         )}
-        {isMobile ? (
+        {isMobile && menuOpen && (
           <div style={styles.mobileMenuOverlay}>
-            <button
-              aria-label="Close menu"
-              style={styles.closeBtn}
-              onClick={() => setMenuOpen(false)}
-            >
-              &times;
-            </button>
             <nav id="nav" style={styles.mobileNav} aria-label="Main navigation">
               {navItems.map((item) => (
                 <a
@@ -650,7 +631,8 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
               </a>
             </nav>
           </div>
-        ) : (
+        )}
+        {!isMobile && (
           <nav id="nav" style={styles.desktopHeaderNav} aria-label="Main navigation">
             {navItems.map((item, index) => (
               <a
@@ -702,7 +684,6 @@ const MainPage = () => {
         : prev[type].map((item, i) => (i === index ? isHovered : item)),
     }));
   };
-
   const styles = {
     page: {
       background: "linear-gradient(135deg, #000000 0%, #0a0a2a 30%, #1a1a4a 100%)",
@@ -763,7 +744,6 @@ const MainPage = () => {
     },
     sectionHover: { transform: "translateY(-3px)" },
   };
-
   return (
     <>
       <Header
@@ -801,8 +781,8 @@ const MainPage = () => {
           </section>
           <section
             style={{ ...styles.section }}
-            onMouseEnter={() => setHoverStates(prev => ({ ...prev, section: [prev.section, true] }))}
-            onMouseLeave={() => setHoverStates(prev => ({ ...prev, section: [prev.section, false] }))}
+            onMouseEnter={() => setHoverStates(prev => ({ ...prev, section: [prev.section[0], true] }))}
+            onMouseLeave={() => setHoverStates(prev => ({ ...prev, section: [prev.section[0], false] }))}
           >
             <h2 style={{ fontWeight: 700, fontSize: isMobile ? 15 : 22, marginBottom: 8 }}>
               Our Vision
