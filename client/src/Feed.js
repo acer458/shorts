@@ -651,7 +651,7 @@ export default function Feed() {
 
   // Keep a ref to the last "More" trigger to restore focus
   const lastMoreBtnRef = useRef({});
-
+  
   // Close on Escape and trap focus within the open menu
   useEffect(() => {
     const openKey = Object.keys(moreOpen).find((k) => moreOpen[k]);
@@ -666,13 +666,16 @@ export default function Feed() {
       }
       if (e.key !== "Tab") return;
   
+      // Trap focus within the menu
       const menu = document.querySelector('[aria-label="Navigation menu"]');
       if (!menu) return;
+  
       const focusables = menu.querySelectorAll(
         'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'
       );
       if (focusables.length === 0) return;
   
+      // FIX: index the NodeList to get first/last elements
       const first = focusables;
       const last = focusables[focusables.length - 1];
   
