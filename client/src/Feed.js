@@ -1446,7 +1446,7 @@ export default function Feed() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <button
-              // aria-label="Share"
+              aria-label=""
               onClick={() => handleShare(filename)}
               style={{
                 // Base
@@ -1477,7 +1477,7 @@ export default function Feed() {
               onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
             >
               <svg
-                aria-label="Share Post"
+                aria-label=""
                 fill="#fff"
                 height="24"
                 viewBox="0 0 24 24"
