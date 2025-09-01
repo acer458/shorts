@@ -512,24 +512,6 @@ export default function Feed() {
   const [spamAlert, setSpamAlert] = useState({ show: false, message: "" });
   const spamAlertTimeout = useRef(null);
 
-  // FEED_SCROLLER_REF
-  const scrollerRef = useRef(null);
-  
-  // OPTIONAL_SNAP_KEYS
-  useEffect(() => {
-    const scroller = scrollerRef?.current;
-    if (!scroller) return;
-    scroller.tabIndex = 0;
-    scroller.style.outline = "none";
-    const onKey = (e) => {
-      if (!["ArrowDown","ArrowUp","PageDown","PageUp","Space"].includes(e.code)) return;
-      e.preventDefault();
-      const dir = (e.code === "ArrowDown" || e.code === "PageDown" || e.code === "Space") ? 1 : -1;
-      scroller.scrollBy({ top: dir * scroller.clientHeight, behavior: "smooth" });
-    };
-    scroller.addEventListener("keydown", onKey);
-    return () => scroller.removeEventListener("keydown", onKey);
-  }, []);
   // ---- FETCH ----
   useEffect(() => {
     setLoading(true);
@@ -2040,17 +2022,14 @@ export default function Feed() {
         width: "100vw",
         background: "black",
         borderRadius: "18px",
-        boxShadow: "0 10px 28px rgba(0,0,0,0.38)",
-        outline: "1px solid rgba(255,255,255,0.06)",
+        boxShadow: "0 10px 28px rgba(0,0,0,0.38)",   // depth
+        outline: "1px solid rgba(255,255,255,0.06)", // faint edge
         margin: 0,
         padding: 0,
-        overflowY: "auto",               // enable vertical scroll
-        overflowX: "hidden",
-        scrollSnapType: "y mandatory",   // snap vertically
-        scrollBehavior: "smooth",        // smooth programmatic scrolls
-        overscrollBehaviorY: "contain",  // avoid bounce chaining
-        WebkitOverflowScrolling: "touch",
-        fontFamily: "Inter, Arial,sans-serif",
+        overflow: "hidden",                           // clip children to rounded corners
+        WebkitBackfaceVisibility: "hidden",           // smoother corners on Safari
+        backfaceVisibility: "hidden",
+        fontFamily: "Inter, Arial, sans-serif",
       }}
     >
       {getPagedShorts().map((v) => {
@@ -2071,9 +2050,13 @@ export default function Feed() {
             style={{
               width: "100vw",
               height: "100dvh",
-              position: "relative",
-              scrollSnapAlign: "start",
-              scrollSnapStop: "always",
+              position: "absolute",
+              left: 0,
+              top: 0,
+              transition: "transform 0.44s cubic-bezier(.5,1,.5,1)",
+              willChange: "transform",
+              zIndex: idx === currentIdx ? 2 : 1,
+              transform: `translateY(${(idx - currentIdx) * 100}%)`,
             }}
           >
             {renderVideo({
