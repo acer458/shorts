@@ -1567,6 +1567,7 @@ export default function Feed() {
                 zIndex: 1500,                  // above pause overlay
                 isolation: "isolate",          // new stacking context for children
                 pointerEvents: "auto",
+                background: "rgba(255,0,0,0.1)",
               }}
             >
               <div
