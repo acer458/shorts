@@ -16,9 +16,11 @@ export default function Community() {
     cards.forEach((card) => {
       card.addEventListener("mouseenter", () => {
         card.style.transform = "translateY(-10px) scale(1.03)";
+        card.style.boxShadow = "0 25px 50px rgba(0, 0, 0, 0.3), 0 0 100px rgba(120, 115, 245, 0.5)";
       });
       card.addEventListener("mouseleave", () => {
         card.style.transform = "translateY(0) scale(1)";
+        card.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.2), 0 0 50px rgba(120, 115, 245, 0.3)";
       });
     });
 
@@ -26,15 +28,17 @@ export default function Community() {
     const joinBtn = document.querySelector(".join-btn");
     joinBtn.addEventListener("mouseenter", () => {
       joinBtn.style.transform = "translateY(-5px) scale(1.05)";
+      joinBtn.style.boxShadow = "0 15px 35px rgba(93, 38, 193, 0.6), 0 0 40px rgba(138, 43, 226, 0.8)";
     });
     joinBtn.addEventListener("mouseleave", () => {
       joinBtn.style.transform = "translateY(0) scale(1)";
+      joinBtn.style.boxShadow = "0 10px 30px rgba(93, 38, 193, 0.4)";
     });
 
     // Add floating icons dynamically
     const floatingContainers = document.querySelectorAll(".floating-icons");
     floatingContainers.forEach((container) => {
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 5; i++) {
         const icon = document.createElement("i");
         const icons = [
           "fa-comment",
@@ -42,21 +46,45 @@ export default function Community() {
           "fa-star",
           "fa-bolt",
           "fa-gem",
+          "fa-rocket",
+          "fa-crown",
+          "fa-lightbulb"
         ];
         const randomIcon = icons[Math.floor(Math.random() * icons.length)];
         icon.className = `fas ${randomIcon}`;
 
         icon.style.position = "absolute";
-        icon.style.color = "rgba(255, 255, 255, 0.15)";
-        icon.style.fontSize = "1.5rem";
-        icon.style.animation = "float 6s ease-in-out infinite";
+        icon.style.color = "rgba(255, 255, 255, 0.2)";
+        icon.style.fontSize = `${Math.random() * 1.5 + 1}rem`;
+        icon.style.animation = `float ${6 + Math.random() * 4}s ease-in-out infinite`;
         icon.style.top = `${Math.random() * 80 + 10}%`;
         icon.style.left = `${Math.random() * 80 + 10}%`;
-        icon.style.animationDelay = `${Math.random() * 3}s`;
+        icon.style.animationDelay = `${Math.random() * 5}s`;
+        icon.style.filter = "drop-shadow(0 5px 5px rgba(0,0,0,0.3))";
 
         container.appendChild(icon);
       }
     });
+
+    // Add floating particles in background
+    const background = document.querySelector(".background-particles");
+    for (let i = 0; i < 30; i++) {
+      const particle = document.createElement("div");
+      particle.className = "particle";
+      
+      const size = Math.random() * 10 + 2;
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+      particle.style.background = "rgba(255, 255, 255, 0.1)";
+      particle.style.borderRadius = "50%";
+      particle.style.position = "absolute";
+      particle.style.top = `${Math.random() * 100}%`;
+      particle.style.left = `${Math.random() * 100}%`;
+      particle.style.animation = `float-particle ${15 + Math.random() * 10}s ease-in-out infinite`;
+      particle.style.animationDelay = `${Math.random() * 5}s`;
+      
+      background.appendChild(particle);
+    }
   }, []);
 
   return (
@@ -78,6 +106,15 @@ export default function Community() {
             padding: 20px;
             overflow-x: hidden;
           }
+          .background-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+          }
           .container {
             max-width: 1200px;
             width: 100%;
@@ -85,6 +122,8 @@ export default function Community() {
             flex-wrap: wrap;
             justify-content: center;
             gap: 40px;
+            position: relative;
+            z-index: 1;
           }
           .header {
             text-align: center;
@@ -95,12 +134,31 @@ export default function Community() {
           .header h1 {
             font-size: 3.5rem;
             font-weight: 800;
-            background: linear-gradient(45deg, #ff6ec4, #7873f5);
+            background: linear-gradient(45deg, #ff6ec4, #7873f5, #4aa3ff);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
             margin-bottom: 10px;
             text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            display: inline-block;
+          }
+          .header h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(45deg, #ff6ec4, #7873f5, #4aa3ff);
+            border-radius: 3px;
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.5s ease;
+          }
+          .header h1:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
           }
           .header p {
             font-size: 1.2rem;
@@ -108,10 +166,11 @@ export default function Community() {
             max-width: 600px;
             margin: 0 auto;
             line-height: 1.6;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
           }
           .card {
             background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             border-radius: 20px;
             padding: 30px;
             width: 280px;
@@ -121,11 +180,12 @@ export default function Community() {
             align-items: center;
             justify-content: center;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 50px rgba(120, 115, 245, 0.3);
             transition: all 0.4s ease;
             position: relative;
             overflow: hidden;
             cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
           }
           .card::before {
             content: '';
@@ -140,7 +200,7 @@ export default function Community() {
           }
           .card:hover {
             transform: translateY(-10px) scale(1.03);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3), 0 0 100px rgba(120, 115, 245, 0.5);
           }
           .card:hover::before {
             animation: shine 1.5s ease;
@@ -150,9 +210,11 @@ export default function Community() {
             margin-bottom: 20px;
             color: #fff;
             transition: all 0.3s ease;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
           }
           .card:hover .card-icon {
             transform: scale(1.2);
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
           }
           .card h3 {
             font-size: 1.5rem;
@@ -162,20 +224,23 @@ export default function Community() {
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
           }
           .card p {
             font-size: 0.95rem;
             line-height: 1.5;
             opacity: 0.8;
+            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
           }
           .stats {
             font-size: 2.5rem;
             font-weight: 800;
             margin-bottom: 10px;
-            background: linear-gradient(45deg, #ff6ec4, #7873f5);
+            background: linear-gradient(45deg, #ff6ec4, #7873f5, #4aa3ff);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
           }
           .join-btn {
             margin-top: 50px;
@@ -194,6 +259,7 @@ export default function Community() {
             display: flex;
             align-items: center;
             gap: 10px;
+            z-index: 1;
           }
           .join-btn::before {
             content: '';
@@ -204,10 +270,11 @@ export default function Community() {
             height: 100%;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
             transition: all 0.6s ease;
+            z-index: -1;
           }
           .join-btn:hover {
             transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 15px 35px rgba(93, 38, 193, 0.6);
+            box-shadow: 0 15px 35px rgba(93, 38, 193, 0.6), 0 0 40px rgba(138, 43, 226, 0.8);
           }
           .join-btn:hover::before {
             left: 100%;
@@ -226,9 +293,10 @@ export default function Community() {
           }
           .floating-icons i {
             position: absolute;
-            color: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.2);
             font-size: 1.5rem;
             animation: float 6s ease-in-out infinite;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
           }
           @keyframes fadeIn {
             from {
@@ -251,23 +319,42 @@ export default function Community() {
           @keyframes pulse {
             0% {
               transform: scale(1);
+              text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
             }
             50% {
               transform: scale(1.2);
+              text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
             }
             100% {
               transform: scale(1);
+              text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
             }
           }
           @keyframes float {
             0% {
-              transform: translateY(0) rotate(0deg);
+              transform: translateY(0) rotate(0deg) scale(1);
+              opacity: 0.7;
             }
             50% {
-              transform: translateY(-20px) rotate(10deg);
+              transform: translateY(-20px) rotate(10deg) scale(1.1);
+              opacity: 1;
             }
             100% {
-              transform: translateY(0) rotate(0deg);
+              transform: translateY(0) rotate(0deg) scale(1);
+              opacity: 0.7;
+            }
+          }
+          @keyframes float-particle {
+            0% {
+              transform: translateY(0) translateX(0) scale(1);
+              opacity: 0;
+            }
+            50% {
+              opacity: 0.5;
+            }
+            100% {
+              transform: translateY(-100px) translateX(50px) scale(1.2);
+              opacity: 0;
             }
           }
           .card:nth-child(1) {
@@ -301,6 +388,8 @@ export default function Community() {
           }
       `}</style>
 
+      <div className="background-particles"></div>
+      
       <div className="container">
         <div className="header animated">
           <h1>Join the Official PropScholar Discord</h1>
@@ -312,20 +401,7 @@ export default function Community() {
         </div>
 
         <div className="card animated">
-          <div className="floating-icons">
-            <i
-              className="fas fa-users"
-              style={{ top: "20%", left: "20%", animationDelay: "0s" }}
-            ></i>
-            <i
-              className="fas fa-heart"
-              style={{ top: "70%", left: "80%", animationDelay: "1s" }}
-            ></i>
-            <i
-              className="fas fa-star"
-              style={{ top: "40%", left: "10%", animationDelay: "2s" }}
-            ></i>
-          </div>
+          <div className="floating-icons"></div>
           <div className="stats">1,200+</div>
           <div className="card-icon">
             <i className="fas fa-users"></i>
@@ -335,20 +411,7 @@ export default function Community() {
         </div>
 
         <div className="card animated">
-          <div className="floating-icons">
-            <i
-              className="fas fa-ticket-alt"
-              style={{ top: "10%", left: "80%", animationDelay: "0.5s" }}
-            ></i>
-            <i
-              className="fas fa-headset"
-              style={{ top: "60%", left: "10%", animationDelay: "1.5s" }}
-            ></i>
-            <i
-              className="fas fa-comments"
-              style={{ top: "80%", left: "70%", animationDelay: "2.5s" }}
-            ></i>
-          </div>
+          <div className="floating-icons"></div>
           <div className="card-icon">
             <i className="fas fa-ticket-alt"></i>
           </div>
@@ -358,20 +421,7 @@ export default function Community() {
         </div>
 
         <div className="card animated">
-          <div className="floating-icons">
-            <i
-              className="fas fa-gift"
-              style={{ top: "30%", left: "80%", animationDelay: "0.8s" }}
-            ></i>
-            <i
-              className="fas fa-trophy"
-              style={{ top: "70%", left: "20%", animationDelay: "1.8s" }}
-            ></i>
-            <i
-              className="fas fa-award"
-              style={{ top: "20%", left: "30%", animationDelay: "2.8s" }}
-            ></i>
-          </div>
+          <div className="floating-icons"></div>
           <div className="card-icon">
             <i className="fas fa-gift"></i>
           </div>
@@ -381,20 +431,7 @@ export default function Community() {
         </div>
 
         <div className="card animated">
-          <div className="floating-icons">
-            <i
-              className="fas fa-bolt"
-              style={{ top: "15%", left: "25%", animationDelay: "0.3s" }}
-            ></i>
-            <i
-              className="fas fa-clock"
-              style={{ top: "65%", left: "75%", animationDelay: "1.3s" }}
-            ></i>
-            <i
-              className="fas fa-sync-alt"
-              style={{ top: "40%", left: "85%", animationDelay: "2.3s" }}
-            ></i>
-          </div>
+          <div className="floating-icons"></div>
           <div className="card-icon">
             <i className="fas fa-comments"></i>
           </div>
@@ -410,4 +447,3 @@ export default function Community() {
     </>
   );
 }
-
