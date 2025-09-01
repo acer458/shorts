@@ -1319,6 +1319,8 @@ export default function Feed() {
               style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
             />
           </div>
+        
+          {/* Like */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <button
               aria-label={liked ? "Unlike" : "Like"}
@@ -1327,30 +1329,23 @@ export default function Feed() {
                 e.stopPropagation();
                 handleLike(idx, filename);
               }}
-              // Larger hit area + prevent glow clipping
               style={{
                 background: "none",
                 border: "none",
-                padding: 6,            // was 0
+                padding: 6,
                 cursor: "pointer",
                 outline: 0,
-                lineHeight: 0,         // crisper rendering
-                borderRadius: 12,      // soft hit area
+                lineHeight: 0,
+                borderRadius: 12,
                 transition: "transform .14s ease",
               }}
-              // Subtle press feedback on desktop
               onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
               onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
-              // Keyboard focus parity with hover
               onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
               onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
             >
-              {/* Gentle hover/focus pulse for desktop */}
-              <span
-                className={!liked ? "liked-pulse" : ""}
-                style={{ display: "inline-block" }}
-              >
+              <span className={!liked ? "liked-pulse" : ""} style={{ display: "inline-block" }}>
                 <HeartSVG filled={liked} />
               </span>
             </button>
@@ -1358,21 +1353,21 @@ export default function Feed() {
               {v.likes || 0}
             </span>
           </div>
+        
+          {/* Comment */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <button
               aria-label="Comment"
               onClick={(e) => {
                 e.stopPropagation();
                 setShowComments(filename);
-                setIsCommentsLoading(true); // start skeleton
-                // If comments come from API, set this false in the fetch .finally()
-                // For local data, simulate a short delay:
+                setIsCommentsLoading(true);
                 setTimeout(() => setIsCommentsLoading(false), 300);
               }}
               style={{
                 background: "none",
                 border: "none",
-                padding: 6,                // more hit area + prevents glow clipping
+                padding: 6,
                 cursor: "pointer",
                 lineHeight: 0,
                 borderRadius: 12,
@@ -1392,23 +1387,21 @@ export default function Feed() {
                 role="img"
                 style={{
                   display: "block",
-                  // Lightweight, path-aware CSS glow (fast)
                   filter: "drop-shadow(0 0 8px rgba(255,255,255,0.32)) drop-shadow(0 0 16px rgba(255,255,255,0.20))",
                   transition: "filter .18s ease, transform .14s ease",
                 }}
               >
                 <defs>
-                  {/* Optional SVG glow for extra depth */}
                   <filter id="feedCommentGlow" x="-60%" y="-60%" width="220%" height="220%">
                     <feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="g1" />
                     <feColorMatrix
                       in="g1"
                       type="matrix"
                       values="
-                      1 0 0 0 0
-                      0 1 0 0 0
-                      0 0 1 0 0
-                      0 0 0 0.32 0
+                        1 0 0 0 0
+                        0 1 0 0 0
+                        0 0 1 0 0
+                        0 0 0 0.32 0
                       "
                       result="glow1"
                     />
@@ -1417,10 +1410,10 @@ export default function Feed() {
                       in="g2"
                       type="matrix"
                       values="
-                      1 0 0 0 0
-                      0 1 0 0 0
-                      0 0 1 0 0
-                      0 0 0 0.18 0
+                        1 0 0 0 0
+                        0 1 0 0 0
+                        0 0 1 0 0
+                        0 0 0 0.18 0
                       "
                       result="glow2"
                     />
@@ -1434,40 +1427,32 @@ export default function Feed() {
                 <path
                   d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z"
                   fill="none"
-                  stroke="#fff"            // soft white stroke to match glow
+                  stroke="#fff"
                   strokeLinejoin="round"
                   strokeWidth="2"
-                  filter="url(#feedCommentGlow)" // optional extra glow layer
+                  filter="url(#feedCommentGlow)"
                 />
               </svg>
             </button>
-
             <span style={{ color: "#fff", fontSize: "13px", marginTop: "4px" }}>{v.comments?.length || 0}</span>
           </div>
+        
+          {/* Share */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <button
               aria-label="Share"
               onClick={() => handleShare(filename)}
               style={{
-                // Base
                 background: "none",
                 border: "none",
-                padding: 6,              // small padding so glow isn't clipped
+                padding: 6,
                 cursor: "pointer",
                 lineHeight: 0,
                 borderRadius: 12,
-            
-                // Subtle white–gray “gradient” glow:
-                // 1) soft drop-shadows for depth
                 filter:
                   "drop-shadow(0 0 6px rgba(255,255,255,0.20)) drop-shadow(0 3px 10px rgba(0,0,0,0.25))",
-            
-                // 2) faint radial highlight behind icon via background
-                //    appears like a gentle white→transparent halo
                 backgroundImage:
                   "radial-gradient(120% 120% at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(240,240,245,0.10) 45%, rgba(255,255,255,0) 70%)",
-            
-                // balance on dark backdrop
                 transition: "transform .14s ease, filter .18s ease, background-image .2s ease",
               }}
               onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
@@ -1484,7 +1469,6 @@ export default function Feed() {
                 width="24"
                 style={{
                   display: "block",
-                  // keep icon crisp and allow its own subtle glow
                   filter: "drop-shadow(0 0 6px rgba(255,255,255,0.20))",
                   transition: "filter .18s ease",
                 }}
@@ -1499,8 +1483,132 @@ export default function Feed() {
                 />
               </svg>
             </button>
+            {/* label removed */}
           </div>
+        
+          {/* Three-dots “More” button */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <button
+              aria-label="More"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowComments(null);
+                setMoreOpen((prev) => ({ ...prev, [filename]: !prev[filename] }));
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 6,
+                cursor: "pointer",
+                lineHeight: 0,
+                borderRadius: 12,
+                filter:
+                  "drop-shadow(0 0 6px rgba(255,255,255,0.20)) drop-shadow(0 3px 10px rgba(0,0,0,0.25))",
+                backgroundImage:
+                  "radial-gradient(120% 120% at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(240,240,245,0.10) 45%, rgba(255,255,255,0) 70%)",
+                transition: "transform .14s ease, filter .18s ease, background-image .2s ease",
+              }}
+              onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
+              onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 16 16"
+                fill="none"
+                style={{ display: "block", filter: "drop-shadow(0 0 6px rgba(255,255,255,0.20))" }}
+                aria-hidden="true"
+              >
+                <path
+                  d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"
+                  fill="#fff"
+                />
+              </svg>
+            </button>
+          </div>
+        
+          {/* Floating “More” menu card */}
+          {moreOpen[filename] && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: "absolute",
+                right: 12,
+                bottom: 30,
+                zIndex: 1200,
+                pointerEvents: "auto",
+              }}
+            >
+              <div
+                role="menu"
+                aria-label="Navigation menu"
+                aria-modal="true"
+                style={{
+                  minWidth: 200,
+                  background:
+                    "linear-gradient(180deg, rgba(20,20,24,0.92) 0%, rgba(18,18,22,0.92) 100%)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 14,
+                  boxShadow:
+                    "0 18px 48px rgba(0,0,0,0.45), 0 4px 16px rgba(0,0,0,0.35), 0 0 24px rgba(255,255,255,0.06)",
+                  backdropFilter: "blur(12px) saturate(140%)",
+                  overflow: "hidden",
+                  transformOrigin: "calc(100% - 12px) 100%",
+                  transform: "translateY(8px) scale(0.96)",
+                  opacity: 0,
+                  animation: "menuIn .26s cubic-bezier(.22,1,.36,1) forwards",
+                }}
+              >
+                <style>
+                  {`
+                  @keyframes menuIn {
+                    0%   { opacity: 0; transform: translateY(12px) scale(.94); }
+                    60%  { opacity: 1; transform: translateY(0)    scale(1.02); }
+                    100% { opacity: 1; transform: translateY(0)    scale(1.0); }
+                  }
+                  .nav-item {
+                    display:flex; align-items:center; gap:10px;
+                    width:100%; padding:10px 12px; color:#e9ebf0;
+                    background:none; border:none; text-align:left; cursor:pointer;
+                    font-size:14.5px; font-weight:600; letter-spacing:.01em;
+                    transition: background .18s ease, transform .1s ease, color .18s ease;
+                  }
+                  .nav-item:hover, .nav-item:focus {
+                    background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+                    outline: none;
+                  }
+                  .nav-sep { height:1px; background:rgba(255,255,255,0.08); margin:4px 8px; }
+                  `}
+                </style>
+        
+                <button className="nav-item" onClick={() => window.location.assign("/")}>
+                  <span>🏠</span> <span>Home</span>
+                </button>
+                <div className="nav-sep" />
+                <button className="nav-item" onClick={() => window.location.assign("/terms")}>
+                  <span>📜</span> <span>Terms & Conditions</span>
+                </button>
+                <div className="nav-sep" />
+                <button className="nav-item" onClick={() => window.location.assign("/support")}>
+                  <span>💬</span> <span>Support</span>
+                </button>
+                <div className="nav-sep" />
+                <button
+                  className="nav-item"
+                  onClick={() =>
+                    window.open("https://discord.gg/your-invite", "_blank", "noopener,noreferrer")
+                  }
+                >
+                  <span>🟣</span> <span>Discord</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
+
         {/* Bottom info and open comments button */}
         <div
           style={{
