@@ -1272,7 +1272,7 @@ export default function Feed() {
               width: `${Math.min(Math.max(prog * 100, 0), 100)}%`,
               height: "100%",
               background:
-                "linear-gradient(90deg, #2a83fe 0%, #3aa0ff 35%, #6bc6ff 65%, #9fe1ff 100%)",
+                "linear-gradient(90deg, #6f00ff 0%, #1e00ff 35%, #006aff 65%, #00d5ff 100%)",
               boxShadow:
                 "0 0 6px rgba(58,160,255,0.55), 0 0 14px rgba(107,198,255,0.35)",
               transition: "width 0.22s cubic-bezier(.4,1,.5,1)",
