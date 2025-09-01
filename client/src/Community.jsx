@@ -1,7 +1,336 @@
 import React, { useState, useEffect } from "react";
 
+// Social icons URLs
+const socialIcons = {
+  discord: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663423/Untitled_design_5_xpanov.png",
+  instagram: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663376/Untitled_design_2_ekcm2e.png",
+  x: (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#e6eaff"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  ),
+};
+
+const navItems = [
+  { label: "Home", href: "www.propscholar.com" },
+  { label: "Community", href: "propscholar.space/community" },
+  { label: "Shop", href: "/shop" },
+  { label: "FAQ", href: "/faq" },
+  { label: "About", href: "/about" },
+];
+
+const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) => {
+  const styles = {
+    floatingHeaderWrapper: {
+      position: "fixed",
+      top: isMobile ? 10 : 32,
+      left: 0,
+      right: 0,
+      zIndex: 2000,
+      background: "transparent",
+    },
+    floatingHeader: {
+      width: "100%",
+      maxWidth: 1150,
+      margin: "0 auto",
+      borderRadius: "18px",
+      background: "linear-gradient(90deg, #10132b 85%, #21235a 100%)",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: isMobile ? "9px 3px" : "18px 40px",
+      color: "#fff",
+      border: "none",
+      overflow: "visible",
+      position: "relative",
+      boxShadow: "0 10px 30px rgba(0, 0, 0, 0.2), 0 0 20px rgba(120, 115, 245, 0.4)",
+      backdropFilter: "blur(10px)",
+      border: "1px solid rgba(255, 255, 255, 0.1)",
+    },
+    headerLogoContainer: {
+      display: "flex",
+      alignItems: "center",
+      gap: isMobile ? 7 : 14,
+      minWidth: isMobile ? 65 : 170,
+    },
+    headerLogo: {
+      width: isMobile ? 28 : 48,
+      height: isMobile ? 28 : 48,
+      display: "flex",
+      objectFit: "contain",
+      borderRadius: "8px",
+      background: "#000",
+    },
+    headerTitle: {
+      fontWeight: 700,
+      fontSize: isMobile ? 13 : 18,
+      background: "linear-gradient(90deg, #fff 0%, #4aa3ff 100%)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      marginLeft: 4,
+      textShadow: "0 2px 10px rgba(0, 0, 0, 0.3)",
+    },
+    hamburger: {
+      display: isMobile ? "flex" : "none",
+      width: 38,
+      height: 38,
+      alignItems: "center",
+      justifyContent: "center",
+      background: "rgba(19,28,53,0.93)",
+      borderRadius: "8px",
+      border: "none",
+      cursor: "pointer",
+      zIndex: 5101,
+      boxShadow: "0 2px 10px rgba(34,58,110,0.07)",
+      transition: "background 0.18s",
+      marginLeft: "auto",
+      marginRight: 2,
+      position: "absolute",
+      right: 15,
+      top: "50%",
+      transform: "translateY(-50%)",
+    },
+    hamburgerIcon: {
+      width: 28,
+      height: 22,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+    },
+    hamburgerLine: {
+      height: 3,
+      width: "100%",
+      background: "#4aa3ff",
+      borderRadius: 2,
+      transition: "all 0.3s",
+    },
+    mobileMenuOverlay: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: "rgba(20, 24, 43, 0.98)",
+      zIndex: 5100,
+      display: menuOpen ? "flex" : "none",
+      flexDirection: "column",
+      alignItems: "center",
+      animation: menuOpen ? "fadeInMenu 0.2s" : "",
+      backdropFilter: "blur(10px)",
+    },
+    mobileNav: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      marginTop: 80,
+      gap: 18,
+      width: "90%",
+    },
+    mobileNavLink: {
+      fontSize: 18,
+      color: "#e6eaff",
+      textDecoration: "none",
+      borderRadius: "10px",
+      padding: "14px 0",
+      width: "100%",
+      textAlign: "center",
+      fontWeight: 600,
+      transition: "background 0.13s",
+      background: "none",
+      boxShadow: "none",
+      cursor: "pointer",
+    },
+    mobileCta: {
+      marginTop: 44,
+      background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
+      color: "#fff",
+      textDecoration: "none",
+      fontSize: 17,
+      fontWeight: 600,
+      padding: "15px 0",
+      borderRadius: "24px",
+      width: "100%",
+      boxShadow: "0 0 7px #4aa3ff, 0 0 14px #4aa3ff",
+      textAlign: "center",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    feedGlow: {
+      marginTop: 0,
+      background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
+      color: "#fff",
+      textDecoration: "none",
+      fontSize: 17,
+      fontWeight: 600,
+      padding: "9px 20px",
+      borderRadius: "24px",
+      width: "max-content",
+      boxShadow: "0 0 7px #4aa3ff, 0 0 14px #4aa3ff",
+      textAlign: "center",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      marginLeft: 8,
+    },
+    desktopHeaderNav: {
+      display: "flex",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 22,
+      position: "static",
+    },
+    desktopNavLink: {
+      color: "#fff",
+      textDecoration: "none",
+      fontSize: 15,
+      padding: "8px 14px",
+      borderRadius: "20px",
+      fontWeight: 500,
+      cursor: "pointer",
+      background: "none",
+      transition: "all 0.3s",
+      marginLeft: 0,
+      marginBottom: 0,
+    },
+    desktopCta: {
+      background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
+      borderRadius: "20px",
+      padding: "10px 18px",
+      color: "#fff",
+      textDecoration: "none",
+      fontSize: 15,
+      fontWeight: 600,
+      transition: "all 0.3s",
+      boxShadow: "0 0 10px #4aa3ff, 0 0 20px #4aa3ff",
+      cursor: "pointer",
+      userSelect: "none",
+      marginLeft: 7,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      textAlign: "center",
+    },
+    feedDesktopGlow: {
+      background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
+      borderRadius: "20px",
+      padding: "8px 16px",
+      color: "#fff",
+      textDecoration: "none",
+      fontSize: 15,
+      fontWeight: 600,
+      transition: "all 0.3s",
+      boxShadow: "0 0 10px #4aa3ff, 0 0 20px #4aa3ff",
+      cursor: "pointer",
+      userSelect: "none",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      textAlign: "center",
+      marginLeft: 0,
+    },
+  };
+
+  const handleHamburgerClick = () => setMenuOpen((open) => !open);
+
+  return (
+    <div style={styles.floatingHeaderWrapper}>
+      <header style={styles.floatingHeader}>
+        <div style={styles.headerLogoContainer}>
+          <img
+            src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
+            alt="PropScholar Logo"
+            style={styles.headerLogo}
+          />
+          <span style={styles.headerTitle}>PropScholar</span>
+        </div>
+        {isMobile && (
+          <button
+            aria-label="Toggle navigation menu"
+            aria-expanded={menuOpen}
+            aria-controls="nav"
+            style={styles.hamburger}
+            tabIndex={0}
+            onClick={handleHamburgerClick}
+          >
+            <div style={styles.hamburgerIcon}>
+              <span style={styles.hamburgerLine}></span>
+              <span style={styles.hamburgerLine}></span>
+              <span style={styles.hamburgerLine}></span>
+            </div>
+          </button>
+        )}
+        {isMobile && menuOpen && (
+          <div style={styles.mobileMenuOverlay}>
+            <nav id="nav" style={styles.mobileNav} aria-label="Main navigation">
+              {navItems.map((item) => {
+                const isFeed = item.label.toLowerCase() === "feed";
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    style={isFeed ? { ...styles.mobileCta, ...styles.feedGlow } : styles.mobileNavLink}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
+              <a href="/get-started" style={styles.mobileCta} onClick={() => setMenuOpen(false)}>
+                Get Started
+              </a>
+            </nav>
+          </div>
+        )}
+        {!isMobile && (
+          <nav id="nav" style={styles.desktopHeaderNav} aria-label="Main navigation">
+            {navItems.map((item, index) => {
+              const isFeed = item.label.toLowerCase() === "feed";
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  style={isFeed ? styles.feedDesktopGlow : styles.desktopNavLink}
+                  onMouseEnter={() => handleHover("headerLink", index, true)}
+                  onMouseLeave={() => handleHover("headerLink", index, false)}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
+            <a
+              href="/get-started"
+              style={styles.desktopCta}
+              onMouseEnter={() => handleHover("headerCta", 0, true)}
+              onMouseLeave={() => handleHover("headerCta", 0, false)}
+            >
+              Get Started
+            </a>
+          </nav>
+        )}
+      </header>
+    </div>
+  );
+};
+
 const Community = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [hoverStates, setHoverStates] = useState({
+    headerLink: Array(navItems.length).fill(false),
+    headerCta: [false]
+  });
 
   useEffect(() => {
     const handleResize = () => {
@@ -11,6 +340,13 @@ const Community = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const handleHover = (element, index, isHovered) => {
+    setHoverStates(prev => ({
+      ...prev,
+      [element]: prev[element].map((state, i) => i === index ? isHovered : state)
+    }));
+  };
 
   useEffect(() => {
     // Animate elements on mount
@@ -29,7 +365,7 @@ const Community = () => {
         card.style.transform = "translateY(-10px) scale(1.03)";
         card.style.boxShadow = "0 25px 50px rgba(0, 0, 0, 0.3), 0 0 100px rgba(120, 115, 245, 0.5)";
       });
-      card.addEventListener("mouseleave", () => {
+      card.addEventListener("mouseleave", () {
         card.style.transform = "translateY(0) scale(1)";
         card.style.boxShadow = "0 10px 30px rgba(0, 0, 0, 0.2), 0 0 50px rgba(120, 115, 245, 0.3)";
       });
@@ -89,6 +425,14 @@ const Community = () => {
 
   return (
     <>
+      <Header 
+        isMobile={isMobile} 
+        menuOpen={menuOpen} 
+        setMenuOpen={setMenuOpen} 
+        hoverStates={hoverStates} 
+        handleHover={handleHover} 
+      />
+      
       <style>{`
         * {
             margin: 0;
@@ -124,7 +468,7 @@ const Community = () => {
             gap: 30px;
             position: relative;
             z-index: 1;
-            margin-top: 40px;
+            margin-top: ${isMobile ? '80px' : '120px'};
           }
           .header {
             text-align: center;
@@ -392,7 +736,7 @@ const Community = () => {
             .container {
               flex-direction: column;
               align-items: center;
-              margin-top: 20px;
+              margin-top: 80px;
             }
             .card {
               width: 100%;
