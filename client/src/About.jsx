@@ -27,7 +27,6 @@ const navItems = [
   { label: "Shop", href: "/shop" },
   { label: "FAQ", href: "/faq" },
   { label: "About", href: "/about" },
-  { label: "Feed", href: "propscholar.space" },
 ];
 
 const CommunityBlock = () => {
