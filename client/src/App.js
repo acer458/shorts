@@ -3,7 +3,6 @@ import Feed from "./Feed";
 import VideoPlayer from "./VideoPlayer";
 import AdminDashboard from "./AdminDashboard";
 import About from "./About";
-import Community from "./Community";
 
 
 export default function App() {
@@ -14,7 +13,6 @@ export default function App() {
         <Route path="/shorts/:filename" element={<VideoPlayer />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/about" element={<About />} />
-        <Route path="/community" element={<Community />} />
         <Route path="*" element={<Feed />} /> {/* Correct catch-all path */}
       </Routes>
     </BrowserRouter>
