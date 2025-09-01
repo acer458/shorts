@@ -1564,7 +1564,7 @@ export default function Feed() {
                 position: "fixed",             // take out of parent stacking quirks
                 right: 16,
                 bottom: 140,                   // align near actions; adjust if needed
-                zIndex: 9999,                  // above pause overlay
+                zIndex: 1500,                  // above pause overlay
                 isolation: "isolate",          // new stacking context for children
                 pointerEvents: "auto",
               }}
