@@ -281,7 +281,6 @@ const Footer = () => {
   };
   return (
     <footer style={styles.wrapper}>
-      {/* Top row: Three columns, centered */}
       <div style={styles.colsRow}>
         <div style={styles.col}>
           <div style={{ ...styles.colTitle, ...styles.company }}>Company</div>
@@ -366,9 +365,7 @@ const Footer = () => {
           </a>
         </div>
       </div>
-      {/* Divider Line */}
       <div style={styles.divider} />
-      {/* Lower bar: Logo (left), Copyright (center), Terms/Privacy (right) */}
       <div style={styles.lowerBar}>
         <div style={styles.logoRow}>
           <img
@@ -390,7 +387,6 @@ const Footer = () => {
           </a>
         </div>
       </div>
-      {/* Disclaimer */}
       <div style={styles.disclaimer}>
         <span style={styles.disclaimerTitle}>Disclaimer:</span>
         PropScholar is a government-registered business under the MSME (Udyam) initiative. All
@@ -434,6 +430,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       color: "#fff",
       border: "none",
       overflow: "visible",
+      position: "relative",
     },
     headerLogoContainer: {
       display: "flex",
@@ -460,7 +457,6 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       height: 38,
       alignItems: "center",
       justifyContent: "center",
-      marginLeft: 12,
       background: "rgba(19,28,53,0.93)",
       borderRadius: "8px",
       border: "none",
@@ -468,6 +464,12 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       zIndex: 5101,
       boxShadow: "0 2px 10px rgba(34,58,110,0.07)",
       transition: "background 0.18s",
+      marginLeft: "auto",
+      marginRight: 2,
+      position: "absolute",
+      right: 15,
+      top: "50%",
+      transform: "translateY(-50%)"
     },
     hamburgerIcon: {
       width: 26,
@@ -483,7 +485,6 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       borderRadius: 2,
       transition: "all 0.3s",
     },
-    // Mobile menu overlay and nav styles
     mobileMenuOverlay: {
       position: "fixed",
       top: 0,
@@ -530,6 +531,10 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       borderRadius: "24px",
       width: "100%",
       boxShadow: "0 4px 12px rgba(74, 163, 255, 0.14)",
+      textAlign: "center",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
     },
     closeBtn: {
       position: "absolute",
@@ -577,6 +582,10 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       cursor: "pointer",
       userSelect: "none",
       marginLeft: 7,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      textAlign: "center"
     },
   };
 
@@ -594,24 +603,24 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
             style={styles.headerLogo}
           />
           <span style={styles.headerTitle}>PropScholar</span>
-          {isMobile && (
-            <button
-              aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
-              aria-expanded={menuOpen}
-              aria-controls="nav"
-              style={styles.hamburger}
-              onClick={() => setMenuOpen((open) => !open)}
-              onKeyDown={handleHamburgerKey}
-              tabIndex={0}
-            >
-              <div style={styles.hamburgerIcon}>
-                <span style={styles.hamburgerLine}></span>
-                <span style={styles.hamburgerLine}></span>
-                <span style={styles.hamburgerLine}></span>
-              </div>
-            </button>
-          )}
         </div>
+        {isMobile && (
+          <button
+            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={menuOpen}
+            aria-controls="nav"
+            style={styles.hamburger}
+            onClick={() => setMenuOpen((open) => !open)}
+            onKeyDown={handleHamburgerKey}
+            tabIndex={0}
+          >
+            <div style={styles.hamburgerIcon}>
+              <span style={styles.hamburgerLine}></span>
+              <span style={styles.hamburgerLine}></span>
+              <span style={styles.hamburgerLine}></span>
+            </div>
+          </button>
+        )}
         {isMobile ? (
           <div style={styles.mobileMenuOverlay}>
             <button
@@ -792,8 +801,8 @@ const MainPage = () => {
           </section>
           <section
             style={{ ...styles.section }}
-            onMouseEnter={() => setHoverStates(prev => ({ ...prev, section: [prev.section[0], true] }))}
-            onMouseLeave={() => setHoverStates(prev => ({ ...prev, section: [prev.section[0], false] }))}
+            onMouseEnter={() => setHoverStates(prev => ({ ...prev, section: [prev.section, true] }))}
+            onMouseLeave={() => setHoverStates(prev => ({ ...prev, section: [prev.section, false] }))}
           >
             <h2 style={{ fontWeight: 700, fontSize: isMobile ? 15 : 22, marginBottom: 8 }}>
               Our Vision
