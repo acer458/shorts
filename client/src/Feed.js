@@ -552,6 +552,28 @@ export default function Feed() {
     setTimeout(() => (pageLock.current = false), 500);
   }
 
+
+    // Close the More menu when clicking anywhere outside the actions column
+  useEffect(() => {
+    const hasOpen = Object.values(moreOpen).some(Boolean);
+    if (!hasOpen) return;
+  
+    function onDocClick(e) {
+      const actions = document.querySelector('[data-actions="right"]');
+      if (!actions) return;
+      if (!actions.contains(e.target)) setMoreOpen({});
+    }
+  
+    window.addEventListener("click", onDocClick);
+    window.addEventListener("touchstart", onDocClick, { passive: true });
+  
+    return () => {
+      window.removeEventListener("click", onDocClick);
+      window.removeEventListener("touchstart", onDocClick);
+    };
+  }, [moreOpen]);
+
+
   // ---- Wheel and swipe listeners for feed ----
   // FEED_GESTURES_GUARD
   useEffect(() => {
