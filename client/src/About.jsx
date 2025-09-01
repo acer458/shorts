@@ -229,8 +229,8 @@ const Footer = () => {
       width: 32,
       height: 32,
       objectFit: "contain",
-      borderRadius: "50%",
-      background: "none",
+      borderRadius: "8px",
+      background: "#000",
     },
     brand: {
       fontWeight: 700,
@@ -369,15 +369,13 @@ const Footer = () => {
       <div style={styles.lowerBar}>
         <div style={styles.logoRow}>
           <img
-            src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg"
+            src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
             alt="PropScholar Logo"
             style={styles.logoImg}
           />
           <span style={styles.brand}>PropScholar</span>
         </div>
-        <div style={styles.copyright}>
-          © 2025 PropScholar. All rights reserved.
-        </div>
+        <div style={styles.copyright}>© 2025 PropScholar. All rights reserved.</div>
         <div style={styles.lowerLinks}>
           <a href="#" style={styles.lowerLink} target="_blank" rel="noopener noreferrer">
             Terms
@@ -444,7 +442,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       display: "flex",
       objectFit: "contain",
       borderRadius: "8px",
-      background: "#fff",
+      background: "#000", // Changed background to black
     },
     headerTitle: {
       fontWeight: 700,
@@ -472,7 +470,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       position: "absolute",
       right: 15,
       top: "50%",
-      transform: "translateY(-50%)"
+      transform: "translateY(-50%)",
     },
     hamburgerIcon: {
       width: 28,
@@ -537,7 +535,27 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       textAlign: "center",
       display: "flex",
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      // Glow effect for Get Started & Feed buttons
+      boxShadow: "0 0 10px #4aa3ff, 0 0 20px #4aa3ff",
+    },
+    feedGlow: {
+      marginTop: 0,
+      background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
+      color: "#fff",
+      textDecoration: "none",
+      fontSize: 17,
+      fontWeight: 600,
+      padding: "9px 20px",
+      borderRadius: "24px",
+      width: "max-content",
+      boxShadow: "0 0 10px #4aa3ff, 0 0 20px #4aa3ff",
+      textAlign: "center",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      marginLeft: 8,
     },
     desktopHeaderNav: {
       display: "flex",
@@ -566,21 +584,38 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       color: "#fff",
       textDecoration: "none",
       fontSize: 15,
-      fontWeight: 500,
+      fontWeight: 600,
       transition: "all 0.3s",
-      boxShadow: "0 4px 12px rgba(74, 163, 255, 0.3)",
+      boxShadow: "0 0 15px #4aa3ff, 0 0 25px #4aa3ff",
       cursor: "pointer",
       userSelect: "none",
       marginLeft: 7,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      textAlign: "center"
+      textAlign: "center",
+    },
+    feedDesktopGlow: {
+      background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
+      borderRadius: "20px",
+      padding: "8px 16px",
+      color: "#fff",
+      textDecoration: "none",
+      fontSize: 15,
+      fontWeight: 600,
+      transition: "all 0.3s",
+      boxShadow: "0 0 15px #4aa3ff, 0 0 25px #4aa3ff",
+      cursor: "pointer",
+      userSelect: "none",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      textAlign: "center",
+      marginLeft: 0,
     },
   };
 
-  // Toggle menu on hamburger click; close on menu item click.
-  const handleHamburgerClick = () => setMenuOpen(open => !open);
+  const handleHamburgerClick = () => setMenuOpen((open) => !open);
 
   return (
     <div style={styles.floatingHeaderWrapper}>
@@ -612,16 +647,20 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
         {isMobile && menuOpen && (
           <div style={styles.mobileMenuOverlay}>
             <nav id="nav" style={styles.mobileNav} aria-label="Main navigation">
-              {navItems.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  style={styles.mobileNavLink}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {item.label}
-                </a>
-              ))}
+              {navItems.map((item) => {
+                // Assign glow style to Feed button
+                const isFeed = item.label.toLowerCase() === "feed";
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    style={isFeed ? {...styles.mobileCta, ...styles.feedGlow} : styles.mobileNavLink}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
               <a
                 href="/get-started"
                 style={styles.mobileCta}
@@ -634,17 +673,24 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
         )}
         {!isMobile && (
           <nav id="nav" style={styles.desktopHeaderNav} aria-label="Main navigation">
-            {navItems.map((item, index) => (
-              <a
-                key={item.href}
-                href={item.href}
-                style={styles.desktopNavLink}
-                onMouseEnter={() => handleHover("headerLink", index, true)}
-                onMouseLeave={() => handleHover("headerLink", index, false)}
-              >
-                {item.label}
-              </a>
-            ))}
+            {navItems.map((item, index) => {
+              const isFeed = item.label.toLowerCase() === "feed";
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  style={
+                    isFeed
+                      ? styles.feedDesktopGlow
+                      : styles.desktopNavLink
+                  }
+                  onMouseEnter={() => handleHover("headerLink", index, true)}
+                  onMouseLeave={() => handleHover("headerLink", index, false)}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
             <a
               href="/get-started"
               style={styles.desktopCta}
@@ -668,6 +714,7 @@ const MainPage = () => {
     headerCta: false,
     section: [false, false],
   });
+
   useEffect(() => {
     function onResize() {
       setIsMobile(window.innerWidth < 768);
@@ -676,14 +723,17 @@ const MainPage = () => {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
   const handleHover = (type, index, isHovered) => {
     setHoverStates((prev) => ({
       ...prev,
-      [type]: type === "headerCta"
-        ? isHovered
-        : prev[type].map((item, i) => (i === index ? isHovered : item)),
+      [type]:
+        type === "headerCta"
+          ? isHovered
+          : prev[type].map((item, i) => (i === index ? isHovered : item)),
     }));
   };
+
   const styles = {
     page: {
       background: "linear-gradient(135deg, #000000 0%, #0a0a2a 30%, #1a1a4a 100%)",
@@ -744,6 +794,7 @@ const MainPage = () => {
     },
     sectionHover: { transform: "translateY(-3px)" },
   };
+
   return (
     <>
       <Header
@@ -769,8 +820,8 @@ const MainPage = () => {
           </p>
           <section
             style={{ ...styles.section }}
-            onMouseEnter={() => setHoverStates(prev => ({ ...prev, section: [true, prev.section[1]] }))}
-            onMouseLeave={() => setHoverStates(prev => ({ ...prev, section: [false, prev.section[1]] }))}
+            onMouseEnter={() => setHoverStates((prev) => ({ ...prev, section: [true, prev.section[1]] }))}
+            onMouseLeave={() => setHoverStates((prev) => ({ ...prev, section: [false, prev.section[1]] }))}
           >
             <h2 style={{ fontWeight: 700, fontSize: isMobile ? 15 : 22, marginBottom: 8 }}>
               Our Mission
@@ -781,8 +832,8 @@ const MainPage = () => {
           </section>
           <section
             style={{ ...styles.section }}
-            onMouseEnter={() => setHoverStates(prev => ({ ...prev, section: [prev.section[0], true] }))}
-            onMouseLeave={() => setHoverStates(prev => ({ ...prev, section: [prev.section[0], false] }))}
+            onMouseEnter={() => setHoverStates((prev) => ({ ...prev, section: [prev.section[0], true] }))}
+            onMouseLeave={() => setHoverStates((prev) => ({ ...prev, section: [prev.section[0], false] }))}
           >
             <h2 style={{ fontWeight: 700, fontSize: isMobile ? 15 : 22, marginBottom: 8 }}>
               Our Vision
