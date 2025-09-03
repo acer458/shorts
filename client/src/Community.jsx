@@ -1,24 +1,23 @@
 import React, { useState } from "react";
 export default function Community() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const handleMobileMenuToggle = () => {
     setMobileMenuOpen((o) => !o);
   };
-
   const features = [
     { icon: "👥", title: "1,200+", desc: "Active Members" },
     { icon: "🎫", title: "1 on 1", desc: "Ticket Service" },
     { icon: "🎁", title: "Giveaways", desc: "For Community" },
     { icon: "💬", title: "Real-Time", desc: "Live Support" },
   ];
-
   return (
     <>
       <style>{`
         @media (max-width: 950px) {
           .floating-header {
-            padding: 15px 15px !important;
+            padding: 12px 10px !important;
+            background: rgba(16, 19, 43, 0.79) !important;
+            box-shadow: 0 8px 24px 0 #4aa3ff33 !important;
           }
           .desktop-header-nav {
             display: none !important;
@@ -29,10 +28,21 @@ export default function Community() {
         }
         @media (max-width: 600px) {
           .floating-header {
-            padding: 15px 6px !important;
+            padding: 8px 3px !important;
             max-width: 99vw !important;
             margin: 0 0 !important;
+            border-radius: 14px !important;
           }
+          .community-title {
+            font-size: 1.4rem !important;
+          }
+        }
+        .floating-header {
+          background: rgba(16, 19, 43, 0.79) !important;
+          border-radius: 22px !important;
+          box-shadow: 0 12px 32px 0 #4aa3ff33 !important;
+          backdrop-filter: blur(7px);
+          border: 1px solid #4aa3ff18;
         }
         .mobile-menu-overlay {
           z-index: 3000;
@@ -82,6 +92,17 @@ export default function Community() {
           border: none;
           cursor: pointer;
         }
+        .community-title {
+          font-size: 2.1rem;
+          font-weight: 600;
+          margin-bottom: 18px;
+          background: linear-gradient(90deg, #fff 0%, #4aa3ff 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          text-fill-color: transparent;
+          transition: font-size 0.2s;
+        }
       `}
       </style>
       <div
@@ -93,7 +114,7 @@ export default function Community() {
           right: 0,
           zIndex: 2000,
           background: "transparent",
-          padding: "0 20px",
+          padding: "0 8px",
         }}
       >
         <header
@@ -101,12 +122,15 @@ export default function Community() {
           style={{
             maxWidth: 1150,
             margin: "0 auto",
-            borderRadius: 18,
-            background: "linear-gradient(90deg, #10132b 85%, #21235a 100%)",
+            borderRadius: 22,
+            background: "rgba(16, 19, 43, 0.79)",
+            boxShadow: "0 12px 32px 0 #4aa3ff33",
+            backdropFilter: "blur(7px)",
+            border: "1px solid #4aa3ff18",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            padding: "18px 40px",
+            padding: "14px 36px",
             color: "#fff",
             position: "relative",
             overflow: "visible",
@@ -125,8 +149,8 @@ export default function Community() {
               src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
               alt="PropScholar Logo"
               style={{
-                width: 48,
-                height: 48,
+                width: 44,
+                height: 44,
                 borderRadius: 8,
                 background: "#000",
                 objectFit: "contain",
@@ -309,24 +333,16 @@ export default function Community() {
         >
           <h1
             className="community-title"
-            style={{
-              fontSize: "3.5rem",
-              fontWeight: 800,
-              marginBottom: 20,
-              background: "linear-gradient(90deg, #fff 0%, #4aa3ff 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
           >
             Join the Official PropScholar Discord
           </h1>
           <p
             className="community-subtitle"
             style={{
-              fontSize: "1.5rem",
-              marginBottom: 40,
+              fontSize: "1.18rem",
+              marginBottom: 37,
               maxWidth: 700,
-              lineHeight: 1.6,
+              lineHeight: 1.55,
               color: "#e6eaff",
             }}
           >
