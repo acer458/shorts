@@ -3,6 +3,8 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
+
+
 // ---- CONFIG ----
 const HOST = "https://shorts-t2dk.onrender.com";
 const COMMENT_SPAM_DELAY_MS = 5000; // 5 seconds delay between each comment per video
@@ -1226,7 +1228,7 @@ export default function Feed() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 105,
+              zIndex: 25,
               background: "rgba(0,0,0,0.26)",
               pointerEvents: "none",
               animation: "pauseOverlayIn .32s cubic-bezier(.2,.9,.25,1)",
@@ -1569,7 +1571,7 @@ export default function Feed() {
                 position: "fixed",             // take out of parent stacking quirks
                 right: 16,
                 bottom: 140,                   // align near actions; adjust if needed
-                zIndex: 99999,                  // above pause overlay
+                zIndex: 9999,                  // above pause overlay
                 isolation: "isolate",          // new stacking context for children
                 pointerEvents: "auto",
               }}
