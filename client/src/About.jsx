@@ -422,6 +422,15 @@ const Footer = ({ isMobile }) => {
 };
 
 const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) => {
+  const [activeButton, setActiveButton] = useState(null);
+
+  const handleButtonPress = (index) => {
+    setActiveButton(index);
+    setTimeout(() => setActiveButton(null), 300);
+  };
+
+  const handleHamburgerClick = () => setMenuOpen((open) => !open);
+
   const styles = {
     floatingHeaderWrapper: {
       position: "fixed",
@@ -539,6 +548,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       background: "none",
       boxShadow: "none",
       cursor: "pointer",
+      position: "relative",
     },
     mobileCta: {
       marginTop: 44,
@@ -555,6 +565,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
+      position: "relative",
     },
     feedGlow: {
       marginTop: 0,
@@ -573,6 +584,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       justifyContent: "center",
       cursor: "pointer",
       marginLeft: 8,
+      position: "relative",
     },
     desktopHeaderNav: {
       display: isMobile ? "none" : "flex",
@@ -593,6 +605,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       transition: "background 0.3s",
       marginLeft: 0,
       marginBottom: 0,
+      position: "relative",
     },
     desktopCta: {
       background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
@@ -611,6 +624,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       alignItems: "center",
       justifyContent: "center",
       textAlign: "center",
+      position: "relative",
     },
     feedDesktopGlow: {
       background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
@@ -629,10 +643,24 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       justifyContent: "center",
       textAlign: "center",
       marginLeft: 0,
+      position: "relative",
+    },
+    touchEffect: {
+      position: "absolute",
+      top: "-8px",
+      left: "-8px",
+      right: "-8px",
+      bottom: "-8px",
+      borderRadius: "28px",
+      background: "rgba(74, 163, 255, 0.3)",
+      opacity: 0,
+      transition: "opacity 0.2s ease",
+      pointerEvents: "none",
+    },
+    touchEffectActive: {
+      opacity: 1,
     },
   };
-
-  const handleHamburgerClick = () => setMenuOpen((open) => !open);
 
   return (
     <div style={styles.floatingHeaderWrapper}>
@@ -664,7 +692,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
         {isMobile && menuOpen && (
           <div style={styles.mobileMenuOverlay} onClick={() => setMenuOpen(false)}>
             <nav id="nav" style={styles.mobileNav} aria-label="Main navigation">
-              {navItems.map((item) => {
+              {navItems.map((item, index) => {
                 const isFeed = item.label.toLowerCase() === "feed";
                 return (
                   <a
@@ -672,13 +700,31 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
                     href={item.href}
                     style={isFeed ? { ...styles.mobileCta, ...styles.feedGlow } : styles.mobileNavLink}
                     onClick={() => setMenuOpen(false)}
+                    onTouchStart={() => handleButtonPress(index)}
                   >
                     {item.label}
+                    <div 
+                      style={{
+                        ...styles.touchEffect,
+                        ...(activeButton === index ? styles.touchEffectActive : {})
+                      }}
+                    />
                   </a>
                 );
               })}
-              <a href="/get-started" style={styles.mobileCta} onClick={() => setMenuOpen(false)}>
+              <a 
+                href="/get-started" 
+                style={styles.mobileCta} 
+                onClick={() => setMenuOpen(false)}
+                onTouchStart={() => handleButtonPress(navItems.length)}
+              >
                 Get Started
+                <div 
+                  style={{
+                    ...styles.touchEffect,
+                    ...(activeButton === navItems.length ? styles.touchEffectActive : {})
+                  }}
+                />
               </a>
             </nav>
           </div>
@@ -691,21 +737,41 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
                 <a
                   key={item.href}
                   href={item.href}
-                  style={isFeed ? styles.feedDesktopGlow : styles.desktopNavLink}
+                  style={{
+                    ...(isFeed ? styles.feedDesktopGlow : styles.desktopNavLink),
+                    position: "relative",
+                  }}
                   onMouseEnter={() => handleHover("headerLink", index, true)}
                   onMouseLeave={() => handleHover("headerLink", index, false)}
+                  onTouchStart={() => handleButtonPress(index)}
                 >
                   {item.label}
+                  <div 
+                    style={{
+                      ...styles.touchEffect,
+                      ...(activeButton === index ? styles.touchEffectActive : {})
+                    }}
+                  />
                 </a>
               );
             })}
             <a
               href="/get-started"
-              style={styles.desktopCta}
+              style={{
+                ...styles.desktopCta,
+                position: "relative",
+              }}
               onMouseEnter={() => handleHover("headerCta", 0, true)}
               onMouseLeave={() => handleHover("headerCta", 0, false)}
+              onTouchStart={() => handleButtonPress(navItems.length)}
             >
               Get Started
+              <div 
+                style={{
+                  ...styles.touchEffect,
+                  ...(activeButton === navItems.length ? styles.touchEffectActive : {})
+                }}
+              />
             </a>
           </nav>
         )}
