@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 // Social icons URLs
 const socialIcons = {
   discord: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663423/Untitled_design_5_xpanov.png",
@@ -19,19 +20,21 @@ const socialIcons = {
     </svg>
   ),
 };
+
 const navItems = [
-  { label: "Home", href: "www.propscholar.com" },
-  { label: "Community", href: "propscholar.space/community" },
+  { label: "Home", href: "https://www.propscholar.com" },
+  { label: "Community", href: "https://propscholar.space/community" },
   { label: "Shop", href: "/shop" },
   { label: "FAQ", href: "/faq" },
   { label: "About", href: "/about" },
 ];
-const CommunityBlock = () => {
+
+const CommunityBlock = ({ isMobile }) => {
   const styles = {
     wrapper: {
       maxWidth: 900,
-      margin: "54px auto",
-      padding: "48px 24px 36px 24px",
+      margin: isMobile ? "40px auto" : "54px auto",
+      padding: isMobile ? "32px 16px 24px" : "48px 24px 36px",
       borderRadius: "30px",
       background: "rgba(50,100,255,0.17)",
       boxShadow: "0 4px 32px 0 rgba(74,163,255,0.19)",
@@ -39,49 +42,52 @@ const CommunityBlock = () => {
       color: "#f1f3fa",
       backdropFilter: "blur(22px)",
       border: "1px solid rgba(64,91,255,0.16)",
+      width: isMobile ? "90%" : "auto",
     },
     iconRow: {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      gap: "20px",
+      gap: isMobile ? "12px" : "20px",
       marginBottom: "18px",
+      flexDirection: isMobile ? "column" : "row",
     },
     blockIconWrap: {
       background: "#3b5ae2",
       borderRadius: "15px",
-      width: 54,
-      height: 54,
+      width: isMobile ? 44 : 54,
+      height: isMobile ? 44 : 54,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
     },
     blockIcon: {
-      width: 32,
-      height: 32,
+      width: isMobile ? 24 : 32,
+      height: isMobile ? 24 : 32,
       display: "block",
     },
     title: {
-      fontSize: "2.1rem",
+      fontSize: isMobile ? "1.7rem" : "2.1rem",
       fontWeight: 800,
       color: "#e5ecff",
-      margin: 0,
+      margin: isMobile ? "12px 0 0" : 0,
       letterSpacing: 1.2,
+      textAlign: "center",
     },
     desc: {
-      margin: "18px 0 36px 0",
-      fontSize: "1.18rem",
+      margin: isMobile ? "12px 0 24px" : "18px 0 36px",
+      fontSize: isMobile ? "1rem" : "1.18rem",
       maxWidth: 700,
       marginLeft: "auto",
       marginRight: "auto",
       color: "#e5e6ed",
       lineHeight: 1.7,
+      padding: isMobile ? "0 8px" : 0,
     },
     btnRow: {
       display: "flex",
       justifyContent: "center",
-      marginTop: "22px",
-      gap: 12,
+      marginTop: isMobile ? "18px" : "22px",
     },
     socialBtn: {
       display: "flex",
@@ -91,21 +97,22 @@ const CommunityBlock = () => {
       border: "1.8px solid #4aa3ff",
       color: "#fff",
       fontWeight: 600,
-      fontSize: "1.09rem",
-      padding: "10px 26px",
+      fontSize: isMobile ? "0.95rem" : "1.09rem",
+      padding: isMobile ? "8px 20px" : "10px 26px",
       borderRadius: "50px",
       cursor: "pointer",
       textDecoration: "none",
-      transition: "background 0.17s, box-shadow 0.21s",
+      transition: "all 0.3s ease",
     },
     socialBtnImg: {
-      width: "25px",
-      height: "25px",
+      width: isMobile ? "22px" : "25px",
+      height: isMobile ? "22px" : "25px",
       objectFit: "contain",
       borderRadius: "50%",
       background: "none",
     },
   };
+
   return (
     <section style={styles.wrapper}>
       <div style={styles.iconRow}>
@@ -140,33 +147,36 @@ const CommunityBlock = () => {
     </section>
   );
 };
-const Footer = () => {
+
+const Footer = ({ isMobile }) => {
   const styles = {
     wrapper: {
       width: "100%",
       background: "linear-gradient(135deg, #10132b 0%, #181c3b 100%)",
       color: "#e6eaff",
       fontFamily: "'Inter', Arial, sans-serif",
-      fontSize: 16,
-      paddingTop: 60,
-      paddingBottom: 24,
+      fontSize: isMobile ? 14 : 16,
+      paddingTop: isMobile ? 40 : 60,
+      paddingBottom: isMobile ? 20 : 24,
     },
     colsRow: {
       display: "flex",
       justifyContent: "center",
-      gap: "120px",
+      gap: isMobile ? "40px" : "120px",
       maxWidth: 1200,
       margin: "0 auto",
       flexWrap: "wrap",
       textAlign: "left",
+      padding: isMobile ? "0 16px" : 0,
+      flexDirection: isMobile ? "column" : "row",
     },
     col: {
-      minWidth: 180,
-      flex: "1 1 220px",
+      minWidth: isMobile ? "100%" : 180,
+      flex: isMobile ? "1 1 100%" : "1 1 220px",
     },
     colTitle: {
       fontWeight: 700,
-      fontSize: 21,
+      fontSize: isMobile ? 18 : 21,
       marginBottom: 16,
       marginTop: 0,
       letterSpacing: "0.01em",
@@ -181,26 +191,26 @@ const Footer = () => {
       alignItems: "center",
       marginBottom: 13,
       fontWeight: 500,
-      fontSize: 16,
+      fontSize: isMobile ? 14 : 16,
       transition: "color 0.16s",
       gap: 8,
       borderRadius: "50%",
       padding: 2,
     },
     linkImg: {
-      width: 18,
-      height: 18,
+      width: isMobile ? 16 : 18,
+      height: isMobile ? 16 : 18,
       objectFit: "contain",
       borderRadius: "50%",
       background: "none",
       display: "block",
     },
     divider: {
-      width: "92%",
+      width: isMobile ? "85%" : "92%",
       maxWidth: 1200,
       height: 1,
       background: "rgba(128,150,255,0.18)",
-      margin: "50px auto 30px auto",
+      margin: isMobile ? "30px auto 20px" : "50px auto 30px auto",
     },
     lowerBar: {
       display: "flex",
@@ -208,46 +218,54 @@ const Footer = () => {
       alignItems: "center",
       maxWidth: 1200,
       margin: "0 auto",
-      width: "92%",
+      width: isMobile ? "85%" : "92%",
       flexWrap: "wrap",
-      gap: 18,
-      fontSize: 15,
+      gap: isMobile ? 12 : 18,
+      fontSize: isMobile ? 13 : 15,
       color: "#8b98b7",
+      flexDirection: isMobile ? "column" : "row",
+      textAlign: isMobile ? "center" : "left",
     },
     logoRow: {
       display: "flex",
       alignItems: "center",
       gap: 11,
-      minWidth: 180,
+      minWidth: isMobile ? "100%" : 180,
+      justifyContent: isMobile ? "center" : "flex-start",
+      marginBottom: isMobile ? 10 : 0,
     },
     logoImg: {
-      width: 32,
-      height: 32,
+      width: isMobile ? 28 : 32,
+      height: isMobile ? 28 : 32,
       objectFit: "contain",
       borderRadius: "8px",
       background: "#000",
     },
     brand: {
       fontWeight: 700,
-      fontSize: 18,
+      fontSize: isMobile ? 16 : 18,
       background: "linear-gradient(90deg,#4aa3ff 15%, #fff 90%)",
       WebkitBackgroundClip: "text",
       WebkitTextFillColor: "transparent",
     },
     copyright: {
-      fontSize: 15,
+      fontSize: isMobile ? 13 : 15,
       color: "#e6eaff",
-      flex: 2,
+      flex: isMobile ? "none" : 2,
       textAlign: "center",
+      marginBottom: isMobile ? 10 : 0,
+      order: isMobile ? 3 : "unset",
     },
     lowerLinks: {
       display: "flex",
-      gap: 22,
+      gap: isMobile ? 16 : 22,
       alignItems: "center",
       fontWeight: 500,
-      fontSize: 15,
-      minWidth: 130,
-      justifyContent: "flex-end",
+      fontSize: isMobile ? 13 : 15,
+      minWidth: isMobile ? "100%" : 130,
+      justifyContent: isMobile ? "center" : "flex-end",
+      marginBottom: isMobile ? 10 : 0,
+      order: isMobile ? 2 : "unset",
     },
     lowerLink: {
       color: "#e6eaff",
@@ -255,25 +273,28 @@ const Footer = () => {
       opacity: 0.7,
       transition: "opacity 0.2s",
       fontWeight: 500,
-      fontSize: 15,
+      fontSize: isMobile ? 13 : 15,
     },
     disclaimer: {
-      margin: "30px auto 0 auto",
+      margin: isMobile ? "20px auto 0" : "30px auto 0 auto",
       color: "#b0b7cc",
-      fontSize: 13.2,
+      fontSize: isMobile ? 12 : 13.2,
       lineHeight: 1.58,
       maxWidth: 1200,
       textAlign: "left",
+      padding: isMobile ? "0 16px" : 0,
+      width: isMobile ? "85%" : "auto",
     },
     disclaimerTitle: {
       fontWeight: 700,
       color: "#f3f3f7",
       marginBottom: 3,
-      fontSize: 14,
+      fontSize: isMobile ? 13 : 14,
       display: "block",
       letterSpacing: 0.01,
     },
   };
+
   return (
     <footer style={styles.wrapper}>
       <div style={styles.colsRow}>
@@ -304,14 +325,14 @@ const Footer = () => {
         </div>
         <div style={styles.col}>
           <div style={{ ...styles.colTitle, ...styles.contact }}>Contact</div>
-          <div style={{ marginBottom: 9 }}>Email Support</div>
+          <div style={{ marginBottom: 9, color: "#e6eaff", fontSize: isMobile ? 14 : 16 }}>Email Support</div>
           <a
             href="mailto:support@propscholar.shop"
             style={{ ...styles.link, color: "#4aa3ff" }}
             target="_blank"
             rel="noopener noreferrer"
           >
-            [support@propscholar.shop](mailto:support@propscholar.shop)
+            support@propscholar.shop
           </a>
         </div>
         <div style={styles.col}>
@@ -399,6 +420,7 @@ const Footer = () => {
     </footer>
   );
 };
+
 const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) => {
   const styles = {
     floatingHeaderWrapper: {
@@ -410,7 +432,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       background: "transparent",
     },
     floatingHeader: {
-      width: "100%",
+      width: isMobile ? "90%" : "100%",
       maxWidth: 1150,
       margin: "0 auto",
       borderRadius: "18px",
@@ -418,17 +440,19 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
-      padding: isMobile ? "9px 3px" : "18px 40px",
+      padding: isMobile ? "12px 16px" : "18px 40px",
       color: "#fff",
       border: "none",
       overflow: "visible",
       position: "relative",
+      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
     },
     headerLogoContainer: {
       display: "flex",
       alignItems: "center",
       gap: isMobile ? 7 : 14,
       minWidth: isMobile ? 65 : 170,
+      zIndex: 2001,
     },
     headerLogo: {
       width: isMobile ? 28 : 48,
@@ -492,12 +516,13 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       flexDirection: "column",
       alignItems: "center",
       animation: menuOpen ? "fadeInMenu 0.2s" : "",
+      paddingTop: 80,
     },
     mobileNav: {
       display: "flex",
       flexDirection: "column",
       alignItems: "center",
-      marginTop: 80,
+      marginTop: 20,
       gap: 18,
       width: "90%",
     },
@@ -550,16 +575,16 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       marginLeft: 8,
     },
     desktopHeaderNav: {
-      display: "flex",
+      display: isMobile ? "none" : "flex",
       flexDirection: "row",
       alignItems: "center",
-      gap: 22,
+      gap: isMobile ? 12 : 22,
       position: "static",
     },
     desktopNavLink: {
       color: "#fff",
       textDecoration: "none",
-      fontSize: 15,
+      fontSize: isMobile ? 13 : 15,
       padding: "8px 14px",
       borderRadius: "20px",
       fontWeight: 500,
@@ -606,7 +631,9 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
       marginLeft: 0,
     },
   };
+
   const handleHamburgerClick = () => setMenuOpen((open) => !open);
+
   return (
     <div style={styles.floatingHeaderWrapper}>
       <header style={styles.floatingHeader}>
@@ -628,14 +655,14 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
             onClick={handleHamburgerClick}
           >
             <div style={styles.hamburgerIcon}>
-              <span style={styles.hamburgerLine}></span>
-              <span style={styles.hamburgerLine}></span>
-              <span style={styles.hamburgerLine}></span>
+              <span style={{...styles.hamburgerLine, transform: menuOpen ? "rotate(45deg) translate(5px, 5px)" : "none"}}></span>
+              <span style={{...styles.hamburgerLine, opacity: menuOpen ? 0 : 1}}></span>
+              <span style={{...styles.hamburgerLine, transform: menuOpen ? "rotate(-45deg) translate(7px, -6px)" : "none"}}></span>
             </div>
           </button>
         )}
         {isMobile && menuOpen && (
-          <div style={styles.mobileMenuOverlay}>
+          <div style={styles.mobileMenuOverlay} onClick={() => setMenuOpen(false)}>
             <nav id="nav" style={styles.mobileNav} aria-label="Main navigation">
               {navItems.map((item) => {
                 const isFeed = item.label.toLowerCase() === "feed";
@@ -686,6 +713,7 @@ const Header = ({ isMobile, menuOpen, setMenuOpen, hoverStates, handleHover }) =
     </div>
   );
 };
+
 const MainPage = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -694,14 +722,18 @@ const MainPage = () => {
     headerCta: false,
     section: [false, false],
   });
+
   useEffect(() => {
     function onResize() {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) setMenuOpen(false);
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) setMenuOpen(false);
     }
+    
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
   const handleHover = (type, index, isHovered) => {
     setHoverStates((prev) => ({
       ...prev,
@@ -711,12 +743,13 @@ const MainPage = () => {
           : prev[type].map((item, i) => (i === index ? isHovered : item)),
     }));
   };
+
   const styles = {
     page: {
       background: "linear-gradient(135deg, #000000 0%, #0a0a2a 30%, #1a1a4a 100%)",
       color: "#fff",
       minHeight: "100vh",
-      padding: isMobile ? "40px 8px" : "60px 24px",
+      padding: isMobile ? "80px 16px 40px" : "120px 24px 60px",
       fontFamily: "'Inter', Arial, sans-serif",
       lineHeight: 1.6,
       maxWidth: "100%",
@@ -729,12 +762,10 @@ const MainPage = () => {
       margin: "0 auto",
       position: "relative",
       zIndex: 2,
-      paddingTop: 64,
     },
     title: {
-      fontSize: isMobile ? "1.3rem" : "clamp(2rem, 4vw, 2.8rem)",
-      margin: 0,
-      paddingBottom: 12,
+      fontSize: isMobile ? "1.8rem" : "clamp(2rem, 4vw, 2.8rem)",
+      margin: "0 0 16px 0",
       background: "linear-gradient(90deg, #fff 0%, #4aa3ff 100%)",
       WebkitBackgroundClip: "text",
       WebkitTextFillColor: "transparent",
@@ -742,10 +773,11 @@ const MainPage = () => {
       fontWeight: 700,
       letterSpacing: "0.5px",
       position: "relative",
+      lineHeight: 1.2,
     },
     titleUnderline: {
       position: "absolute",
-      bottom: 0,
+      bottom: -10,
       left: "50%",
       transform: "translateX(-50%)",
       width: "80px",
@@ -754,23 +786,28 @@ const MainPage = () => {
       borderRadius: "2px",
     },
     paragraph: {
-      fontSize: isMobile ? 13 : 15,
-      marginBottom: 14,
+      fontSize: isMobile ? 14 : 16,
+      marginBottom: 16,
       color: "rgba(255, 255, 255, 0.93)",
       lineHeight: 1.7,
+      textAlign: "center",
     },
     section: {
       background: "rgba(255, 255, 255, 0.07)",
       backdropFilter: "blur(12px)",
       borderRadius: "20px",
-      padding: isMobile ? "15px" : "28px",
-      marginBottom: "30px",
+      padding: isMobile ? "20px" : "28px",
+      marginBottom: isMobile ? "20px" : "30px",
       border: "none",
-      boxShadow: "none",
+      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
       transition: "transform 0.3s, box-shadow 0.3s",
     },
-    sectionHover: { transform: "translateY(-3px)" },
+    sectionHover: { 
+      transform: "translateY(-3px)",
+      boxShadow: "0 6px 25px rgba(74, 163, 255, 0.2)"
+    },
   };
+
   return (
     <>
       <Header
@@ -795,37 +832,44 @@ const MainPage = () => {
             In exchange, we take a simple evaluation/test. If traders complete the test successfully, we provide the scholarship.
           </p>
           <section
-            style={{ ...styles.section }}
+            style={{ 
+              ...styles.section, 
+              ...(hoverStates.section[0] ? styles.sectionHover : {}) 
+            }}
             onMouseEnter={() => setHoverStates((prev) => ({ ...prev, section: [true, prev.section[1]] }))}
             onMouseLeave={() => setHoverStates((prev) => ({ ...prev, section: [false, prev.section[1]] }))}
           >
-            <h2 style={{ fontWeight: 700, fontSize: isMobile ? 15 : 22, marginBottom: 8 }}>
+            <h2 style={{ fontWeight: 700, fontSize: isMobile ? 18 : 22, marginBottom: 12, color: "#4aa3ff" }}>
               Our Mission
             </h2>
-            <p style={styles.paragraph}>
+            <p style={{...styles.paragraph, textAlign: "left"}}>
               Through this scholarship, traders can afford anything they want in their journey of becoming a professional trader. We are not a prop firm; we are a scholarship-based model where traders can evaluate themselves by taking part in an evaluation which will ultimately grant scholarship. Skill-based evaluation system.
             </p>
           </section>
           <section
-            style={{ ...styles.section }}
+            style={{ 
+              ...styles.section, 
+              ...(hoverStates.section[1] ? styles.sectionHover : {}) 
+            }}
             onMouseEnter={() => setHoverStates((prev) => ({ ...prev, section: [prev.section[0], true] }))}
             onMouseLeave={() => setHoverStates((prev) => ({ ...prev, section: [prev.section[0], false] }))}
           >
-            <h2 style={{ fontWeight: 700, fontSize: isMobile ? 15 : 22, marginBottom: 8 }}>
+            <h2 style={{ fontWeight: 700, fontSize: isMobile ? 18 : 22, marginBottom: 12, color: "#4aa3ff" }}>
               Our Vision
             </h2>
-            <p style={styles.paragraph}>
+            <p style={{...styles.paragraph, textAlign: "left"}}>
               Our vision is to make the process skill-based. We want to eliminate the capital barrier in a trader's journey. Using our platform, a trader can use their skill and earn a scholarship which will support their journey.
             </p>
-            <p style={styles.paragraph}>
+            <p style={{...styles.paragraph, textAlign: "left"}}>
               By using our platform one can prove themselves by providing a skill-based test and hence passing, claiming, and earning a scholarship from us.
             </p>
           </section>
         </div>
       </main>
-      <CommunityBlock />
-      <Footer />
+      <CommunityBlock isMobile={isMobile} />
+      <Footer isMobile={isMobile} />
     </>
   );
 };
+
 export default MainPage;
