@@ -345,6 +345,7 @@ export default function Community() {
           color: #fff;
           line-height: 1.6;
           overflow-x: hidden;
+          min-height: 100vh;
         }
         
         .floating-header-wrapper {
@@ -743,7 +744,8 @@ export default function Community() {
           maxWidth: 1200, 
           margin: "0 auto", 
           padding: `${isMobile ? '100px 20px 40px' : '120px 20px 60px'}`,
-          minHeight: '100vh'
+          minHeight: '100vh',
+          background: "linear-gradient(135deg, #000000 0%, #0a0a2a 30%, #1a1a4a 100%)"
         }}
       >
         <section
