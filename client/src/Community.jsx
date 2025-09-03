@@ -1,8 +1,9 @@
-import React from "react";
-
+import React, { useState } from "react";
 export default function Community() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const handleMobileMenuToggle = () => {
-    alert("Mobile menu would open here. In a React app, this would toggle state.");
+    setMobileMenuOpen((o) => !o);
   };
 
   const features = [
@@ -14,6 +15,75 @@ export default function Community() {
 
   return (
     <>
+      <style>{`
+        @media (max-width: 950px) {
+          .floating-header {
+            padding: 15px 15px !important;
+          }
+          .desktop-header-nav {
+            display: none !important;
+          }
+          .hamburger {
+            display: block !important;
+          }
+        }
+        @media (max-width: 600px) {
+          .floating-header {
+            padding: 15px 6px !important;
+            max-width: 99vw !important;
+            margin: 0 0 !important;
+          }
+        }
+        .mobile-menu-overlay {
+          z-index: 3000;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: rgba(18, 21, 44, 0.97);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          animation: fadeIn 0.2s;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .mobile-menu-item {
+          color: #e6eaff;
+          font-size: 2rem;
+          font-weight: 700;
+          text-decoration: none;
+          margin: 18px 0;
+          text-align: center;
+        }
+        .mobile-menu-btn {
+          display: inline-block;
+          background: linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%);
+          color: #fff;
+          font-size: 1.3rem;
+          font-weight: 700;
+          text-decoration: none;
+          border-radius: 30px;
+          margin-top: 38px;
+          padding: 16px 65px;
+          box-shadow: 0 0 16px #4aa3ff55;
+        }
+        .mobile-menu-close {
+          position: absolute;
+          top: 30px;
+          right: 30px;
+          font-size: 2.1rem;
+          color: #e6eaff;
+          background: none;
+          border: none;
+          cursor: pointer;
+        }
+      `}
+      </style>
       <div
         className="floating-header-wrapper"
         style={{
@@ -44,7 +114,12 @@ export default function Community() {
         >
           <div
             className="header-logo-container"
-            style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 170 }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              minWidth: 170,
+            }}
           >
             <img
               src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
@@ -71,11 +146,15 @@ export default function Community() {
               PropScholar
             </span>
           </div>
-
           <nav
             className="desktop-header-nav"
             aria-label="Main navigation"
-            style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 22 }}
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 22,
+            }}
           >
             <a
               href="https://www.propscholar.com"
@@ -160,18 +239,25 @@ export default function Community() {
               Get Started
             </a>
           </nav>
-
+          {/* Hamburger icon */}
           <button
             className="hamburger"
             aria-label="Toggle navigation menu"
             onClick={handleMobileMenuToggle}
-            style={{ display: "none" }}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              marginLeft: 15,
+              display: "none",
+              cursor: "pointer",
+            }}
           >
             <div
               className="hamburger-icon"
               style={{
-                width: 28,
-                height: 22,
+                width: 32,
+                height: 26,
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
@@ -179,21 +265,34 @@ export default function Community() {
             >
               <span
                 className="hamburger-line"
-                style={{ height: 3, width: "100%", background: "#4aa3ff", borderRadius: 2 }}
+                style={{ height: 4, width: "100%", background: "#4aa3ff", borderRadius: 2 }}
               ></span>
               <span
                 className="hamburger-line"
-                style={{ height: 3, width: "100%", background: "#4aa3ff", borderRadius: 2 }}
+                style={{ height: 4, width: "100%", background: "#4aa3ff", borderRadius: 2 }}
               ></span>
               <span
                 className="hamburger-line"
-                style={{ height: 3, width: "100%", background: "#4aa3ff", borderRadius: 2 }}
+                style={{ height: 4, width: "100%", background: "#4aa3ff", borderRadius: 2 }}
               ></span>
             </div>
           </button>
         </header>
       </div>
-
+      {/* MOBILE MENU OVERLAY */}
+      {mobileMenuOpen && (
+        <div className="mobile-menu-overlay">
+          <button className="mobile-menu-close" onClick={handleMobileMenuToggle} aria-label="Close menu">
+            ×
+          </button>
+          <a className="mobile-menu-item" href="https://www.propscholar.com">Home</a>
+          <a className="mobile-menu-item" href="/community">Community</a>
+          <a className="mobile-menu-item" href="/shop">Shop</a>
+          <a className="mobile-menu-item" href="/faq">FAQ</a>
+          <a className="mobile-menu-item" href="/about">About</a>
+          <a className="mobile-menu-btn" href="/get-started">Get Started</a>
+        </div>
+      )}
       <main
         className="container"
         style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 20px 60px" }}
@@ -234,7 +333,6 @@ export default function Community() {
             Dedicated Support. Personalized Assistance. Quick Resolutions. Real-Time Updates. Join our vibrant Discord community to access it all!
           </p>
         </section>
-
         <section
           className="community-content"
           style={{
@@ -263,7 +361,6 @@ export default function Community() {
               style={{ width: "100%", height: "auto", display: "block" }}
             />
           </div>
-
           <div
             className="community-features"
             style={{
@@ -296,13 +393,22 @@ export default function Community() {
                 </div>
                 <h3
                   className="feature-title"
-                  style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: 10, color: "#fff" }}
+                  style={{
+                    fontSize: "1.2rem",
+                    fontWeight: 700,
+                    marginBottom: 10,
+                    color: "#fff",
+                  }}
                 >
                   {title}
                 </h3>
                 <p
                   className="feature-desc"
-                  style={{ fontSize: "0.9rem", color: "#c3c8e6", lineHeight: 1.5 }}
+                  style={{
+                    fontSize: "0.9rem",
+                    color: "#c3c8e6",
+                    lineHeight: 1.5,
+                  }}
                 >
                   {desc}
                 </p>
@@ -310,14 +416,14 @@ export default function Community() {
             ))}
           </div>
         </section>
-
         <section
           className="cta-section"
           style={{
             textAlign: "center",
             marginTop: 60,
             padding: 40,
-            background: "linear-gradient(90deg, rgba(25, 30, 56, 0.7) 0%, rgba(33, 39, 90, 0.7) 100%)",
+            background:
+              "linear-gradient(90deg, rgba(25, 30, 56, 0.7) 0%, rgba(33, 39, 90, 0.7) 100%)",
             borderRadius: 20,
             backdropFilter: "blur(10px)",
             border: "1px solid rgba(74, 163, 255, 0.2)",
