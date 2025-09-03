@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -562,6 +563,9 @@ export default function Feed() {
     if (!hasOpen) return;
   
     function onDocClick(e) {
+      // Ignore clicks within the menu popover
+      if (e.target.closest('[aria-label="Navigation menu"]')) return;
+
       const actions = document.querySelector('[data-actions="right"]');
       if (!actions) return;
       if (!actions.contains(e.target)) setMoreOpen({});
@@ -1560,6 +1564,7 @@ export default function Feed() {
           {moreOpen[filename] && (
             <div
               onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation?.(); }}
               style={{
                 position: "fixed",             // take out of parent stacking quirks
                 right: 16,
@@ -1572,6 +1577,8 @@ export default function Feed() {
               <div
                 role="menu"
                 aria-label="Navigation menu"
+                onClick={(e) => { e.stopPropagation(); }}
+                onMouseDown={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation?.(); }}
                 style={{
                   minWidth: 200,
                   background: "linear-gradient(180deg, rgba(20,20,24,0.92) 0%, rgba(18,18,22,0.92) 100%)",
@@ -1610,23 +1617,64 @@ export default function Feed() {
                   `}
                 </style>
         
-                <button className="nav-item" onClick={() => window.open("https://propscholar.com", "_blank", "noopener,noreferrer")}>
-                  <span></span> <span>Home</span>
-                </button>
-                <div className="nav-sep" />
-                <button className="nav-item" onClick={() => window.location.assign("/terms")}>
-                  <span></span> <span>Terms & Conditions</span>
-                </button>
-                <div className="nav-sep" />
-                <button className="nav-item" onClick={() => window.location.assign("/about")}>
-                  <span></span> <span>About</span>
-                </button>
-                <div className="nav-sep" />
                 <button
                   className="nav-item"
-                  onClick={() =>
-                    window.open("https://discord.com/invite/dmh9NE63yK", "_blank", "noopener,noreferrer")
-                  }
+                  role="menuitem"
+                  onMouseDown={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation?.(); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.nativeEvent.stopImmediatePropagation?.();
+                    window.open("https://propscholar.com", "_blank", "noopener,noreferrer");
+                    setMoreOpen({}); // optional: close after nav
+                  }}
+                >
+                  <span></span> <span>Home</span>
+                </button>
+                
+                <div className="nav-sep" />
+                
+                <button
+                  className="nav-item"
+                  role="menuitem"
+                  onMouseDown={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation?.(); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.nativeEvent.stopImmediatePropagation?.();
+                    window.location.assign("/terms");
+                    setMoreOpen({});
+                  }}
+                >
+                  <span></span> <span>Terms & Conditions</span>
+                </button>
+                
+                <div className="nav-sep" />
+                
+                <button
+                  className="nav-item"
+                  role="menuitem"
+                  onMouseDown={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation?.(); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.nativeEvent.stopImmediatePropagation?.();
+                    window.location.assign("/about");
+                    setMoreOpen({});
+                  }}
+                >
+                  <span></span> <span>About</span>
+                </button>
+                
+                <div className="nav-sep" />
+                
+                <button
+                  className="nav-item"
+                  role="menuitem"
+                  onMouseDown={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation?.(); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.nativeEvent.stopImmediatePropagation?.();
+                    window.open("https://discord.com/invite/dmh9NE63yK", "_blank", "noopener,noreferrer");
+                    setMoreOpen({});
+                  }}
                 >
                   <span></span> <span>Discord</span>
                 </button>
