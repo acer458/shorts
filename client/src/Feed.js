@@ -1390,6 +1390,8 @@ export default function Feed() {
           {isCurrent && <PulseHeart visible={showPulseHeart} />}
           
           /* Progress bar */
+        <>
+          {/* Progress bar */}
           <div
             style={{
               position: "absolute",
@@ -1440,103 +1442,104 @@ export default function Feed() {
               />
             )}
           </div>
-          
-          /* Heart overlay root (hidden until animated) */
+        
+          {/* Heart overlay root (hidden until animated) */}
           <div className="feed-heart-overlay" ref={heartOverlayRef}>
             <div className="feed-heart-stage">
               <div className="feed-heart-main">❤️</div>
-          
-              <div className="feed-heart-child" style={{"--ty":"-70px","--tx":"-30px"}}>❤️</div>
-              <div className="feed-heart-child" style={{"--ty":"-80px","--tx":"40px"}}>❤️</div>
-              <div className="feed-heart-child" style={{"--ty":"70px","--tx":"-40px"}}>❤️</div>
-              <div className="feed-heart-child" style={{"--ty":"80px","--tx":"30px"}}>❤️</div>
-          
+        
+              <div className="feed-heart-child" style={{ "--ty": "-70px", "--tx": "-30px" }}>❤️</div>
+              <div className="feed-heart-child" style={{ "--ty": "-80px", "--tx": "40px" }}>❤️</div>
+              <div className="feed-heart-child" style={{ "--ty": "70px", "--tx": "-40px" }}>❤️</div>
+              <div className="feed-heart-child" style={{ "--ty": "80px", "--tx": "30px" }}>❤️</div>
+        
               <div className="feed-heart-ring feed-ring-1"></div>
               <div className="feed-heart-ring feed-ring-2"></div>
               <div className="feed-heart-ring feed-ring-3"></div>
-          
-              <div className="feed-heart-particle" style={{"--tx":"-60px","--ty":"-50px", background:"#ff5252"}}></div>
-              <div className="feed-heart-particle" style={{"--tx":"-70px","--ty":"20px", background:"#ff6b6b"}}></div>
-              <div className="feed-heart-particle" style={{"--tx":"-40px","--ty":"60px", background:"#ff8e8e"}}></div>
-              <div className="feed-heart-particle" style={{"--tx":"50px","--ty":"-60px", background:"#ff5252"}}></div>
-              <div className="feed-heart-particle" style={{"--tx":"60px","--ty":"10px", background:"#ff6b6b"}}></div>
-              <div className="feed-heart-particle" style={{"--tx":"40px","--ty":"60px", background:"#ff8e8e"}}></div>
-          
+        
+              <div className="feed-heart-particle" style={{ "--tx": "-60px", "--ty": "-50px", background: "#ff5252" }}></div>
+              <div className="feed-heart-particle" style={{ "--tx": "-70px", "--ty": "20px", background: "#ff6b6b" }}></div>
+              <div className="feed-heart-particle" style={{ "--tx": "-40px", "--ty": "60px", background: "#ff8e8e" }}></div>
+              <div className="feed-heart-particle" style={{ "--tx": "50px", "--ty": "-60px", background: "#ff5252" }}></div>
+              <div className="feed-heart-particle" style={{ "--tx": "60px", "--ty": "10px", background: "#ff6b6b" }}></div>
+              <div className="feed-heart-particle" style={{ "--tx": "40px", "--ty": "60px", background: "#ff8e8e" }}></div>
+        
               <div className="feed-heart-glow"></div>
             </div>
           </div>
-          
+        </>
+        
+        {/* Right side actions */}
+        <div
+          data-actions="right"
+          style={{
+            position: "absolute",
+            right: "12px",
+            bottom: "100px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "24px",
+            zIndex: 10,
+          }}
+        >
+          <div style={{ marginBottom: 6, width: 48, height: 48, borderRadius: "50%", overflow: "hidden" }}>
+            <img
+              src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg"
+              alt=""
+              style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+            />
           </div>
-          
-          /* Right side actions */
-          <div
-            data-actions="right"
-            style={{
-              position: "absolute",
-              right: "12px",
-              bottom: "100px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "24px",
-              zIndex: 10,
-            }}
-          >
-            <div style={{ marginBottom: 6, width: 48, height: 48, borderRadius: "50%", overflow: "hidden" }}>
-              <img
-                src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg"
-                alt=""
-                style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
-              />
-            </div>
-          
-            {/* Like */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <button
-                aria-label={liked ? "Unlike" : "Like"}
-                disabled={likePending[filename]}
-                onClickCapture={(e) => { e.stopPropagation(); }}  // capture-phase guard
-                onClick={(e) => {
-                  e.stopPropagation(); // bubble-phase guard
-                  if (!animLock) {
-                    setAnimLock(true);
-                    // big overlay animation
-                    playHeartAnimation();
-                    // mini pulse on this button's icon only
-                    const scope = e.currentTarget;
-                    const icon = scope.querySelector("svg, span, path") || scope;
-                    icon.classList.remove("heart-mini-pulse");
-                    void icon.offsetWidth; // restart CSS animation
-                    icon.classList.add("heart-mini-pulse");
-                    setTimeout(() => icon.classList.remove("heart-mini-pulse"), 1000);
-                    setTimeout(() => setAnimLock(false), 1200);
-                  }
-                  handleLike(idx, filename);
-                }}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: 6,
-                  cursor: "pointer",
-                  outline: 0,
-                  lineHeight: 0,
-                  borderRadius: 12,
-                  transition: "transform .14s ease",
-                }}
-                onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
-                onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
-                onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
-                onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
-              >
-                <span style={{ display: "inline-block" }}>
-                  <HeartSVG filled={liked} />
-                </span>
-              </button>
-              <span style={{ color: liked ? "#ed4956" : "#fff", fontSize: "13px", marginTop: "4px" }}>
-                {v.likes || 0}
+        
+          {/* Like */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <button
+              aria-label={liked ? "Unlike" : "Like"}
+              disabled={likePending[filename]}
+              onClickCapture={(e) => { e.stopPropagation(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!animLock) {
+                  setAnimLock(true);
+                  // big overlay animation
+                  playHeartAnimation();
+                  // mini pulse on this button's icon only
+                  const scope = e.currentTarget;
+                  const icon = scope.querySelector("svg, span, path") || scope;
+                  icon.classList.remove("heart-mini-pulse");
+                  void icon.offsetWidth;
+                  icon.classList.add("heart-mini-pulse");
+                  setTimeout(() => icon.classList.remove("heart-mini-pulse"), 1000);
+                  setTimeout(() => setAnimLock(false), 1200);
+                }
+                handleLike(idx, filename);
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 6,
+                cursor: "pointer",
+                outline: 0,
+                lineHeight: 0,
+                borderRadius: 12,
+                transition: "transform .14s ease",
+              }}
+              onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
+              onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
+              onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+            >
+              <span style={{ display: "inline-block" }}>
+                <HeartSVG filled={liked} />
               </span>
-            </div>
+            </button>
+            <span style={{ color: liked ? "#ed4956" : "#fff", fontSize: "13px", marginTop: "4px" }}>
+              {v.likes || 0}
+            </span>
+          </div>
+        </div>
+
 
           {/* Comment */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -1746,7 +1749,6 @@ export default function Feed() {
                 }}
 
               >
-
                 <style>
                   {`
                   @keyframes menuIn {
