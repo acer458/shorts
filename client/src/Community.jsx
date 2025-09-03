@@ -43,6 +43,88 @@ export default function Community() {
           box-shadow: 0 12px 32px 0 #4aa3ff33 !important;
           backdrop-filter: blur(7px);
           border: 1px solid #4aa3ff18;
+          transition: all 0.3s ease;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 14px 36px;
+          max-width: 1150px;
+          margin: 20px auto 0 auto;
+          color: #fff;
+          position: relative;
+          overflow: visible;
+        }
+        .header-logo-container {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          min-width: 170px;
+        }
+        .header-logo-img {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          background: #000;
+          object-fit: contain;
+        }
+        .header-title {
+          font-weight: 700;
+          font-size: 16px;
+          background: linear-gradient(90deg, #fff 0%, #4aa3ff 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          margin-left: 4px;
+        }
+        .desktop-header-nav {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 22px;
+        }
+        .desktop-header-nav a {
+          color: #fff;
+          text-decoration: none;
+          font-size: 15px;
+          padding: 8px 14px;
+          border-radius: 20px;
+          font-weight: 500;
+        }
+        .desktop-header-nav a[href="/get-started"] {
+          background: linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%);
+          border-radius: 20px;
+          padding: 10px 18px;
+          color: #fff;
+          font-weight: 600;
+          box-shadow: 0 0 10px #4aa3ff, 0 0 20px #4aa3ff;
+          cursor: pointer;
+          margin-left: 7px;
+          text-decoration: none;
+        }
+        .hamburger {
+          background: none;
+          border: none;
+          padding: 0;
+          margin-left: 15px;
+          cursor: pointer;
+          display: none;
+        }
+        .hamburger-icon {
+          width: 32px;
+          height: 26px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+        .hamburger-line {
+          height: 4px;
+          width: 100%;
+          background: #4aa3ff;
+          border-radius: 2px;
+        }
+        @media (max-width: 950px) {
+          .hamburger {
+            display: block;
+          }
         }
         .mobile-menu-overlay {
           z-index: 3000;
@@ -102,221 +184,71 @@ export default function Community() {
           background-clip: text;
           text-fill-color: transparent;
           transition: font-size 0.2s;
+          text-align: center;
         }
-      `}
-      </style>
-      <div
-        className="floating-header-wrapper"
-        style={{
-          position: "fixed",
-          top: 20,
-          left: 0,
-          right: 0,
-          zIndex: 2000,
-          background: "transparent",
-          padding: "0 8px",
-        }}
-      >
-        <header
-          className="floating-header"
-          style={{
-            maxWidth: 1150,
-            margin: "0 auto",
-            borderRadius: 22,
-            background: "rgba(16, 19, 43, 0.79)",
-            boxShadow: "0 12px 32px 0 #4aa3ff33",
-            backdropFilter: "blur(7px)",
-            border: "1px solid #4aa3ff18",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "14px 36px",
-            color: "#fff",
-            position: "relative",
-            overflow: "visible",
-          }}
-        >
-          <div
-            className="header-logo-container"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              minWidth: 170,
-            }}
-          >
+      `}</style>
+      <div className="floating-header-wrapper">
+        <header className="floating-header" role="banner">
+          <div className="header-logo-container">
             <img
               src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
               alt="PropScholar Logo"
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 8,
-                background: "#000",
-                objectFit: "contain",
-              }}
+              className="header-logo-img"
             />
-            <span
-              className="header-title"
-              style={{
-                fontWeight: 700,
-                fontSize: 18,
-                background: "linear-gradient(90deg, #fff 0%, #4aa3ff 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                marginLeft: 4,
-              }}
-            >
-              PropScholar
-            </span>
+            <span className="header-title">PropScholar</span>
           </div>
-          <nav
-            className="desktop-header-nav"
-            aria-label="Main navigation"
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 22,
-            }}
-          >
-            <a
-              href="https://www.propscholar.com"
-              style={{
-                color: "#fff",
-                textDecoration: "none",
-                fontSize: 15,
-                padding: "8px 14px",
-                borderRadius: 20,
-                fontWeight: 500,
-              }}
-            >
-              Home
-            </a>
-            <a
-              href="/community"
-              style={{
-                color: "#fff",
-                textDecoration: "none",
-                fontSize: 15,
-                padding: "8px 14px",
-                borderRadius: 20,
-                fontWeight: 500,
-              }}
-            >
-              Community
-            </a>
-            <a
-              href="/shop"
-              style={{
-                color: "#fff",
-                textDecoration: "none",
-                fontSize: 15,
-                padding: "8px 14px",
-                borderRadius: 20,
-                fontWeight: 500,
-              }}
-            >
-              Shop
-            </a>
-            <a
-              href="/faq"
-              style={{
-                color: "#fff",
-                textDecoration: "none",
-                fontSize: 15,
-                padding: "8px 14px",
-                borderRadius: 20,
-                fontWeight: 500,
-              }}
-            >
-              FAQ
-            </a>
-            <a
-              href="/about"
-              style={{
-                color: "#fff",
-                textDecoration: "none",
-                fontSize: 15,
-                padding: "8px 14px",
-                borderRadius: 20,
-                fontWeight: 500,
-              }}
-            >
-              About
-            </a>
-            <a
-              href="/get-started"
-              style={{
-                background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
-                borderRadius: 20,
-                padding: "10px 18px",
-                color: "#fff",
-                fontSize: 15,
-                fontWeight: 600,
-                boxShadow: "0 0 10px #4aa3ff, 0 0 20px #4aa3ff",
-                cursor: "pointer",
-                marginLeft: 7,
-                textDecoration: "none",
-              }}
-            >
-              Get Started
-            </a>
+          <nav className="desktop-header-nav" aria-label="Main navigation">
+            <a href="https://www.propscholar.com">Home</a>
+            <a href="/community">Community</a>
+            <a href="/shop">Shop</a>
+            <a href="/faq">FAQ</a>
+            <a href="/about">About</a>
+            <a href="/get-started">Get Started</a>
           </nav>
-          {/* Hamburger icon */}
           <button
             className="hamburger"
             aria-label="Toggle navigation menu"
             onClick={handleMobileMenuToggle}
-            style={{
-              background: "none",
-              border: "none",
-              padding: 0,
-              marginLeft: 15,
-              display: "none",
-              cursor: "pointer",
-            }}
           >
-            <div
-              className="hamburger-icon"
-              style={{
-                width: 32,
-                height: 26,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
-            >
-              <span
-                className="hamburger-line"
-                style={{ height: 4, width: "100%", background: "#4aa3ff", borderRadius: 2 }}
-              ></span>
-              <span
-                className="hamburger-line"
-                style={{ height: 4, width: "100%", background: "#4aa3ff", borderRadius: 2 }}
-              ></span>
-              <span
-                className="hamburger-line"
-                style={{ height: 4, width: "100%", background: "#4aa3ff", borderRadius: 2 }}
-              ></span>
+            <div className="hamburger-icon">
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
+              <span className="hamburger-line"></span>
             </div>
           </button>
         </header>
       </div>
-      {/* MOBILE MENU OVERLAY */}
+
       {mobileMenuOpen && (
-        <div className="mobile-menu-overlay">
-          <button className="mobile-menu-close" onClick={handleMobileMenuToggle} aria-label="Close menu">
+        <div className="mobile-menu-overlay" role="dialog" aria-modal="true">
+          <button
+            className="mobile-menu-close"
+            onClick={handleMobileMenuToggle}
+            aria-label="Close menu"
+          >
             ×
           </button>
-          <a className="mobile-menu-item" href="https://www.propscholar.com">Home</a>
-          <a className="mobile-menu-item" href="/community">Community</a>
-          <a className="mobile-menu-item" href="/shop">Shop</a>
-          <a className="mobile-menu-item" href="/faq">FAQ</a>
-          <a className="mobile-menu-item" href="/about">About</a>
-          <a className="mobile-menu-btn" href="/get-started">Get Started</a>
+          <a className="mobile-menu-item" href="https://www.propscholar.com">
+            Home
+          </a>
+          <a className="mobile-menu-item" href="/community">
+            Community
+          </a>
+          <a className="mobile-menu-item" href="/shop">
+            Shop
+          </a>
+          <a className="mobile-menu-item" href="/faq">
+            FAQ
+          </a>
+          <a className="mobile-menu-item" href="/about">
+            About
+          </a>
+          <a className="mobile-menu-btn" href="/get-started">
+            Get Started
+          </a>
         </div>
       )}
+
       <main
         className="container"
         style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 20px 60px" }}
@@ -331,11 +263,7 @@ export default function Community() {
             marginBottom: 80,
           }}
         >
-          <h1
-            className="community-title"
-          >
-            Join the Official PropScholar Discord
-          </h1>
+          <h1 className="community-title">Join the Official PropScholar Discord</h1>
           <p
             className="community-subtitle"
             style={{
@@ -346,7 +274,8 @@ export default function Community() {
               color: "#e6eaff",
             }}
           >
-            Dedicated Support. Personalized Assistance. Quick Resolutions. Real-Time Updates. Join our vibrant Discord community to access it all!
+            Dedicated Support. Personalized Assistance. Quick Resolutions. Real-Time Updates.
+            Join our vibrant Discord community to access it all!
           </p>
         </section>
         <section
