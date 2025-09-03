@@ -11,8 +11,32 @@ const CommunityPage = () => {
   }, []);
 
   const stats = [
-    { value: "1,200+", label: "Active Members", icon: "👥" },
-    { value: "24/7", label: "Live Support", icon: "💬" }
+    { value: "2,000+", label: "Active Members", icon: "👥" },
+    { value: "24/7", label: "Live Support", icon: "💬" },
+    { value: "Weekly", label: "Giveaways", icon: "🎁" }
+  ];
+
+  const benefits = [
+    {
+      title: "Expert Guidance",
+      description: "Learn from experienced traders who've been where you are",
+      icon: "🚀"
+    },
+    {
+      title: "Real-time Updates",
+      description: "Get instant notifications on market movements and opportunities",
+      icon: "📈"
+    },
+    {
+      title: "Collaborative Learning",
+      description: "Share ideas, strategies and get feedback from the community",
+      icon: "🤝"
+    },
+    {
+      title: "Exclusive Resources",
+      description: "Access tools and content available only to community members",
+      icon: "🔒"
+    }
   ];
 
   return (
@@ -39,6 +63,11 @@ const CommunityPage = () => {
           .join-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(74, 163, 255, 0.5) !important;
+          }
+          
+          .benefit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2) !important;
           }
         `}
       </style>
@@ -103,20 +132,19 @@ const CommunityPage = () => {
               </button>
             </div>
           </div>
-          
-          <div style={styles.heroVisual}>
-            <div style={styles.floatingCard}>
-              <div style={styles.cardHeader}>
-                <div style={styles.cardAvatar}></div>
-                <div>
-                  <div style={styles.cardUsername}>Trading Mentor</div>
-                  <div style={styles.cardStatus}>Online now</div>
-                </div>
+        </section>
+
+        {/* Benefits Section */}
+        <section style={styles.benefitsSection}>
+          <h2 style={styles.sectionTitle}>Why Join Our Community?</h2>
+          <div style={styles.benefitsGrid}>
+            {benefits.map((benefit, index) => (
+              <div key={index} style={styles.benefitCard} className="benefit-card">
+                <div style={styles.benefitIcon}>{benefit.icon}</div>
+                <h3 style={styles.benefitTitle}>{benefit.title}</h3>
+                <p style={styles.benefitDescription}>{benefit.description}</p>
               </div>
-              <div style={styles.cardMessage}>
-                "Hey! Need help with your trading strategy? Join our Discord for personalized guidance!"
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 
@@ -133,12 +161,29 @@ const CommunityPage = () => {
           </div>
         </section>
 
+        {/* Giveaway Section */}
+        <section style={styles.giveawaySection}>
+          <div style={styles.giveawayCard}>
+            <div style={styles.giveawayContent}>
+              <div style={styles.giveawayIcon}>🎁</div>
+              <h2 style={styles.giveawayTitle}>Weekly Giveaways!</h2>
+              <p style={styles.giveawayText}>
+                Join our community for a chance to win exclusive trading resources, 
+                funded accounts, and premium tools every week!
+              </p>
+              <button style={{...styles.joinButton, ...styles.giveawayButton}} className="join-btn">
+                Join to Participate
+              </button>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section style={styles.ctaSection}>
           <div style={styles.ctaContent}>
             <h2 style={styles.ctaTitle}>Ready to Level Up Your Trading?</h2>
             <p style={styles.ctaText}>
-              Join over 1,200 active traders in our Discord community. Get the support you need to succeed.
+              Join over 2,000 active traders in our Discord community. Get the support you need to succeed.
             </p>
             <button style={{...styles.joinButton, ...styles.ctaButton}} className="join-btn">
               Join Discord Community
@@ -297,54 +342,51 @@ const styles = {
     transition: 'all 0.3s ease',
     animation: 'pulse 2s infinite',
   },
-  heroVisual: {
-    position: 'relative',
-    marginTop: '60px',
-    width: '100%',
-    maxWidth: '800px',
-    height: '200px',
+  benefitsSection: {
+    marginBottom: '80px',
   },
-  floatingCard: {
-    position: 'absolute',
+  sectionTitle: {
+    fontSize: '2.5rem',
+    fontWeight: '800',
+    textAlign: 'center',
+    margin: '0 0 60px 0',
+    background: 'linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  },
+  benefitsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: '30px',
+  },
+  benefitCard: {
     background: 'rgba(25, 30, 56, 0.7)',
     backdropFilter: 'blur(10px)',
-    borderRadius: '16px',
-    padding: '20px',
-    width: '280px',
-    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-    animation: 'float 6s ease-in-out infinite',
+    borderRadius: '20px',
+    padding: '30px',
+    textAlign: 'center',
     border: '1px solid rgba(74, 163, 255, 0.2)',
-    left: '50%',
-    transform: 'translateX(-50%)',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
   },
-  cardHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    marginBottom: '15px',
+  benefitIcon: {
+    fontSize: '3rem',
+    marginBottom: '20px',
   },
-  cardAvatar: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    background: 'linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)',
+  benefitTitle: {
+    fontSize: '1.5rem',
+    fontWeight: '700',
+    margin: '0 0 15px 0',
+    color: '#FFFFFF',
   },
-  cardUsername: {
-    fontWeight: '600',
-    fontSize: '16px',
-  },
-  cardStatus: {
-    color: '#4aa3ff',
-    fontSize: '12px',
-    fontWeight: '500',
-  },
-  cardMessage: {
+  benefitDescription: {
     color: '#C3C8E6',
-    fontSize: '14px',
-    lineHeight: '1.5',
+    fontSize: '1rem',
+    lineHeight: '1.6',
+    margin: '0',
   },
   statsSection: {
-    marginBottom: '100px',
+    marginBottom: '80px',
   },
   statsGrid: {
     display: 'flex',
@@ -379,6 +421,48 @@ const styles = {
     color: '#C3C8E6',
     fontSize: '1.1rem',
     fontWeight: '500',
+  },
+  giveawaySection: {
+    marginBottom: '80px',
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  giveawayCard: {
+    background: 'linear-gradient(135deg, rgba(74, 163, 255, 0.1) 0%, rgba(138, 43, 226, 0.1) 100%)',
+    backdropFilter: 'blur(10px)',
+    borderRadius: '30px',
+    padding: '60px',
+    textAlign: 'center',
+    border: '1px solid rgba(74, 163, 255, 0.3)',
+    maxWidth: '800px',
+    width: '100%',
+    boxShadow: '0 15px 35px rgba(0, 0, 0, 0.2)',
+  },
+  giveawayContent: {
+    maxWidth: '600px',
+    margin: '0 auto',
+  },
+  giveawayIcon: {
+    fontSize: '4rem',
+    marginBottom: '20px',
+    animation: 'float 5s ease-in-out infinite',
+  },
+  giveawayTitle: {
+    fontSize: '2.2rem',
+    fontWeight: '800',
+    margin: '0 0 20px 0',
+    background: 'linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  },
+  giveawayText: {
+    fontSize: '1.1rem',
+    color: '#C3C8E6',
+    lineHeight: '1.6',
+    margin: '0 0 30px 0',
+  },
+  giveawayButton: {
+    margin: '0 auto',
   },
   ctaSection: {
     background: 'linear-gradient(90deg, rgba(25, 30, 56, 0.7) 0%, rgba(33, 39, 90, 0.7) 100%)',
