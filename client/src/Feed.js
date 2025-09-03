@@ -582,6 +582,15 @@ export default function Feed() {
     };
   }, [moreOpen]);
 
+  useEffect(() => {
+    const openKey = Object.keys(moreOpen).find(k => moreOpen[k]);
+    if (!openKey) return;
+    const onKey = (e) => { if (e.key === "Escape") setMoreOpen({}); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [moreOpen]);
+  
+
 
   // ---- Wheel and swipe listeners for feed ----
   // FEED_GESTURES_GUARD
@@ -1549,17 +1558,15 @@ export default function Feed() {
                 cursor: "pointer",
                 lineHeight: 0,
                 borderRadius: 12,
-                filter:
-                  "drop-shadow(0 0 6px rgba(255,255,255,0.20)) drop-shadow(0 3px 10px rgba(0,0,0,0.25))",
-                backgroundImage:
-                  "radial-gradient(120% 120% at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(240,240,245,0.10) 45%, rgba(255,255,255,0) 70%)",
+                filter: "drop-shadow(0 0 6px rgba(255,255,255,0.20)) drop-shadow(0 3px 10px rgba(0,0,0,0.25))",
+                backgroundImage: "radial-gradient(120% 120% at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(240,240,245,0.10) 45%, rgba(255,255,255,0) 70%)",
                 transition: "transform .14s ease, filter .18s ease, background-image .2s ease",
               }}
-              onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
-              onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
-              onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
-              onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              onMouseDown={(e)=>{ e.currentTarget.style.transform="scale(0.96)"; }}
+              onMouseUp={(e)=>{ e.currentTarget.style.transform="scale(1)"; }}
+              onMouseLeave={(e)=>{ e.currentTarget.style.transform="scale(1)"; }}
+              onFocus={(e)=>{ e.currentTarget.style.transform="translateY(-1px) scale(1.02)"; }}
+              onBlur={(e)=>{ e.currentTarget.style.transform="scale(1)"; }}
             >
               <svg
                 width="24"
@@ -1597,40 +1604,60 @@ export default function Feed() {
                 onClick={(e) => { e.stopPropagation(); }}
                 onMouseDown={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation?.(); }}
                 style={{
-                  minWidth: 200,
+                  minWidth: 220,
                   background: "linear-gradient(180deg, rgba(20,20,24,0.92) 0%, rgba(18,18,22,0.92) 100%)",
                   border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: 14,
-                  boxShadow: "0 18px 48px rgba(0,0,0,0.45), 0 4px 16px rgba(0,0,0,0.35), 0 0 24px rgba(255,255,255,0.06)",
-                  backdropFilter: "blur(12px) saturate(140%)",
+                  borderRadius: 16,
+                  boxShadow: "0 18px 48px rgba(0,0,0,0.45), 0 4px 16px rgba(0,0,0,0.35)",
+                  backdropFilter: "blur(14px) saturate(140%)",
                   overflow: "hidden",
-                  position: "relative",
-                  zIndex: 10,
-                  transform: "none",           // remove transform that might position off-screen
-                  opacity: 1,                  // force visible
-                  // animation: "menuIn .26s cubic-bezier(.22,1,.36,1) forwards", // disable animation temporarily
+                  transformOrigin: "calc(100% - 12px) 100%",
+                  transform: "translateY(8px) scale(0.96)",
+                  opacity: 0,
+                  animation: "menuIn .26s cubic-bezier(.22,1,.36,1) forwards",
                 }}
+
               >
 
                 <style>
                   {`
-                  @keyframes pauseOverlayIn {
-                    0%   { opacity: 0; transform: translateY(12px) scale(.94); }
+                  @keyframes menuIn {
+                    0%   { opacity: 0; transform: translateY(10px) scale(.96); }
                     60%  { opacity: 1; transform: translateY(0)    scale(1.02); }
-                    100% { opacity: 1; transform: translateY(0)    scale(1.0); }
+                    100% { opacity: 1; transform: translateY(0)    scale(1.00); }
+                  }
+                  @keyframes itemIn {
+                    0% { opacity: 0; transform: translateY(6px); }
+                    100% { opacity: 1; transform: translateY(0); }
                   }
                   .nav-item {
                     display:flex; align-items:center; gap:10px;
-                    width:100%; padding:10px 12px; color:#e9ebf0;
-                    background:none; border:none; text-align:left; cursor:pointer;
+                    width:100%; padding:12px 14px; color:#e9ebf0;
+                    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+                    border: 1px solid rgba(255,255,255,0.08);
+                    border-radius: 12px;
+                    text-decoration:none;
                     font-size:14.5px; font-weight:600; letter-spacing:.01em;
-                    transition: background .18s ease, transform .1s ease, color .18s ease;
+                    transition: background .18s ease, transform .1s ease, color .18s ease, border-color .2s ease;
+                    opacity: 0; animation: itemIn .22s ease-out forwards;
                   }
                   .nav-item:hover, .nav-item:focus {
-                    background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+                    background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+                    border-color: rgba(255,255,255,0.12);
                     outline: none;
+                    transform: translateY(-1px);
                   }
-                  .nav-sep { height:1px; background:rgba(255,255,255,0.08); margin:4px 8px; }
+                  .nav-item:nth-of-type(1) { animation-delay: .02s; }
+                  .nav-item:nth-of-type(3) { animation-delay: .06s; }
+                  .nav-item:nth-of-type(5) { animation-delay: .10s; }
+                  .nav-item:nth-of-type(7) { animation-delay: .14s; }
+                  .nav-sep { height:8px; }
+                  @media (prefers-reduced-motion: reduce) {
+                    @keyframes menuIn { 0%{opacity:0} 100%{opacity:1} }
+                    @keyframes itemIn { 0%{opacity:0} 100%{opacity:1} }
+                    .nav-item { transition: background .18s ease, color .18s ease, border-color .2s ease; }
+                  }
+
                   `}
                 </style>
         
