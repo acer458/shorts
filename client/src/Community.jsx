@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 export default function Community() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const handleMobileMenuToggle = () => {
-    setMobileMenuOpen((o) => !o);
-  };
+  const handleMobileMenuToggle = () => setMobileMenuOpen((o) => !o);
+
   const features = [
     { icon: "👥", title: "1,200+", desc: "Active Members" },
     { icon: "🎫", title: "1 on 1", desc: "Ticket Service" },
     { icon: "🎁", title: "Giveaways", desc: "For Community" },
     { icon: "💬", title: "Real-Time", desc: "Live Support" },
   ];
+
   return (
     <>
       <style>{`
@@ -34,7 +34,13 @@ export default function Community() {
             border-radius: 14px !important;
           }
           .community-title {
-            font-size: 1.4rem !important;
+            font-size: 1.15rem !important;
+          }
+          .community-subtitle {
+            font-size: 0.97rem !important;
+          }
+          .community-hero {
+            margin-top: 36px !important;
           }
         }
         .floating-header {
@@ -47,9 +53,9 @@ export default function Community() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 14px 36px;
+          padding: 10px 32px;
           max-width: 1150px;
-          margin: 20px auto 0 auto;
+          margin: 18px auto 0 auto;
           color: #fff;
           position: relative;
           overflow: visible;
@@ -57,23 +63,23 @@ export default function Community() {
         .header-logo-container {
           display: flex;
           align-items: center;
-          gap: 14px;
+          gap: 12px;
           min-width: 170px;
         }
         .header-logo-img {
-          width: 40px;
-          height: 40px;
+          width: 34px;
+          height: 34px;
           border-radius: 8px;
           background: #000;
           object-fit: contain;
         }
         .header-title {
           font-weight: 700;
-          font-size: 16px;
+          font-size: 15px;
           background: linear-gradient(90deg, #fff 0%, #4aa3ff 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
-          margin-left: 4px;
+          margin-left: 2px;
         }
         .desktop-header-nav {
           display: flex;
@@ -84,33 +90,33 @@ export default function Community() {
         .desktop-header-nav a {
           color: #fff;
           text-decoration: none;
-          font-size: 15px;
-          padding: 8px 14px;
-          border-radius: 20px;
+          font-size: 14px;
+          padding: 7px 13px;
+          border-radius: 18px;
           font-weight: 500;
         }
         .desktop-header-nav a[href="/get-started"] {
           background: linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%);
-          border-radius: 20px;
-          padding: 10px 18px;
+          border-radius: 18px;
+          padding: 9px 16px;
           color: #fff;
           font-weight: 600;
-          box-shadow: 0 0 10px #4aa3ff, 0 0 20px #4aa3ff;
+          box-shadow: 0 0 9px #4aa3ff, 0 0 18px #4aa3ff;
           cursor: pointer;
-          margin-left: 7px;
+          margin-left: 6px;
           text-decoration: none;
         }
         .hamburger {
           background: none;
           border: none;
           padding: 0;
-          margin-left: 15px;
+          margin-left: 12px;
           cursor: pointer;
           display: none;
         }
         .hamburger-icon {
-          width: 32px;
-          height: 26px;
+          width: 28px;
+          height: 22px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
@@ -133,12 +139,12 @@ export default function Community() {
           left: 0;
           width: 100vw;
           height: 100vh;
-          background: rgba(18, 21, 44, 0.97);
+          background: rgba(18, 21, 44, 0.98);
           display: flex;
           flex-direction: column;
           justify-content: center;
           align-items: center;
-          animation: fadeIn 0.2s;
+          animation: fadeIn 0.20s;
         }
         @keyframes fadeIn {
           from { opacity: 0; }
@@ -146,28 +152,28 @@ export default function Community() {
         }
         .mobile-menu-item {
           color: #e6eaff;
-          font-size: 2rem;
+          font-size: 2.05rem;
           font-weight: 700;
           text-decoration: none;
-          margin: 18px 0;
+          margin: 17px 0;
           text-align: center;
         }
         .mobile-menu-btn {
           display: inline-block;
           background: linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%);
           color: #fff;
-          font-size: 1.3rem;
+          font-size: 1.33rem;
           font-weight: 700;
           text-decoration: none;
           border-radius: 30px;
           margin-top: 38px;
-          padding: 16px 65px;
+          padding: 17px 66px;
           box-shadow: 0 0 16px #4aa3ff55;
         }
         .mobile-menu-close {
           position: absolute;
-          top: 30px;
-          right: 30px;
+          top: 29px;
+          right: 27px;
           font-size: 2.1rem;
           color: #e6eaff;
           background: none;
@@ -175,15 +181,28 @@ export default function Community() {
           cursor: pointer;
         }
         .community-title {
-          font-size: 2.1rem;
-          font-weight: 600;
-          margin-bottom: 18px;
+          font-size: 1.32rem;
+          font-weight: 700;
+          margin-bottom: 14px;
           background: linear-gradient(90deg, #fff 0%, #4aa3ff 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           text-fill-color: transparent;
-          transition: font-size 0.2s;
+          transition: font-size 0.20s;
+          margin-top: 6px;
+          text-align: center;
+        }
+        .community-hero {
+          margin-top: 56px;
+          margin-bottom: 55px;
+        }
+        .community-subtitle {
+          font-size: 1rem;
+          margin-bottom: 28px;
+          max-width: 650px;
+          line-height: 1.56;
+          color: #e6eaff;
           text-align: center;
         }
       `}</style>
@@ -218,7 +237,6 @@ export default function Community() {
           </button>
         </header>
       </div>
-
       {mobileMenuOpen && (
         <div className="mobile-menu-overlay" role="dialog" aria-modal="true">
           <button
@@ -248,32 +266,13 @@ export default function Community() {
           </a>
         </div>
       )}
-
       <main
         className="container"
         style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 20px 60px" }}
       >
-        <section
-          className="community-hero"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
-            marginBottom: 80,
-          }}
-        >
+        <section className="community-hero">
           <h1 className="community-title">Join the Official PropScholar Discord</h1>
-          <p
-            className="community-subtitle"
-            style={{
-              fontSize: "1.18rem",
-              marginBottom: 37,
-              maxWidth: 700,
-              lineHeight: 1.55,
-              color: "#e6eaff",
-            }}
-          >
+          <p className="community-subtitle">
             Dedicated Support. Personalized Assistance. Quick Resolutions. Real-Time Updates.
             Join our vibrant Discord community to access it all!
           </p>
@@ -339,7 +338,7 @@ export default function Community() {
                 <h3
                   className="feature-title"
                   style={{
-                    fontSize: "1.2rem",
+                    fontSize: "1.15rem",
                     fontWeight: 700,
                     marginBottom: 10,
                     color: "#fff",
@@ -350,7 +349,7 @@ export default function Community() {
                 <p
                   className="feature-desc"
                   style={{
-                    fontSize: "0.9rem",
+                    fontSize: "0.92rem",
                     color: "#c3c8e6",
                     lineHeight: 1.5,
                   }}
@@ -377,8 +376,8 @@ export default function Community() {
           <h2
             className="cta-title"
             style={{
-              fontSize: "2.2rem",
-              marginBottom: 20,
+              fontSize: "1.7rem",
+              marginBottom: 18,
               background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
@@ -396,13 +395,13 @@ export default function Community() {
               display: "inline-block",
               background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
               color: "white",
-              padding: "16px 40px",
-              fontSize: "1.2rem",
+              padding: "14px 34px",
+              fontSize: "1.07rem",
               fontWeight: 700,
               textDecoration: "none",
-              borderRadius: 30,
-              marginTop: 20,
-              boxShadow: "0 0 15px rgba(74, 163, 255, 0.5)",
+              borderRadius: 28,
+              marginTop: 18,
+              boxShadow: "0 0 14px rgba(74, 163, 255, 0.5)",
               transition: "all 0.3s ease",
               cursor: "pointer",
             }}
