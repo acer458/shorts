@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -1840,7 +1839,7 @@ export default function Feed() {
                 fontSize: 12,
                 cursor: "pointer",
                 padding: 0,
-                textDecoration: "underline",
+                textDecoration: "none",
               }}
             >
               View all {v.comments ? v.comments.length : 0} comments
