@@ -109,8 +109,8 @@ export default function Community() {
           display: none;
         }
         .hamburger-icon {
-          width: 32px;
-          height: 26px;
+          width: 24px;
+          height: 18px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
