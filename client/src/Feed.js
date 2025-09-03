@@ -1228,10 +1228,25 @@ export default function Feed() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              zIndex: 25,
-              background: "rgba(0,0,0,0.26)",
-              pointerEvents: "none",
+          
+              // Drop just beneath the pop card while it's open; otherwise keep original stack
+              zIndex: Object.values(moreOpen).some(Boolean) ? 90 : 105,
+          
+              // Let taps reach the pop card while menu is open; otherwise remain non-interactive
+              pointerEvents: Object.values(moreOpen).some(Boolean) ? "none" : "none",
+          
+              // Keep the original soft dark veil, and slightly soften it more when menu is open
+              background: Object.values(moreOpen).some(Boolean)
+                ? "rgba(0,0,0,0.22)"
+                : "rgba(0,0,0,0.26)",
+          
+              // Preserve your original entrance animation for smoothness
               animation: "pauseOverlayIn .32s cubic-bezier(.2,.9,.25,1)",
+          
+              // Avoid creating a competing stacking context when the menu is open
+              transform: Object.values(moreOpen).some(Boolean) ? "none" : undefined,
+              filter: Object.values(moreOpen).some(Boolean) ? "none" : undefined,
+              backdropFilter: Object.values(moreOpen).some(Boolean) ? "none" : undefined,
             }}
           >
             <div
