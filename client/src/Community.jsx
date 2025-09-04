@@ -530,22 +530,6 @@ const CommunityPage = () => {
             Why Join Our Community?
           </h2>
 
-          <div
-            style={{
-              ...styles.benefitsGrid,
-              gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(280px, 1fr))",
-            }}
-          >
-            {benefits.map((benefit, index) => (
-              <div key={index} style={styles.benefitCard} className="benefit-card">
-                <div style={styles.benefitIcon}>{benefit.icon}</div>
-                <h3 style={styles.benefitTitle}>{benefit.title}</h3>
-                <p style={styles.benefitDescription}>{benefit.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* Stats Section */}
         <section style={styles.statsSection}>
           <div
