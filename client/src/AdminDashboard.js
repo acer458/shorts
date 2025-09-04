@@ -6,6 +6,7 @@ import AllComments from './components/AllComments';
 const HOST = "https://shorts-t2dk.onrender.com";
 
 // ============= LOGIN FORM COMPONENT =============
+// This component does not need to be exported, as it is only used by AdminDashboard.
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
