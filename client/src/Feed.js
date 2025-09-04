@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
+
+
 // ---- CONFIG ----
 const HOST = "https://shorts-t2dk.onrender.com";
 const COMMENT_SPAM_DELAY_MS = 5000; // 5 seconds delay between each comment per video
@@ -37,185 +39,39 @@ function fakeAvatar(i) {
   return urls[i % urls.length];
 }
 
-// ---- ANIMATED HEART COMPONENT ----
-function AnimatedHeart({ visible, onAnimationEnd }) {
-  return (
-    <div
-      className="heart-animation-container"
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: "50%",
-        transform: "translate(-50%, -50%)",
-        zIndex: 106,
-        pointerEvents: "none",
-        opacity: visible ? 1 : 0,
-        transition: "opacity 0.2s ease",
-      }}
-    >
-      <div className="heart-main-animate">❤️</div>
-      <div className="gradient-ring ring-1-animate"></div>
-      <div className="gradient-ring ring-2-animate"></div>
-      <div className="gradient-ring ring-3-animate"></div>
-      <div className="particle" style={{ "--tx": "-60px", "--ty": "-50px" }}></div>
-      <div className="particle" style={{ "--tx": "-70px", "--ty": "20px" }}></div>
-      <div className="particle" style={{ "--tx": "-40px", "--ty": "60px" }}></div>
-      <div className="particle" style={{ "--tx": "50px", "--ty": "-60px" }}></div>
-      <div className="particle" style={{ "--tx": "60px", "--ty": "10px" }}></div>
-      <div className="particle" style={{ "--tx": "40px", "--ty": "60px" }}></div>
-      <div className="glow-effect"></div>
-      
-      <style>
-        {`
-          .heart-animation-container {
-            width: 120px;
-            height: 120px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
-          
-          .heart-main-animate {
-            position: absolute;
-            font-size: 70px;
-            z-index: 4;
-            background: linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px rgba(255, 80, 80, 0.5));
-            animation: heart-appear 1.4s cubic-bezier(0.21, 0.61, 0.35, 1) forwards;
-          }
-          
-          .gradient-ring {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            opacity: 0;
-            z-index: 2;
-          }
-          
-          .ring-1-animate {
-            background: radial-gradient(circle, rgba(255, 82, 82, 0.7) 0%, rgba(255, 107, 107, 0.4) 40%, transparent 70%);
-            animation: ring-pulse 1.8s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
-          }
-          
-          .ring-2-animate {
-            background: radial-gradient(circle, rgba(255, 107, 107, 0.5) 0%, rgba(255, 142, 142, 0.3) 30%, transparent 60%);
-            animation: ring-pulse 1.8s cubic-bezier(0.23, 1, 0.32, 1) 0.2s forwards;
-          }
-          
-          .ring-3-animate {
-            background: radial-gradient(circle, rgba(255, 142, 142, 0.4) 0%, rgba(255, 82, 82, 0.2) 20%, transparent 50%);
-            animation: ring-pulse 1.8s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards;
-          }
-          
-          .particle {
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            opacity: 0;
-            z-index: 1;
-            background: #ff5252;
-            animation: particle-float 1.5s ease-out forwards;
-          }
-          
-          .particle:nth-child(4) { animation-delay: 0.1s; }
-          .particle:nth-child(5) { animation-delay: 0.2s; }
-          .particle:nth-child(6) { animation-delay: 0.3s; }
-          .particle:nth-child(7) { animation-delay: 0.4s; }
-          .particle:nth-child(8) { animation-delay: 0.5s; }
-          .particle:nth-child(9) { animation-delay: 0.6s; }
-          
-          .glow-effect {
-            position: absolute;
-            width: 140%;
-            height: 140%;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 82, 82, 0.3) 0%, rgba(255, 107, 107, 0.2) 30%, rgba(255, 142, 142, 0.1) 60%, transparent 80%);
-            opacity: 0;
-            z-index: 0;
-            filter: blur(20px);
-            animation: glow-pulse 2.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-          }
-          
-          @keyframes heart-appear {
-            0% {
-              opacity: 0;
-              transform: scale(0) rotate(-10deg);
-            }
-            15% {
-              opacity: 1;
-              transform: scale(1.25) rotate(3deg);
-            }
-            25% {
-              transform: scale(0.92) rotate(-1deg);
-            }
-            35% {
-              transform: scale(1.08) rotate(1deg);
-            }
-            45%, 65% {
-              opacity: 1;
-              transform: scale(1) rotate(0deg);
-            }
-            80% {
-              opacity: 0.8;
-              transform: scale(1);
-            }
-            100% {
-              opacity: 0;
-              transform: scale(1.4) rotate(3deg);
-            }
-          }
-          
-          @keyframes ring-pulse {
-            0% {
-              opacity: 0.7;
-              transform: scale(0);
-            }
-            50% {
-              opacity: 0.4;
-            }
-            100% {
-              opacity: 0;
-              transform: scale(2.4);
-            }
-          }
-          
-          @keyframes particle-float {
-            0% {
-              opacity: 0;
-              transform: translate(0, 0) scale(0);
-            }
-            20% {
-              opacity: 0.9;
-            }
-            100% {
-              opacity: 0;
-              transform: translate(var(--tx), var(--ty)) scale(1.6);
-            }
-          }
-          
-          @keyframes glow-pulse {
-            0% {
-              opacity: 0;
-              transform: scale(0.8);
-            }
-            30% {
-              opacity: 0.6;
-            }
-            100% {
-              opacity: 0;
-              transform: scale(2.2);
-            }
-          }
-        `}
-      </style>
-    </div>
-  );
+function playHeartAnimation() {
+  const root = heartOverlayRef.current;
+  if (!root) return;
+  const stage = root.querySelector(".feed-heart-stage");
+  if (!stage) return;
+  const main = stage.querySelector(".feed-heart-main");
+  const children = stage.querySelectorAll(".feed-heart-child");
+  const ring1 = stage.querySelector(".feed-ring-1");
+  const ring2 = stage.querySelector(".feed-ring-2");
+  const ring3 = stage.querySelector(".feed-ring-3");
+  const particles = stage.querySelectorAll(".feed-heart-particle");
+  const glow = stage.querySelector(".feed-heart-glow");
+  const all = [main, ...children, ring1, ring2, ring3, ...particles, glow].filter(Boolean);
+  all.forEach((el) => {
+    el.classList.remove("animate-heart","animate-child","animate-ring-1","animate-ring-2","animate-ring-3","animate-particle","animate-glow");
+  });
+  // restart
+  void stage.offsetWidth;
+  if (main) main.classList.add("animate-heart");
+  children.forEach((el, i) => {
+    el.style.animationDelay = `${i * 0.2}s`;
+    el.classList.add("animate-child");
+  });
+  if (ring1) ring1.classList.add("animate-ring-1");
+  if (ring2) ring2.classList.add("animate-ring-2");
+  if (ring3) ring3.classList.add("animate-ring-3");
+  particles.forEach((el, i) => {
+    el.style.animationDelay = `${i * 0.15}s`;
+    el.classList.add("animate-particle");
+  });
+  if (glow) glow.classList.add("animate-glow");
 }
+
 
 // ---- SVG ICONS ----
 function HeartSVG({ filled }) {
@@ -230,6 +86,7 @@ function HeartSVG({ filled }) {
         display: "block",
         transition: "transform .15s ease, filter .2s ease",
         transform: filled ? "scale(1.02)" : "scale(1.0)",
+        // Optional extra CSS glow
         filter: filled
           ? "drop-shadow(0 0 10px rgba(237,73,86,0.35)) drop-shadow(0 0 18px rgba(255,72,112,0.18))"
           : "none",
@@ -287,7 +144,6 @@ function HeartSVG({ filled }) {
     </svg>
   );
 }
-
 function PauseIcon() {
   return (
     <svg width={82} height={82} viewBox="0 0 82 82">
@@ -297,6 +153,85 @@ function PauseIcon() {
     </svg>
   );
 }
+function PulseHeart({ visible }) {
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        zIndex: 106,
+        transform: "translate(-50%,-50%)",
+        pointerEvents: "none",
+        opacity: visible ? 1 : 0,
+        animation: visible ? "heartPulse3 .92s cubic-bezier(.16,.9,.24,1)" : "none",
+      }}
+    >
+      <svg viewBox="0 0 96 96" width={94} height={94} style={{ display: "block" }}>
+        <defs>
+          {/* Gradient for the heart */}
+          <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ff7a7a" />
+            <stop offset="50%" stopColor="#ed4956" />
+            <stop offset="100%" stopColor="#ff3d6e" />
+          </linearGradient>
+
+          {/* Layered glow: inner + outer for depth */}
+          <filter id="heartOuterGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="g1" />
+            <feColorMatrix
+              in="g1"
+              type="matrix"
+              values="
+                1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 0.35 0
+              "
+              result="glow1"
+            />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="g2" />
+            <feColorMatrix
+              in="g2"
+              type="matrix"
+              values="
+                1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 0.18 0
+              "
+              result="glow2"
+            />
+            <feMerge>
+              <feMergeNode in="glow2" />
+              <feMergeNode in="glow1" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        <path
+          d="M48 86C48 86 12 60 12 32.5 12 18.8 24.5 10 36 10c6.2 0 11.9 3.3 12 3.3S53.8 10 60 10c11.5 0 24 8.8 24 22.5C84 60 48 86 48 86Z"
+          fill="url(#heartGrad)"
+          stroke="#ed4956"
+          strokeWidth="7"
+          filter="url(#heartOuterGlow)"
+        />
+      </svg>
+
+      <style>{`
+        @keyframes heartPulse3 {
+          0%   { opacity: 0; transform: translate(-50%,-50%) scale(.85); }
+          35%  { opacity: 1; transform: translate(-50%,-50%) scale(1.18); }
+          60%  { opacity: 1; transform: translate(-50%,-50%) scale(.96); }
+          100% { opacity: 0; transform: translate(-50%,-50%) scale(1.0); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 
 function MuteMicIcon({ muted }) {
   return muted ? (
@@ -439,7 +374,6 @@ function SkeletonShort() {
     </div>
   );
 }
-
 // COMMENT_ROW_COMPONENTS
 function CommentSkeletonRow() {
   return (
@@ -520,7 +454,6 @@ function CommentSkeletonRow() {
     </div>
   );
 }
-
 // ---- ANTI-INSPECT ----
 function useAntiInspect() {
   useEffect(() => {
@@ -596,8 +529,13 @@ export default function Feed() {
   const [expandedCaptions, setExpandedCaptions] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
   const [commentLikes, setCommentLikes] = useState({});
+
   const [moreOpen, setMoreOpen] = useState({});
-  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
+
+  const heartOverlayRef = useRef(null);
+  const [animLock, setAnimLock] = useState(false);
+
+
 
   // Bottom sheet drag
   const [modalDragY, setModalDragY] = useState(0);
@@ -657,7 +595,8 @@ export default function Feed() {
     setTimeout(() => (pageLock.current = false), 500);
   }
 
-  // Close the More menu when clicking anywhere outside the actions column
+
+    // Close the More menu when clicking anywhere outside the actions column
   useEffect(() => {
     const hasOpen = Object.values(moreOpen).some(Boolean);
     if (!hasOpen) return;
@@ -687,6 +626,8 @@ export default function Feed() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [moreOpen]);
+  
+
 
   // ---- Wheel and swipe listeners for feed ----
   // FEED_GESTURES_GUARD
@@ -1026,13 +967,15 @@ export default function Feed() {
       if (!isLiked(filename)) {
         handleLike(idx, filename);
       }
-      setShowHeartAnimation(true);
-      setTimeout(() => setShowHeartAnimation(false), 1400);
+      setShowPulseHeart(true);
+      requestAnimationFrame(() => {
+        setTimeout(() => setShowPulseHeart(false), 700);
+      });
     };
 
     return {
       onClick: (e) => {
-        // Always block bubbling so nested buttons don't cause parent toggles
+        // Always block bubbling so nested buttons don’t cause parent toggles
         e.preventDefault();
         e.stopPropagation();
     
@@ -1100,7 +1043,6 @@ export default function Feed() {
       },
     };
   }
-  
   // ---- Seek ----
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
@@ -1144,11 +1086,12 @@ export default function Feed() {
     displayedCaption,
   }) {
     const isOverlayShown = overlayShown[filename];
+  
     const mappedComments = (allComments || []).map((c, i) => ({
       ...c,
       index: i,
     }));
-
+  
     return (
       <div
         key={filename}
@@ -1162,11 +1105,12 @@ export default function Feed() {
           willChange: "transform",
           background: "black",
           overflow: "hidden",
+          // helps avoid mobile double-tap zoom when combined with onTouch handlers
+          touchAction: "manipulation",
         }}
+        // optional: attach double-tap detection if implemented
+        onTouchStart={onFeedTouchStart}
       >
-        {/* Heart Animation */}
-        {isCurrent && <AnimatedHeart visible={showHeartAnimation} />}
-
         {/* Spam Alert */}
         {isCurrent && spamAlert.show && (
           <div
@@ -1190,11 +1134,11 @@ export default function Feed() {
               textAlign: "center",
               backdropFilter: "blur(6px)",
             }}
-            >
+          >
             {spamAlert.message || "Please wait before commenting again."}
           </div>
         )}
-
+  
         <video
           ref={(el) => {
             if (el) {
@@ -1221,7 +1165,7 @@ export default function Feed() {
           onEnded={() => handleVideoEnded(idx, filename)}
           {...handleVideoEvents(idx, filename)}
         />
-
+  
         {isOverlayShown && (
           <div
             style={{
@@ -1282,7 +1226,7 @@ export default function Feed() {
             `}</style>
           </div>
         )}
-
+  
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -1326,7 +1270,7 @@ export default function Feed() {
             }
           `}</style>
         </button>
-
+  
         {isCurrent && showPause && (
           <div
             style={{
@@ -1335,12 +1279,15 @@ export default function Feed() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              // lower while More menu open
               zIndex: Object.values(moreOpen).some(Boolean) ? 90 : 105,
-              pointerEvents: Object.values(moreOpen).some(Boolean) ? "none" : "none",
+              // overlay is non-interactive
+              pointerEvents: "none",
               background: Object.values(moreOpen).some(Boolean)
                 ? "rgba(0,0,0,0.22)"
                 : "rgba(0,0,0,0.26)",
               animation: "pauseOverlayIn .32s cubic-bezier(.2,.9,.25,1)",
+              // avoid extra stacking contexts during menu open
               transform: Object.values(moreOpen).some(Boolean) ? "none" : undefined,
               filter: Object.values(moreOpen).some(Boolean) ? "none" : undefined,
               backdropFilter: Object.values(moreOpen).some(Boolean) ? "none" : undefined,
@@ -1361,19 +1308,8 @@ export default function Feed() {
                 100% { opacity: 1; transform: scale(1); }
               }
             `}</style>
-            <style>{`
-              .comment-icon-wrap:hover,
-              .comment-icon-wrap:focus-within {
-                animation: commentPulse 1.15s ease-in-out infinite;
-              }
-              @keyframes commentPulse {
-                0%   { transform: scale(1.00); }
-                50%  { transform: scale(1.04); }
-                100% { transform: scale(1.00); }
-              }
-            `}</style>
-            
-            {/* HEART_BURST_STYLE */}
+  
+            {/* HEART_BURST_STYLE (inline micro-burst used elsewhere if needed) */}
             <style>{`
               .heart-burst {
                 animation: heartBurst .36s cubic-bezier(.2,.9,.25,1);
@@ -1386,200 +1322,282 @@ export default function Feed() {
             `}</style>
           </div>
         )}
-
-        {/* Progress bar */}
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 4,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 32,
-            borderRadius: 2,
-            overflow: "hidden",
-            cursor: "pointer",
-          }}
-          onClick={(e) => handleSeek(idx, e, false)}
-          onTouchMove={(e) => handleSeek(idx, e, true)}
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(prog * 100)}
-        >
+  
+        {isCurrent && <PulseHeart visible={showPulseHeart} />}
+  
+        {/* Group: Progress bar + Heart overlay + Actions */}
+        <>
+          {/* Progress bar */}
           <div
             style={{
-              width: `${Math.min(Math.max(prog * 100, 0), 100)}%`,
-              height: "100%",
-              background:
-                "linear-gradient(90deg, #6f00ff 0%, #1e00ff 35%, #006aff 65%, #00d5ff 100%)",
-              boxShadow:
-                "0 0 6px rgba(58,160,255,0.55), 0 0 14px rgba(107,198,255,0.35)",
-              transition: "width 0.22s cubic-bezier(.4,1,.5,1)",
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 4,
+              background: "rgba(255,255,255,0.18)",
+              zIndex: 32,
               borderRadius: 2,
-              pointerEvents: "none",
+              overflow: "hidden",
+              cursor: "pointer",
             }}
-          />
-          {prog > 0 && (
+            onClick={(e) => handleSeek(idx, e, false)}
+            onTouchMove={(e) => handleSeek(idx, e, true)}
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(prog * 100)}
+          >
             <div
-              aria-hidden
               style={{
-                position: "absolute",
-                right: 0,
-                bottom: 0,
-                top: 0,
-                width: 0,
+                width: `${Math.min(Math.max(prog * 100, 0), 100)}%`,
+                height: "100%",
+                background:
+                  "linear-gradient(90deg, #6f00ff 0%, #1e00ff 35%, #006aff 65%, #00d5ff 100%)",
                 boxShadow:
-                  "0 0 10px 4px rgba(107,198,255,0.45), 0 0 18px 8px rgba(58,160,255,0.25)",
+                  "0 0 6px rgba(58,160,255,0.55), 0 0 14px rgba(107,198,255,0.35)",
+                transition: "width 0.22s cubic-bezier(.4,1,.5,1)",
                 borderRadius: 2,
                 pointerEvents: "none",
               }}
             />
-          )}
-        </div>
-
-        {/* Right side actions */}
-        <div
-          data-actions="right"
-          style={{
-            position: "absolute",
-            right: "12px",
-            bottom: "100px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "24px",
-            zIndex: 10,
-          }}
-        >
-          <div style={{ marginBottom: 6, width: 48, height: 48, borderRadius: "50%", overflow: "hidden" }}>
-            <img
-              src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg"
-              alt=""
-              style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
-            />
-          </div>
-        
-          {/* Like */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <button
-              aria-label={liked ? "Unlike" : "Like"}
-              disabled={likePending[filename]}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleLike(idx, filename);
-                setShowHeartAnimation(true);
-                setTimeout(() => setShowHeartAnimation(false), 1400);
-              }}
-              style={{
-                background: "none",
-                border: "none",
-                padding: 6,
-                cursor: "pointer",
-                outline: 0,
-                lineHeight: 0,
-                borderRadius: 12,
-                transition: "transform .14s ease",
-              }}
-              onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
-              onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
-              onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
-              onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
-            >
-              <span className={!liked ? "liked-pulse" : ""} style={{ display: "inline-block" }}>
-                <HeartSVG filled={liked} />
-              </span>
-            </button>
-            <span style={{ color: liked ? "#ed4956" : "#fff", fontSize: "13px", marginTop: "4px" }}>
-              {v.likes || 0}
-            </span>
-          </div>
-        
-          {/* Comment */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <button
-              aria-label="Comment"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowComments(filename);
-                setIsCommentsLoading(true);
-                setTimeout(() => setIsCommentsLoading(false), 300);
-              }}
-              style={{
-                background: "none",
-                border: "none",
-                padding: 6,
-                cursor: "pointer",
-                lineHeight: 0,
-                borderRadius: 12,
-                transition: "transform .14s ease",
-              }}
-              onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
-              onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
-              onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
-              onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
-            >
-              <svg
-                aria-label="Comment"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                role="img"
+            {prog > 0 && (
+              <div
+                aria-hidden
                 style={{
-                  display: "block",
-                  filter: "drop-shadow(0 0 8px rgba(255,255,255,0.32)) drop-shadow(0 0 16px rgba(255,255,255,0.20))",
-                  transition: "filter .18s ease, transform .14s ease",
+                  position: "absolute",
+                  right: 0,
+                  bottom: 0,
+                  top: 0,
+                  width: 0,
+                  boxShadow:
+                    "0 0 10px 4px rgba(107,198,255,0.45), 0 0 18px 8px rgba(58,160,255,0.25)",
+                  borderRadius: 2,
+                  pointerEvents: "none",
+                }}
+              />
+            )}
+          </div>
+  
+          {/* Heart overlay root (hidden until animated) */}
+          <div
+            className="feed-heart-overlay"
+            ref={heartOverlayRef}
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "grid",
+              placeItems: "center",
+              pointerEvents: "none",
+              zIndex: 9999,
+            }}
+          >
+            <div className="feed-heart-stage" style={{ position: "relative", width: 240, height: 240 }}>
+              <div
+                className="feed-heart-main"
+                style={{
+                  position: "absolute",
+                  fontSize: "100px",
+                  zIndex: 4,
+                  opacity: 0,
+                  transform: "scale(0)",
+                  background: "linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%)",
+                  WebkitBackgroundClip: "text",
+                  backgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  filter: "drop-shadow(0 0 15px rgba(255, 80, 80, 0.5))",
+                  animation: "oscillate 4s ease-in-out infinite",
+                  willChange: "transform, opacity",
                 }}
               >
-                <defs>
-                  <filter id="feedCommentGlow" x="-60%" y="-60%" width="220%" height="220%">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="g1" />
-                    <feColorMatrix
-                      in="g1"
-                      type="matrix"
-                      values="
-                        1 0 0 0 0
-                        0 1 0 0 0
-                        0 0 1 0 0
-                        0 0 0 0.32 0
-                      "
-                      result="glow1"
-                    />
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="4.2" result="g2" />
-                    <feColorMatrix
-                      in="g2"
-                      type="matrix"
-                      values="
-                        1 0 0 0 0
-                        0 1 0 0 0
-                        0 0 1 0 0
-                        0 0 0 0.18 0
-                      "
-                      result="glow2"
-                    />
-                    <feMerge>
-                      <feMergeNode in="glow2" />
-                      <feMergeNode in="glow1" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-                <path
-                  d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z"
-                  fill="none"
-                  stroke="#fff"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  filter="url(#feedCommentGlow)"
-                />
-              </svg>
-            </button>
-            <span style={{ color: "#fff", fontSize: "13px", marginTop: "4px" }}>{v.comments?.length || 0}</span>
+                ❤️
+              </div>
+  
+              <div className="feed-heart-child" style={{ position: "absolute", fontSize: 36, zIndex: 3, opacity: 0, transform: "scale(0)", background: "linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", filter: "drop-shadow(0 0 8px rgba(255,80,80,0.4))", willChange: "transform, opacity", "--ty": "-70px", "--tx": "-30px" }}>❤️</div>
+              <div className="feed-heart-child" style={{ position: "absolute", fontSize: 36, zIndex: 3, opacity: 0, transform: "scale(0)", background: "linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", filter: "drop-shadow(0 0 8px rgba(255,80,80,0.4))", willChange: "transform, opacity", "--ty": "-80px", "--tx": "40px" }}>❤️</div>
+              <div className="feed-heart-child" style={{ position: "absolute", fontSize: 36, zIndex: 3, opacity: 0, transform: "scale(0)", background: "linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", filter: "drop-shadow(0 0 8px rgba(255,80,80,0.4))", willChange: "transform, opacity", "--ty": "70px", "--tx": "-40px" }}>❤️</div>
+  
+              <div className="feed-heart-ring feed-ring-1" style={{ position: "absolute", width: 140, height: 140, borderRadius: "50%", opacity: 0, zIndex: 2, willChange: "transform, opacity", background: "radial-gradient(circle, rgba(255,82,82,0.7) 0%, rgba(255,107,107,0.4) 40%, transparent 70%)" }}></div>
+              <div className="feed-heart-ring feed-ring-2" style={{ position: "absolute", width: 140, height: 140, borderRadius: "50%", opacity: 0, zIndex: 2, willChange: "transform, opacity", background: "radial-gradient(circle, rgba(255,107,107,0.5) 0%, rgba(255,142,142,0.3) 30%, transparent 60%)" }}></div>
+              <div className="feed-heart-ring feed-ring-3" style={{ position: "absolute", width: 140, height: 140, borderRadius: "50%", opacity: 0, zIndex: 2, willChange: "transform, opacity", background: "radial-gradient(circle, rgba(255,142,142,0.4) 0%, rgba(255,82,82,0.2) 20%, transparent 50%)" }}></div>
+  
+              <div className="feed-heart-particle" style={{ position: "absolute", width: 16, height: 16, borderRadius: "50%", opacity: 0, zIndex: 1, willChange: "transform, opacity", "--tx": "-60px", "--ty": "-50px", background: "#ff5252" }}></div>
+              <div className="feed-heart-particle" style={{ position: "absolute", width: 16, height: 16, borderRadius: "50%", opacity: 0, zIndex: 1, willChange: "transform, opacity", "--tx": "-70px", "--ty": "20px", background: "#ff6b6b" }}></div>
+              <div className="feed-heart-particle" style={{ position: "absolute", width: 16, height: 16, borderRadius: "50%", opacity: 0, zIndex: 1, willChange: "transform, opacity", "--tx": "50px", "--ty": "-60px", background: "#ff5252" }}></div>
+              <div className="feed-heart-particle" style={{ position: "absolute", width: 16, height: 16, borderRadius: "50%", opacity: 0, zIndex: 1, willChange: "transform, opacity", "--tx": "40px", "--ty": "60px", background: "#ff8e8e" }}></div>
+  
+              <div
+                className="feed-heart-glow"
+                style={{
+                  position: "absolute",
+                  width: 200,
+                  height: 200,
+                  borderRadius: "50%",
+                  background:
+                    "radial-gradient(circle, rgba(255,82,82,0.3) 0%, rgba(255,107,107,0.2) 30%, rgba(255,142,142,0.1) 60%, transparent 80%)",
+                  opacity: 0,
+                  zIndex: 0,
+                  filter: "blur(20px)",
+                  willChange: "transform, opacity",
+                }}
+              ></div>
+            </div>
           </div>
-        
+  
+          {/* Right side actions */}
+          <div
+            data-actions="right"
+            style={{
+              position: "absolute",
+              right: "12px",
+              bottom: "100px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "24px",
+              zIndex: 10,
+            }}
+          >
+            <div style={{ marginBottom: 6, width: 48, height: 48, borderRadius: "50%", overflow: "hidden" }}>
+              <img
+                src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1754518014/d0d1d9_vp6st3.jpg"
+                alt=""
+                style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+              />
+            </div>
+  
+            {/* Like */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <button
+                aria-label={liked ? "Unlike" : "Like"}
+                disabled={likePending[filename]}
+                onClickCapture={(e) => { e.stopPropagation(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!animLock) {
+                    setAnimLock(true);
+                    // big overlay animation
+                    playHeartAnimation();
+                    // mini pulse on this button's icon only
+                    const scope = e.currentTarget;
+                    const icon = scope.querySelector("svg, span, path") || scope;
+                    icon.classList.remove("heart-mini-pulse");
+                    void icon.offsetWidth;
+                    icon.classList.add("heart-mini-pulse");
+                    setTimeout(() => icon.classList.remove("heart-mini-pulse"), 1000);
+                    setTimeout(() => setAnimLock(false), 1200);
+                  }
+                  handleLike(idx, filename);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 6,
+                  cursor: "pointer",
+                  outline: 0,
+                  lineHeight: 0,
+                  borderRadius: 12,
+                  transition: "transform .14s ease",
+                }}
+                onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
+                onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+                onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
+                onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              >
+                <span style={{ display: "inline-block" }}>
+                  <HeartSVG filled={liked} />
+                </span>
+              </button>
+              <span style={{ color: liked ? "#ed4956" : "#fff", fontSize: "13px", marginTop: "4px" }}>
+                {v.likes || 0}
+              </span>
+            </div>
+  
+            {/* Comment */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <button
+                aria-label="Comment"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowComments(filename);
+                  setIsCommentsLoading(true);
+                  setTimeout(() => setIsCommentsLoading(false), 300);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 6,
+                  cursor: "pointer",
+                  lineHeight: 0,
+                  borderRadius: 12,
+                  transition: "transform .14s ease",
+                }}
+                onMouseDown={(e) => { e.currentTarget.style.transform = "scale(0.96)"; }}
+                onMouseUp={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+                onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
+                onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
+              >
+                <svg
+                  aria-label="Comment"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  role="img"
+                  style={{
+                    display: "block",
+                    filter:
+                      "drop-shadow(0 0 8px rgba(255,255,255,0.32)) drop-shadow(0 0 16px rgba(255,255,255,0.20))",
+                    transition: "filter .18s ease, transform .14s ease",
+                  }}
+                >
+                  <defs>
+                    <filter id="feedCommentGlow" x="-60%" y="-60%" width="220%" height="220%">
+                      <feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="g1" />
+                      <feColorMatrix
+                        in="g1"
+                        type="matrix"
+                        values="
+                          1 0 0 0 0
+                          0 1 0 0 0
+                          0 0 1 0 0
+                          0 0 0 0.32 0
+                        "
+                        result="glow1"
+                      />
+                      <feGaussianBlur in="SourceGraphic" stdDeviation="4.2" result="g2" />
+                      <feColorMatrix
+                        in="g2"
+                        type="matrix"
+                        values="
+                          1 0 0 0 0
+                          0 1 0 0 0
+                          0 0 1 0 0
+                          0 0 0 0.18 0
+                        "
+                        result="glow2"
+                      />
+                      <feMerge>
+                        <feMergeNode in="glow2" />
+                        <feMergeNode in="glow1" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  <path
+                    d="M20.656 17.008a9.993 9.993 0 10-3.59 3.615L22 22Z"
+                    fill="none"
+                    stroke="#fff"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    filter="url(#feedCommentGlow)"
+                  />
+                </svg>
+              </button>
+              <span style={{ color: "#fff", fontSize: "13px", marginTop: "4px" }}>{v.comments?.length || 0}</span>
+            </div>
+          </div>
           {/* Share */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <button
@@ -1626,9 +1644,10 @@ export default function Feed() {
                 />
               </svg>
             </button>
+            {/* label removed */}
           </div>
         
-          {/* Three-dots "More" button */}
+          {/* Three-dots “More” button */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <button
               aria-label="More"
@@ -1670,17 +1689,17 @@ export default function Feed() {
             </button>
           </div>
         
-          {/* Floating "More" menu card */}
+          {/* Floating “More” menu card */}
           {moreOpen[filename] && (
             <div
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation?.(); }}
               style={{
-                position: "fixed",
+                position: "fixed",             // take out of parent stacking quirks
                 right: 16,
-                bottom: 140,
-                zIndex: 9999,
-                isolation: "isolate",
+                bottom: 140,                   // align near actions; adjust if needed
+                zIndex: 9999,                  // above pause overlay
+                isolation: "isolate",          // new stacking context for children
                 pointerEvents: "auto",
               }}
             >
@@ -1755,7 +1774,7 @@ export default function Feed() {
                     e.stopPropagation();
                     e.nativeEvent.stopImmediatePropagation?.();
                     window.open("https://propscholar.com", "_blank", "noopener,noreferrer");
-                    setMoreOpen({});
+                    setMoreOpen({}); // optional: close after nav
                   }}
                 >
                   <span></span> <span>Home</span>
