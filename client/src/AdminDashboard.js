@@ -1,4 +1,5 @@
 // AdminDashboard.js
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import AllComments from './components/AllComments';
@@ -6,9 +7,9 @@ import AllComments from './components/AllComments';
 const HOST = "https://shorts-t2dk.onrender.com";
 
 // ============= LOGIN FORM COMPONENT =============
-// This component is only used within AdminDashboard, so it does not need to be exported.
-// REMOVING 'export default' from this component.
-function AdminLogin({ onLogin }) {
+// Export this component as a named export.
+// This is the most robust way to prevent a duplicate default export.
+export function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('');
@@ -91,7 +92,7 @@ function AdminLogin({ onLogin }) {
         <div className="orb orb-3"></div>
       </div>
     </div>
-  )
+  );
 }
 
 // ============= BYTES UTILITY =============
@@ -103,7 +104,7 @@ function bytesToSize(bytes) {
 }
 
 // ============= MAIN DASHBOARD =============
-// This is the one and only default export for this file.
+// This is the one and only default export.
 export default function AdminDashboard() {
   const [shorts, setShorts] = useState([]);
   const [video, setVideo] = useState(null);
@@ -250,7 +251,10 @@ export default function AdminDashboard() {
   );
 
   // Require login
-  if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />;
+  if (!loggedIn) {
+    // Note: We now import and use AdminLogin here as a named import.
+    return <AdminLogin onLogin={() => setLoggedIn(true)} />;
+  }
 
   // Prepare main content depending on activeTab
   let mainContent;
