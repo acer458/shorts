@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 const CommunityPage = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -40,41 +40,33 @@ const CommunityPage = () => {
     }
   ];
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
+  const toggleMenu = () => setMenuOpen(!menuOpen);
 
   return (
     <div style={styles.page}>
       <style>
         {`
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-          
           @keyframes float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
           }
-          
           @keyframes pulse {
             0%, 100% { box-shadow: 0 0 20px rgba(74, 163, 255, 0.4); }
             50% { box-shadow: 0 0 30px rgba(74, 163, 255, 0.8); }
           }
-          
           .stat-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3) !important;
           }
-          
           .join-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(74, 163, 255, 0.5) !important;
           }
-          
           .benefit-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2) !important;
           }
-
           @media (max-width: 768px) {
             .mobile-menu {
               display: ${menuOpen ? 'flex' : 'none'} !important;
@@ -91,13 +83,11 @@ const CommunityPage = () => {
               z-index: 999;
               border-top: 1px solid rgba(74, 163, 255, 0.2);
             }
-            
             .mobile-menu a {
               padding: 15px 0;
               text-align: center;
               border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             }
-            
             .mobile-menu button {
               margin-top: 15px;
               width: 100%;
@@ -105,19 +95,13 @@ const CommunityPage = () => {
           }
         `}
       </style>
-      
       {/* Floating Header */}
       <header style={styles.floatingHeader}>
         <div style={styles.headerContent}>
           <div style={styles.logoContainer}>
-            <img 
-              src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png" 
-              alt="PropScholar" 
-              style={styles.logo}
-            />
+            <img src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png" alt="PropScholar" style={styles.logo} />
             <span style={styles.logoText}>PropScholar</span>
           </div>
-          
           {!isMobile ? (
             <nav style={styles.nav}>
               <a href="#" style={styles.navLink}>Home</a>
@@ -129,29 +113,24 @@ const CommunityPage = () => {
             </nav>
           ) : (
             <>
-              <button 
-                style={styles.menuButton} 
-                onClick={toggleMenu}
-                aria-label="Toggle menu"
-              >
+              <button style={styles.menuButton} onClick={toggleMenu} aria-label="Toggle menu">
                 <span style={{
-                  ...styles.menuIcon, 
+                  ...styles.menuIcon,
                   transform: menuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none',
                   transition: 'transform 0.3s ease'
                 }}></span>
                 <span style={{
-                  ...styles.menuIcon, 
+                  ...styles.menuIcon,
                   opacity: menuOpen ? 0 : 1,
                   transition: 'opacity 0.3s ease'
                 }}></span>
                 <span style={{
-                  ...styles.menuIcon, 
+                  ...styles.menuIcon,
                   transform: menuOpen ? 'rotate(-45deg) translate(7px, -6px)' : 'none',
                   transition: 'transform 0.3s ease'
                 }}></span>
               </button>
-              
-              <nav className="mobile-menu" style={{display: 'none'}}>
+              <nav className="mobile-menu" style={{ display: 'none' }}>
                 <a href="#" style={styles.navLink}>Home</a>
                 <a href="#" style={styles.navLink}>Community</a>
                 <a href="#" style={styles.navLink}>Shop</a>
@@ -163,7 +142,6 @@ const CommunityPage = () => {
           )}
         </div>
       </header>
-
       <div style={styles.container}>
         {/* Hero Section */}
         <section style={styles.hero}>
@@ -174,16 +152,13 @@ const CommunityPage = () => {
                 <path fill="#4aa3ff" d="M189.5 20h-134C44.2 20 35 29.2 35 40.6v135.2c0 11.4 9.2 20.6 20.5 20.6h113.4l-5.3-18.5 12.8 11.9 12.1 11.2 21.5 19V40.6c0-11.4-9.2-20.6-20.5-20.6zm-38.6 130.6s-3.6-4.3-6.6-8.1c13.1-3.7 18.1-11.9 18.1-11.9-4.1 2.7-8 4.6-11.5 5.9-5 2.1-9.8 3.5-14.5 4.3-9.6 1.8-18.4 1.3-25.9-.1-5.7-1.1-10.6-2.7-14.7-4.3-2.3-.9-4.8-2-7.3-3.4-.3-.2-.6-.3-.9-.5-.2-.1-.3-.2-.4-.3-1.8-1-2.8-1.7-2.8-1.7s4.8 8 17.5 11.8c-3 3.8-6.7 8.3-6.7 8.3-22.1-.7-30.5-15.2-30.5-15.2 0-32.2 14.4-58.3 14.4-58.3 14.4-10.8 28.1-10.5 28.1-10.5l1 1.2c-18 5.2-26.3 13.1-26.3 13.1s2.2-1.2 5.9-2.9c10.7-4.7 19.2-6 22.7-6.3.6-.1 1.1-.2 1.7-.2 6.1-.8 13-1 20.2-.2 9.5 1.1 19.7 3.9 30.1 9.6 0 0-7.9-7.5-24.9-12.7l1.4-1.6s13.7-.3 28.1 10.5c0 0 14.4 26.1 14.4 58.3 0 0-8.5 14.5-30.6 15.2z"/>
               </svg>
             </div>
-            
             <h1 style={{...styles.heroTitle, fontSize: isMobile ? '2.2rem' : '3.5rem'}}>
               Join the Official <span style={styles.highlight}>PropScholar</span> Discord
             </h1>
-            
             <p style={{...styles.heroSubtitle, fontSize: isMobile ? '1rem' : '1.2rem'}}>
-              Dedicated Support. Personalized Assistance. Quick Resolutions. Real-Time Updates.
+              Dedicated Support. Personalized Assistance. Quick Resolutions. Real-Time Updates.<br/>
               Join our vibrant Discord community to access it all!
             </p>
-            
             <div style={styles.buttonGroup}>
               <button style={styles.joinButton} className="join-btn">
                 Join Our Community
@@ -194,7 +169,6 @@ const CommunityPage = () => {
             </div>
           </div>
         </section>
-
         {/* Benefits Section */}
         <section style={styles.benefitsSection}>
           <h2 style={{...styles.sectionTitle, fontSize: isMobile ? '2rem' : '2.5rem'}}>Why Join Our Community?</h2>
@@ -208,7 +182,6 @@ const CommunityPage = () => {
             ))}
           </div>
         </section>
-
         {/* Stats Section */}
         <section style={styles.statsSection}>
           <div style={{...styles.statsGrid, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '20px' : '50px'}}>
@@ -221,7 +194,6 @@ const CommunityPage = () => {
             ))}
           </div>
         </section>
-
         {/* Giveaway Section */}
         <section style={styles.giveawaySection}>
           <div style={{...styles.giveawayCard, padding: isMobile ? '30px' : '60px'}}>
@@ -229,7 +201,7 @@ const CommunityPage = () => {
               <div style={styles.giveawayIcon}>🎁</div>
               <h2 style={{...styles.giveawayTitle, fontSize: isMobile ? '1.8rem' : '2.2rem'}}>Weekly Giveaways!</h2>
               <p style={{...styles.giveawayText, fontSize: isMobile ? '1rem' : '1.1rem'}}>
-                Join our community for a chance to win exclusive trading resources, 
+                Join our community for a chance to win exclusive trading resources, <br />
                 funded accounts, and premium tools every week!
               </p>
               <button style={{...styles.joinButton, ...styles.giveawayButton}} className="join-btn">
@@ -238,7 +210,6 @@ const CommunityPage = () => {
             </div>
           </div>
         </section>
-
         {/* CTA Section */}
         <section style={{...styles.ctaSection, padding: isMobile ? '30px' : '60px'}}>
           <div style={styles.ctaContent}>
@@ -264,7 +235,7 @@ const styles = {
     fontFamily: '"Inter", sans-serif',
     padding: '0',
     margin: '0',
-    paddingTop: '90px', // Space for floating header
+    paddingTop: '90px',
   },
   floatingHeader: {
     position: 'fixed',
