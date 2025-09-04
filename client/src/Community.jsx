@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 
 const CommunityPage = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -39,6 +40,10 @@ const CommunityPage = () => {
     }
   ];
 
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
   return (
     <div style={styles.page}>
       <style>
@@ -69,6 +74,35 @@ const CommunityPage = () => {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2) !important;
           }
+
+          @media (max-width: 768px) {
+            .mobile-menu {
+              display: ${menuOpen ? 'flex' : 'none'} !important;
+              position: fixed;
+              top: 90px;
+              left: 0;
+              right: 0;
+              background: rgba(16, 19, 43, 0.98);
+              backdrop-filter: blur(10px);
+              flex-direction: column;
+              padding: 20px;
+              border-radius: 0 0 18px 18px;
+              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+              z-index: 999;
+              border-top: 1px solid rgba(74, 163, 255, 0.2);
+            }
+            
+            .mobile-menu a {
+              padding: 15px 0;
+              text-align: center;
+              border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .mobile-menu button {
+              margin-top: 15px;
+              width: 100%;
+            }
+          }
         `}
       </style>
       
@@ -84,21 +118,48 @@ const CommunityPage = () => {
             <span style={styles.logoText}>PropScholar</span>
           </div>
           
-          <nav style={styles.nav}>
-            <a href="#" style={styles.navLink}>Home</a>
-            <a href="#" style={styles.navLink}>Community</a>
-            <a href="#" style={styles.navLink}>Shop</a>
-            <a href="#" style={styles.navLink}>FAQ</a>
-            <a href="#" style={styles.navLink}>About</a>
-            <button style={styles.ctaButton}>Get Started</button>
-          </nav>
-          
-          {isMobile && (
-            <button style={styles.menuButton}>
-              <span style={styles.menuIcon}></span>
-              <span style={styles.menuIcon}></span>
-              <span style={styles.menuIcon}></span>
-            </button>
+          {!isMobile ? (
+            <nav style={styles.nav}>
+              <a href="#" style={styles.navLink}>Home</a>
+              <a href="#" style={styles.navLink}>Community</a>
+              <a href="#" style={styles.navLink}>Shop</a>
+              <a href="#" style={styles.navLink}>FAQ</a>
+              <a href="#" style={styles.navLink}>About</a>
+              <button style={styles.ctaButton}>Get Started</button>
+            </nav>
+          ) : (
+            <>
+              <button 
+                style={styles.menuButton} 
+                onClick={toggleMenu}
+                aria-label="Toggle menu"
+              >
+                <span style={{
+                  ...styles.menuIcon, 
+                  transform: menuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none',
+                  transition: 'transform 0.3s ease'
+                }}></span>
+                <span style={{
+                  ...styles.menuIcon, 
+                  opacity: menuOpen ? 0 : 1,
+                  transition: 'opacity 0.3s ease'
+                }}></span>
+                <span style={{
+                  ...styles.menuIcon, 
+                  transform: menuOpen ? 'rotate(-45deg) translate(7px, -6px)' : 'none',
+                  transition: 'transform 0.3s ease'
+                }}></span>
+              </button>
+              
+              <nav className="mobile-menu" style={{display: 'none'}}>
+                <a href="#" style={styles.navLink}>Home</a>
+                <a href="#" style={styles.navLink}>Community</a>
+                <a href="#" style={styles.navLink}>Shop</a>
+                <a href="#" style={styles.navLink}>FAQ</a>
+                <a href="#" style={styles.navLink}>About</a>
+                <button style={styles.ctaButton}>Get Started</button>
+              </nav>
+            </>
           )}
         </div>
       </header>
@@ -114,11 +175,11 @@ const CommunityPage = () => {
               </svg>
             </div>
             
-            <h1 style={styles.heroTitle}>
+            <h1 style={{...styles.heroTitle, fontSize: isMobile ? '2.2rem' : '3.5rem'}}>
               Join the Official <span style={styles.highlight}>PropScholar</span> Discord
             </h1>
             
-            <p style={styles.heroSubtitle}>
+            <p style={{...styles.heroSubtitle, fontSize: isMobile ? '1rem' : '1.2rem'}}>
               Dedicated Support. Personalized Assistance. Quick Resolutions. Real-Time Updates.
               Join our vibrant Discord community to access it all!
             </p>
@@ -136,8 +197,8 @@ const CommunityPage = () => {
 
         {/* Benefits Section */}
         <section style={styles.benefitsSection}>
-          <h2 style={styles.sectionTitle}>Why Join Our Community?</h2>
-          <div style={styles.benefitsGrid}>
+          <h2 style={{...styles.sectionTitle, fontSize: isMobile ? '2rem' : '2.5rem'}}>Why Join Our Community?</h2>
+          <div style={{...styles.benefitsGrid, gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))'}}>
             {benefits.map((benefit, index) => (
               <div key={index} style={styles.benefitCard} className="benefit-card">
                 <div style={styles.benefitIcon}>{benefit.icon}</div>
@@ -150,9 +211,9 @@ const CommunityPage = () => {
 
         {/* Stats Section */}
         <section style={styles.statsSection}>
-          <div style={styles.statsGrid}>
+          <div style={{...styles.statsGrid, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '20px' : '50px'}}>
             {stats.map((stat, index) => (
-              <div key={index} style={styles.statCard} className="stat-card">
+              <div key={index} style={{...styles.statCard, minWidth: isMobile ? 'auto' : '250px'}} className="stat-card">
                 <div style={styles.statIcon}>{stat.icon}</div>
                 <div style={styles.statValue}>{stat.value}</div>
                 <div style={styles.statLabel}>{stat.label}</div>
@@ -163,11 +224,11 @@ const CommunityPage = () => {
 
         {/* Giveaway Section */}
         <section style={styles.giveawaySection}>
-          <div style={styles.giveawayCard}>
+          <div style={{...styles.giveawayCard, padding: isMobile ? '30px' : '60px'}}>
             <div style={styles.giveawayContent}>
               <div style={styles.giveawayIcon}>🎁</div>
-              <h2 style={styles.giveawayTitle}>Weekly Giveaways!</h2>
-              <p style={styles.giveawayText}>
+              <h2 style={{...styles.giveawayTitle, fontSize: isMobile ? '1.8rem' : '2.2rem'}}>Weekly Giveaways!</h2>
+              <p style={{...styles.giveawayText, fontSize: isMobile ? '1rem' : '1.1rem'}}>
                 Join our community for a chance to win exclusive trading resources, 
                 funded accounts, and premium tools every week!
               </p>
@@ -179,10 +240,10 @@ const CommunityPage = () => {
         </section>
 
         {/* CTA Section */}
-        <section style={styles.ctaSection}>
+        <section style={{...styles.ctaSection, padding: isMobile ? '30px' : '60px'}}>
           <div style={styles.ctaContent}>
-            <h2 style={styles.ctaTitle}>Ready to Level Up Your Trading?</h2>
-            <p style={styles.ctaText}>
+            <h2 style={{...styles.ctaTitle, fontSize: isMobile ? '2rem' : '2.5rem'}}>Ready to Level Up Your Trading?</h2>
+            <p style={{...styles.ctaText, fontSize: isMobile ? '1rem' : '1.2rem'}}>
               Join over 2,000 active traders in our Discord community. Get the support you need to succeed.
             </p>
             <button style={{...styles.joinButton, ...styles.ctaButton}} className="join-btn">
@@ -276,16 +337,21 @@ const styles = {
   menuButton: {
     display: 'flex',
     flexDirection: 'column',
+    justifyContent: 'center',
     gap: '4px',
     background: 'transparent',
     border: 'none',
     cursor: 'pointer',
+    width: '30px',
+    height: '30px',
+    padding: '0',
   },
   menuIcon: {
     width: '25px',
     height: '3px',
     backgroundColor: '#4aa3ff',
     borderRadius: '2px',
+    transition: 'all 0.3s ease',
   },
   hero: {
     display: 'flex',
@@ -303,7 +369,6 @@ const styles = {
     animation: 'float 5s ease-in-out infinite',
   },
   heroTitle: {
-    fontSize: '3.5rem',
     fontWeight: '800',
     margin: '0 0 20px 0',
     lineHeight: '1.2',
@@ -314,7 +379,6 @@ const styles = {
     WebkitTextFillColor: 'transparent',
   },
   heroSubtitle: {
-    fontSize: '1.2rem',
     color: '#C3C8E6',
     lineHeight: '1.6',
     margin: '0 0 40px 0',
@@ -346,7 +410,6 @@ const styles = {
     marginBottom: '80px',
   },
   sectionTitle: {
-    fontSize: '2.5rem',
     fontWeight: '800',
     textAlign: 'center',
     margin: '0 0 60px 0',
@@ -356,7 +419,6 @@ const styles = {
   },
   benefitsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
     gap: '30px',
   },
   benefitCard: {
@@ -391,7 +453,6 @@ const styles = {
   statsGrid: {
     display: 'flex',
     justifyContent: 'center',
-    gap: '50px',
     flexWrap: 'wrap',
   },
   statCard: {
@@ -403,7 +464,6 @@ const styles = {
     border: '1px solid rgba(74, 163, 255, 0.2)',
     transition: 'all 0.3s ease',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-    minWidth: '250px',
   },
   statIcon: {
     fontSize: '3rem',
@@ -431,7 +491,6 @@ const styles = {
     background: 'linear-gradient(135deg, rgba(74, 163, 255, 0.1) 0%, rgba(138, 43, 226, 0.1) 100%)',
     backdropFilter: 'blur(10px)',
     borderRadius: '30px',
-    padding: '60px',
     textAlign: 'center',
     border: '1px solid rgba(74, 163, 255, 0.3)',
     maxWidth: '800px',
@@ -448,7 +507,6 @@ const styles = {
     animation: 'float 5s ease-in-out infinite',
   },
   giveawayTitle: {
-    fontSize: '2.2rem',
     fontWeight: '800',
     margin: '0 0 20px 0',
     background: 'linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)',
@@ -456,7 +514,6 @@ const styles = {
     WebkitTextFillColor: 'transparent',
   },
   giveawayText: {
-    fontSize: '1.1rem',
     color: '#C3C8E6',
     lineHeight: '1.6',
     margin: '0 0 30px 0',
@@ -468,7 +525,6 @@ const styles = {
     background: 'linear-gradient(90deg, rgba(25, 30, 56, 0.7) 0%, rgba(33, 39, 90, 0.7) 100%)',
     backdropFilter: 'blur(10px)',
     borderRadius: '30px',
-    padding: '60px',
     textAlign: 'center',
     border: '1px solid rgba(74, 163, 255, 0.2)',
     marginBottom: '60px',
@@ -478,7 +534,6 @@ const styles = {
     margin: '0 auto',
   },
   ctaTitle: {
-    fontSize: '2.5rem',
     fontWeight: '800',
     margin: '0 0 20px 0',
     background: 'linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)',
@@ -486,14 +541,12 @@ const styles = {
     WebkitTextFillColor: 'transparent',
   },
   ctaText: {
-    fontSize: '1.2rem',
     color: '#C3C8E6',
     lineHeight: '1.6',
     margin: '0 0 40px 0',
   },
   ctaButton: {
     margin: '0 auto',
-    fontSize: '1.1rem',
     padding: '18px 40px',
   },
 };
