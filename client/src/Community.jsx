@@ -521,5 +521,297 @@ const styles = {
     padding: '18px 40px',
   },
 };
+const Footer = ({ isMobile }) => {
+  const styles = {
+    wrapper: {
+      width: "100%",
+      background: "linear-gradient(135deg, #10132b 0%, #181c3b 100%)",
+      color: "#e6eaff",
+      fontFamily: "'Inter', Arial, sans-serif",
+      fontSize: isMobile ? 14 : 16,
+      paddingTop: isMobile ? 40 : 60,
+      paddingBottom: isMobile ? 20 : 24,
+    },
+    colsRow: {
+      display: "flex",
+      justifyContent: "center",
+      gap: isMobile ? "40px" : "120px",
+      maxWidth: 1200,
+      margin: "0 auto",
+      flexWrap: "wrap",
+      textAlign: "left",
+      padding: isMobile ? "0 16px" : 0,
+      flexDirection: isMobile ? "column" : "row",
+    },
+    col: {
+      minWidth: isMobile ? "100%" : 180,
+      flex: isMobile ? "1 1 100%" : "1 1 220px",
+    },
+    colTitle: {
+      fontWeight: 700,
+      fontSize: isMobile ? 18 : 21,
+      marginBottom: 16,
+      marginTop: 0,
+      letterSpacing: "0.01em",
+    },
+    company: { color: "#4aa3ff" },
+    contact: { color: "#ffcb29" },
+    social: { color: "#31d17a" },
+    link: {
+      color: "#e6eaff",
+      textDecoration: "none",
+      display: "flex",
+      alignItems: "center",
+      marginBottom: 13,
+      fontWeight: 500,
+      fontSize: isMobile ? 14 : 16,
+      transition: "color 0.16s",
+      gap: 8,
+      borderRadius: "50%",
+      padding: 2,
+    },
+    linkImg: {
+      width: isMobile ? 16 : 18,
+      height: isMobile ? 16 : 18,
+      objectFit: "contain",
+      borderRadius: "50%",
+      background: "none",
+      display: "block",
+    },
+    divider: {
+      width: isMobile ? "85%" : "92%",
+      maxWidth: 1200,
+      height: 1,
+      background: "rgba(128,150,255,0.18)",
+      margin: isMobile ? "30px auto 20px" : "50px auto 30px auto",
+    },
+    lowerBar: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      maxWidth: 1200,
+      margin: "0 auto",
+      width: isMobile ? "85%" : "92%",
+      flexWrap: "wrap",
+      gap: isMobile ? 12 : 18,
+      fontSize: isMobile ? 13 : 15,
+      color: "#8b98b7",
+      flexDirection: isMobile ? "column" : "row",
+      textAlign: isMobile ? "center" : "left",
+    },
+    logoRow: {
+      display: "flex",
+      alignItems: "center",
+      gap: 11,
+      minWidth: isMobile ? "100%" : 180,
+      justifyContent: isMobile ? "center" : "flex-start",
+      marginBottom: isMobile ? 10 : 0,
+    },
+    logoImg: {
+      width: isMobile ? 28 : 32,
+      height: isMobile ? 28 : 32,
+      objectFit: "contain",
+      borderRadius: "8px",
+      background: "#000",
+    },
+    brand: {
+      fontWeight: 700,
+      fontSize: isMobile ? 16 : 18,
+      background: "linear-gradient(90deg,#4aa3ff 15%, #fff 90%)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+    },
+    copyright: {
+      fontSize: isMobile ? 13 : 15,
+      color: "#e6eaff",
+      flex: isMobile ? "none" : 2,
+      textAlign: "center",
+      marginBottom: isMobile ? 10 : 0,
+      order: isMobile ? 3 : "unset",
+    },
+    lowerLinks: {
+      display: "flex",
+      gap: isMobile ? 16 : 22,
+      alignItems: "center",
+      fontWeight: 500,
+      fontSize: isMobile ? 13 : 15,
+      minWidth: isMobile ? "100%" : 130,
+      justifyContent: isMobile ? "center" : "flex-end",
+      marginBottom: isMobile ? 10 : 0,
+      order: isMobile ? 2 : "unset",
+    },
+    lowerLink: {
+      color: "#e6eaff",
+      textDecoration: "none",
+      opacity: 0.7,
+      transition: "opacity 0.2s",
+      fontWeight: 500,
+      fontSize: isMobile ? 13 : 15,
+    },
+    disclaimer: {
+      margin: isMobile ? "20px auto 0" : "30px auto 0 auto",
+      color: "#b0b7cc",
+      fontSize: isMobile ? 12 : 13.2,
+      lineHeight: 1.58,
+      maxWidth: 1200,
+      textAlign: "left",
+      padding: isMobile ? "0 16px" : 0,
+      width: isMobile ? "85%" : "auto",
+    },
+    disclaimerTitle: {
+      fontWeight: 700,
+      color: "#f3f3f7",
+      marginBottom: 3,
+      fontSize: isMobile ? 13 : 14,
+      display: "block",
+      letterSpacing: 0.01,
+    },
+  };
+  // supply your own socialIcons if they're used outside the same file
+  const socialIcons = {
+    discord: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663423/Untitled_design_5_xpanov.png",
+    instagram: "https://res.cloudinary.com/dzozyqlqr/image/upload/v1755663376/Untitled_design_2_ekcm2e.png",
+    x: (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#e6eaff"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    ),
+  };
+  return (
+    <footer style={styles.wrapper}>
+      <div style={styles.colsRow}>
+        <div style={styles.col}>
+          <div style={{ ...styles.colTitle, ...styles.company }}>Company</div>
+          <a
+            href="https://propscholar.com/about"
+            style={styles.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            About Us
+          </a>
+          <a href="#" style={styles.link} target="_blank" rel="noopener noreferrer">
+            Terms & Conditions
+          </a>
+          <a href="#" style={styles.link} target="_blank" rel="noopener noreferrer">
+            Privacy Policy
+          </a>
+          <a
+            href="https://help.propscholar.com"
+            style={styles.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            FAQ
+          </a>
+        </div>
+        <div style={styles.col}>
+          <div style={{ ...styles.colTitle, ...styles.contact }}>Contact</div>
+          <div style={{ marginBottom: 9, color: "#e6eaff", fontSize: isMobile ? 14 : 16 }}>Email Support</div>
+          <a
+            href="mailto:support@propscholar.shop"
+            style={{ ...styles.link, color: "#4aa3ff" }}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            [support@propscholar.shop](mailto:support@propscholar.shop)
+          </a>
+        </div>
+        <div style={styles.col}>
+          <div style={{ ...styles.colTitle, ...styles.social }}>Socials</div>
+          <a
+            href="https://instagram.com/yourprofile"
+            style={styles.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src={socialIcons.instagram}
+              alt="Instagram"
+              style={styles.linkImg}
+            />
+            Instagram
+          </a>
+          <a
+            href="https://x.com/propscholar"
+            style={{
+              ...styles.link,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              borderRadius: 0,
+              padding: 0,
+            }}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {socialIcons.x}
+            X
+          </a>
+          <a
+            href="https://discord.gg/ZXqcq5Mj"
+            style={styles.link}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src={socialIcons.discord}
+              alt="Discord"
+              style={styles.linkImg}
+            />
+            Discord
+          </a>
+        </div>
+      </div>
+      <div style={styles.divider} />
+      <div style={styles.lowerBar}>
+        <div style={styles.logoRow}>
+          <img
+            src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
+            alt="PropScholar Logo"
+            style={styles.logoImg}
+          />
+          <span style={styles.brand}>PropScholar</span>
+        </div>
+        <div style={styles.copyright}>© 2025 PropScholar. All rights reserved.</div>
+        <div style={styles.lowerLinks}>
+          <a href="#" style={styles.lowerLink} target="_blank" rel="noopener noreferrer">
+            Terms
+          </a>
+          <a href="#" style={styles.lowerLink} target="_blank" rel="noopener noreferrer">
+            Privacy
+          </a>
+        </div>
+      </div>
+      <div style={styles.disclaimer}>
+        <span style={styles.disclaimerTitle}>Disclaimer:</span>
+        PropScholar is a government-registered business under the MSME (Udyam) initiative. All
+        Test/Evaluation accounts provided by PropScholar are simulated and do not involve real
+        financial transactions or live market exposure. We are strictly an educational platform,
+        and our programs are designed to assess trading skills in a simulated environment. Our
+        evaluation process is entirely skill-based, and successful participants may be eligible
+        for a scholarship award. PropScholar does not act as or offer services as a broker,
+        custodian, or financial advisor. Participation in our programs is voluntary, and program
+        fees are not to be considered deposits or investments of any kind. All program fees are
+        used solely to cover operational expenses, including but not limited to staffing,
+        technology infrastructure, and other business-related costs. Nothing contained on our
+        platform or in our materials constitutes a solicitation or offer to buy or sell any
+        financial instrument, including but not limited to futures, options, or foreign exchange
+        products.
+      </div>
+    </footer>
+  );
+};
+export default Footer;
 
 export default CommunityPage;
