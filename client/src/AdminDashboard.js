@@ -35,7 +35,7 @@ function AdminLogin({ onLogin }) {
               <path d="M16 2C8.268 2 2 8.268 2 16C2 23.732 8.268 30 16 30C23.732 30 30 23.732 30 16C30 8.268 23.732 2 16 2Z" stroke="#6366F1" strokeWidth="2"/>
               <path d="M12 21V11L22 16L12 21Z" fill="#6366F1"/>
             </svg>
-            <span>Propscholar Admin</span>
+            <span>Shorts Admin</span>
           </div>
           <h2>Welcome back</h2>
           <p>Sign in to your admin dashboard</p>
@@ -387,7 +387,7 @@ export default function AdminDashboard() {
               <path d="M16 2C8.268 2 2 8.268 2 16C2 23.732 8.268 30 16 30C23.732 30 30 23.732 30 16C30 8.268 23.732 2 16 2Z" stroke="#6366F1" strokeWidth="2"/>
               <path d="M12 21V11L22 16L12 21Z" fill="#6366F1"/>
             </svg>
-            <span>Propscholar Admin</span>
+            <span>Shorts Admin</span>
           </div>
           
           <button onClick={handleLogout} className="logout-btn">
@@ -524,8 +524,8 @@ export default function AdminDashboard() {
         
         body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-          background: #f8fafc;
-          color: #334155;
+          background: #0F0F13;
+          color: #E0E0E0;
           line-height: 1.6;
         }
         
@@ -537,7 +537,7 @@ export default function AdminDashboard() {
           justify-content: center;
           position: relative;
           overflow: hidden;
-          background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+          background: #0A0A0E;
         }
         
         .login-background {
@@ -554,13 +554,12 @@ export default function AdminDashboard() {
           position: absolute;
           border-radius: 50%;
           filter: blur(60px);
-          opacity: 0.6;
         }
         
         .orb-1 {
           width: 300px;
           height: 300px;
-          background: #818cf8;
+          background: rgba(79, 70, 229, 0.4);
           top: -150px;
           right: -150px;
         }
@@ -568,7 +567,7 @@ export default function AdminDashboard() {
         .orb-2 {
           width: 500px;
           height: 500px;
-          background: #38bdf8;
+          background: rgba(99, 102, 241, 0.3);
           bottom: -250px;
           left: -250px;
         }
@@ -576,21 +575,21 @@ export default function AdminDashboard() {
         .orb-3 {
           width: 200px;
           height: 200px;
-          background: #7dd3fc;
+          background: rgba(139, 92, 246, 0.3);
           top: 50%;
           right: 20%;
         }
         
         .login-card {
-          background: rgba(255, 255, 255, 0.95);
+          background: rgba(19, 19, 27, 0.8);
           backdrop-filter: blur(10px);
-          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
           padding: 40px;
           width: 100%;
-          max-width: 420px;
+          max-width: 400px;
           z-index: 10;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.5);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
         
         .login-header {
@@ -604,21 +603,21 @@ export default function AdminDashboard() {
           justify-content: center;
           gap: 10px;
           margin-bottom: 20px;
-          color: #4f46e5;
+          color: #6366F1;
           font-weight: 700;
-          font-size: 20px;
+          font-size: 18px;
         }
         
         .login-header h2 {
-          font-size: 26px;
+          font-size: 24px;
           font-weight: 700;
-          color: #1e293b;
+          color: #fff;
           margin-bottom: 8px;
         }
         
         .login-header p {
-          color: #64748b;
-          font-size: 15px;
+          color: #A0A0B0;
+          font-size: 14px;
         }
         
         .login-form {
@@ -636,45 +635,44 @@ export default function AdminDashboard() {
         .input-group label {
           font-size: 14px;
           font-weight: 500;
-          color: #475569;
+          color: #D0D0D0;
         }
         
         .input-group input {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
-          padding: 14px 16px;
-          color: #1e293b;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          padding: 12px 16px;
+          color: #fff;
           font-size: 16px;
           transition: all 0.2s;
         }
         
         .input-group input:focus {
           outline: none;
-          border-color: #818cf8;
-          box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+          border-color: #6366F1;
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
         }
         
         .input-group input::placeholder {
-          color: #94a3b8;
+          color: #666;
         }
         
         .login-error {
-          background: rgba(239, 68, 68, 0.1);
-          color: #dc2626;
+          background: rgba(239, 68, 68, 0.2);
+          color: #EF4444;
           padding: 12px;
-          border-radius: 10px;
+          border-radius: 8px;
           font-size: 14px;
           text-align: center;
-          border: 1px solid rgba(239, 68, 68, 0.2);
         }
         
         .login-button {
-          background: linear-gradient(to right, #4f46e5, #6366f1);
+          background: #6366F1;
           color: white;
           border: none;
-          border-radius: 10px;
-          padding: 16px;
+          border-radius: 8px;
+          padding: 14px;
           font-size: 16px;
           font-weight: 600;
           cursor: pointer;
@@ -683,22 +681,20 @@ export default function AdminDashboard() {
           align-items: center;
           justify-content: center;
           gap: 8px;
-          box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
         }
         
         .login-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3);
+          background: #4F46E5;
+          transform: translateY(-1px);
         }
         
         .login-button:disabled {
           opacity: 0.7;
           cursor: not-allowed;
-          transform: none;
         }
         
         .login-button.loading {
-          background: #6366f1;
+          background: #4F46E5;
         }
         
         .spinner {
@@ -719,17 +715,16 @@ export default function AdminDashboard() {
         .admin-dashboard {
           min-height: 100vh;
           display: flex;
-          background: #f8fafc;
+          background: #0F0F13;
         }
         
         .sidebar {
           width: 340px;
-          background: white;
-          border-right: 1px solid #e2e8f0;
+          background: linear-gradient(180deg, #13151F 0%, #0D0E15 100%);
+          border-right: 1px solid rgba(255, 255, 255, 0.05);
           display: flex;
           flex-direction: column;
           transition: all 0.3s ease;
-          box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
         }
         
         .admin-dashboard.sidebar-collapsed .sidebar {
@@ -743,25 +738,25 @@ export default function AdminDashboard() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          border-bottom: 1px solid #e2e8f0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .app-logo {
           display: flex;
           align-items: center;
           gap: 10px;
-          color: #4f46e5;
+          color: #fff;
           font-weight: 700;
           font-size: 18px;
         }
         
         .logout-btn {
-          background: rgba(239, 68, 68, 0.1);
-          color: #dc2626;
+          background: rgba(239, 68, 68, 0.2);
+          color: #EF4444;
           border: none;
           width: 36px;
           height: 36px;
-          border-radius: 10px;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -770,7 +765,7 @@ export default function AdminDashboard() {
         }
         
         .logout-btn:hover {
-          background: rgba(239, 68, 68, 0.2);
+          background: rgba(239, 68, 68, 0.3);
         }
         
         .sidebar-tabs {
@@ -784,26 +779,25 @@ export default function AdminDashboard() {
           display: flex;
           align-items: center;
           gap: 12px;
-          padding: 14px 16px;
+          padding: 12px 16px;
           border: none;
           background: transparent;
-          color: #64748b;
-          border-radius: 10px;
+          color: #A0A0B0;
+          border-radius: 8px;
           cursor: pointer;
           transition: all 0.2s;
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 500;
         }
         
         .tab-btn:hover {
-          background: #f1f5f9;
-          color: #334155;
+          background: rgba(255, 255, 255, 0.05);
+          color: #fff;
         }
         
         .tab-btn.active {
-          background: #eff6ff;
-          color: #2563eb;
-          box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+          background: rgba(99, 102, 241, 0.2);
+          color: #6366F1;
         }
         
         .sidebar-content {
@@ -816,16 +810,16 @@ export default function AdminDashboard() {
         }
         
         .upload-section {
-          background: #f8fafc;
-          border-radius: 16px;
-          padding: 20px;
-          border: 1px solid #e2e8f0;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 12px;
+          padding: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .upload-form {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 12px;
         }
         
         .upload-label {
@@ -833,33 +827,32 @@ export default function AdminDashboard() {
           flex-direction: column;
           align-items: center;
           gap: 12px;
-          padding: 28px;
-          border: 2px dashed #cbd5e1;
-          border-radius: 12px;
+          padding: 24px;
+          border: 2px dashed rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
           cursor: pointer;
           transition: all 0.2s;
           text-align: center;
         }
         
         .upload-label:hover {
-          border-color: #818cf8;
-          background: #f8fafc;
+          border-color: #6366F1;
         }
         
         .upload-icon {
           width: 48px;
           height: 48px;
-          background: #eff6ff;
+          background: rgba(99, 102, 241, 0.1);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #3b82f6;
+          color: #6366F1;
         }
         
         .upload-label span {
-          font-size: 15px;
-          color: #64748b;
+          font-size: 14px;
+          color: #A0A0B0;
         }
         
         .upload-label input {
@@ -867,12 +860,12 @@ export default function AdminDashboard() {
         }
         
         .upload-btn {
-          background: linear-gradient(to right, #4f46e5, #6366f1);
+          background: #6366F1;
           color: white;
           border: none;
-          border-radius: 10px;
-          padding: 14px;
-          font-size: 15px;
+          border-radius: 8px;
+          padding: 12px;
+          font-size: 14px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s;
@@ -880,12 +873,10 @@ export default function AdminDashboard() {
           align-items: center;
           justify-content: center;
           gap: 8px;
-          box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
         }
         
         .upload-btn:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+          background: #4F46E5;
         }
         
         .upload-btn:disabled {
@@ -894,19 +885,19 @@ export default function AdminDashboard() {
         }
         
         .upload-btn.uploading {
-          background: #6366f1;
+          background: #4F46E5;
         }
         
         .progress-bar {
           height: 6px;
-          background: #e2e8f0;
+          background: rgba(255, 255, 255, 0.1);
           border-radius: 3px;
           overflow: hidden;
         }
         
         .progress-fill {
           height: 100%;
-          background: linear-gradient(90deg, #4f46e5, #6366f1);
+          background: linear-gradient(90deg, #6366F1, #8B5CF6);
           border-radius: 3px;
           transition: width 0.3s;
         }
@@ -920,22 +911,20 @@ export default function AdminDashboard() {
         }
         
         .status-message.success {
-          background: rgba(16, 185, 129, 0.1);
-          color: #059669;
-          border: 1px solid rgba(16, 185, 129, 0.2);
+          background: rgba(16, 185, 129, 0.2);
+          color: #10B981;
         }
         
         .status-message.error {
-          background: rgba(239, 68, 68, 0.1);
-          color: #dc2626;
-          border: 1px solid rgba(239, 68, 68, 0.2);
+          background: rgba(239, 68, 68, 0.2);
+          color: #EF4444;
         }
         
         .stats-section h3,
         .files-section h3 {
           font-size: 14px;
           font-weight: 600;
-          color: #475569;
+          color: #D0D0D0;
           margin-bottom: 16px;
           text-transform: uppercase;
           letter-spacing: 0.5px;
@@ -948,24 +937,23 @@ export default function AdminDashboard() {
         }
         
         .stat-item {
-          background: white;
-          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 8px;
           padding: 16px;
           text-align: center;
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .stat-value {
           font-size: 20px;
           font-weight: 700;
-          color: #4f46e5;
+          color: #6366F1;
           margin-bottom: 4px;
         }
         
         .stat-label {
           font-size: 12px;
-          color: #64748b;
+          color: #A0A0B0;
         }
         
         .files-list {
@@ -977,7 +965,7 @@ export default function AdminDashboard() {
         .empty-files {
           text-align: center;
           padding: 24px;
-          color: #94a3b8;
+          color: #666;
           font-size: 14px;
         }
         
@@ -986,17 +974,14 @@ export default function AdminDashboard() {
           align-items: center;
           justify-content: space-between;
           padding: 12px;
-          background: white;
+          background: rgba(255, 255, 255, 0.03);
           border-radius: 8px;
-          border: 1px solid #e2e8f0;
+          border: 1px solid rgba(255, 255, 255, 0.05);
           transition: all 0.2s;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
         
         .file-item:hover {
-          background: #f8fafc;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+          background: rgba(255, 255, 255, 0.05);
         }
         
         .file-info {
@@ -1006,7 +991,7 @@ export default function AdminDashboard() {
         
         .file-name {
           font-size: 13px;
-          color: #334155;
+          color: #D0D0D0;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1015,12 +1000,12 @@ export default function AdminDashboard() {
         
         .file-size {
           font-size: 11px;
-          color: #64748b;
+          color: #666;
         }
         
         .file-delete {
-          background: rgba(239, 68, 68, 0.1);
-          color: #dc2626;
+          background: rgba(239, 68, 68, 0.2);
+          color: #EF4444;
           border: none;
           width: 28px;
           height: 28px;
@@ -1033,7 +1018,7 @@ export default function AdminDashboard() {
         }
         
         .file-delete:hover {
-          background: rgba(239, 68, 68, 0.2);
+          background: rgba(239, 68, 68, 0.3);
         }
         
         /* Main Content */
@@ -1049,33 +1034,32 @@ export default function AdminDashboard() {
           display: flex;
           align-items: center;
           gap: 16px;
-          border-bottom: 1px solid #e2e8f0;
-          background: white;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .sidebar-toggle {
-          background: #f1f5f9;
+          background: rgba(255, 255, 255, 0.05);
           border: none;
           width: 40px;
           height: 40px;
-          border-radius: 10px;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
-          color: #64748b;
+          color: #A0A0B0;
           transition: all 0.2s;
         }
         
         .sidebar-toggle:hover {
-          background: #e2e8f0;
-          color: #334155;
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
         }
         
         .content-header h1 {
           font-size: 24px;
           font-weight: 700;
-          color: #1e293b;
+          color: #fff;
           margin-right: auto;
         }
         
@@ -1090,8 +1074,8 @@ export default function AdminDashboard() {
           align-items: center;
           gap: 6px;
           padding: 8px 12px;
-          background: #eff6ff;
-          color: #2563eb;
+          background: rgba(99, 102, 241, 0.2);
+          color: #6366F1;
           border-radius: 8px;
           font-size: 14px;
           font-weight: 600;
@@ -1105,14 +1089,13 @@ export default function AdminDashboard() {
           grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
           gap: 24px;
           align-content: flex-start;
-          background: #f1f5f9;
         }
         
         .empty-state {
           grid-column: 1 / -1;
           text-align: center;
           padding: 60px 20px;
-          color: #64748b;
+          color: #666;
         }
         
         .empty-icon {
@@ -1124,22 +1107,21 @@ export default function AdminDashboard() {
           font-size: 18px;
           font-weight: 600;
           margin-bottom: 8px;
-          color: #475569;
+          color: #A0A0B0;
         }
         
         .video-card {
-          background: white;
+          background: rgba(19, 19, 27, 0.5);
           border-radius: 12px;
           overflow: hidden;
-          border: 1px solid #e2e8f0;
+          border: 1px solid rgba(255, 255, 255, 0.05);
           transition: all 0.2s;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
         
         .video-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-          border-color: #c7d2fe;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+          border-color: rgba(99, 102, 241, 0.3);
         }
         
         .video-card-header {
@@ -1152,14 +1134,14 @@ export default function AdminDashboard() {
         .video-number {
           font-size: 12px;
           font-weight: 700;
-          color: #4f46e5;
+          color: #6366F1;
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
         
         .delete-btn {
-          background: rgba(239, 68, 68, 0.1);
-          color: #dc2626;
+          background: rgba(239, 68, 68, 0.2);
+          color: #EF4444;
           border: none;
           width: 28px;
           height: 28px;
@@ -1172,7 +1154,7 @@ export default function AdminDashboard() {
         }
         
         .delete-btn:hover {
-          background: rgba(239, 68, 68, 0.2);
+          background: rgba(239, 68, 68, 0.3);
         }
         
         .video-wrapper {
@@ -1182,7 +1164,7 @@ export default function AdminDashboard() {
         .video-wrapper video {
           width: 100%;
           height: 200px;
-          background: #f1f5f9;
+          background: #000;
           border-radius: 8px;
           object-fit: cover;
         }
@@ -1196,7 +1178,7 @@ export default function AdminDashboard() {
         
         .video-filename {
           font-size: 12px;
-          color: #64748b;
+          color: #888;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -1208,7 +1190,7 @@ export default function AdminDashboard() {
           align-items: center;
           gap: 6px;
           font-size: 12px;
-          color: #059669;
+          color: #0fa;
           font-weight: 600;
         }
         
@@ -1220,17 +1202,17 @@ export default function AdminDashboard() {
           display: block;
           font-size: 13px;
           font-weight: 600;
-          color: #4f46e5;
+          color: #6366F1;
           margin-bottom: 8px;
         }
         
         .caption-editor textarea {
           width: 100%;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 8px;
           padding: 12px;
-          color: #334155;
+          color: #fff;
           font-size: 14px;
           resize: vertical;
           min-height: 80px;
@@ -1239,12 +1221,12 @@ export default function AdminDashboard() {
         
         .caption-editor textarea:focus {
           outline: none;
-          border-color: #818cf8;
-          box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+          border-color: #6366F1;
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
         }
         
         .caption-editor textarea.error {
-          border-color: #dc2626;
+          border-color: #EF4444;
         }
         
         .caption-actions {
@@ -1256,12 +1238,12 @@ export default function AdminDashboard() {
         
         .char-count {
           font-size: 12px;
-          color: #64748b;
+          color: #666;
         }
         
         .error-text {
           font-size: 12px;
-          color: #dc2626;
+          color: #EF4444;
           margin-right: auto;
           margin-left: 12px;
         }
@@ -1270,7 +1252,7 @@ export default function AdminDashboard() {
           display: flex;
           align-items: center;
           gap: 6px;
-          background: #4f46e5;
+          background: #6366F1;
           color: white;
           border: none;
           border-radius: 6px;
@@ -1282,7 +1264,7 @@ export default function AdminDashboard() {
         }
         
         .save-btn:hover:not(:disabled) {
-          background: #4338ca;
+          background: #4F46E5;
         }
         
         .save-btn:disabled {
@@ -1291,11 +1273,11 @@ export default function AdminDashboard() {
         }
         
         .save-btn.loading {
-          background: #6366f1;
+          background: #4F46E5;
         }
         
         .save-btn.saved {
-          background: #059669;
+          background: #10B981;
         }
         
         /* Responsive adjustments */
