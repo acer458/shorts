@@ -1,5 +1,4 @@
 // AdminDashboard.js
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import AllComments from './components/AllComments';
@@ -7,9 +6,7 @@ import AllComments from './components/AllComments';
 const HOST = "https://shorts-t2dk.onrender.com";
 
 // ============= LOGIN FORM COMPONENT =============
-// Export this component as a named export.
-// This is the most robust way to prevent a duplicate default export.
-export function AdminLogin({ onLogin }) {
+function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('');
@@ -19,7 +16,7 @@ export function AdminLogin({ onLogin }) {
     e.preventDefault();
     setStatus('');
     setIsLoading(true);
-
+    
     axios.post(HOST + "/admin/login", { email, password })
       .then(res => {
         localStorage.setItem("adminToken", res.data.token);
@@ -35,44 +32,44 @@ export function AdminLogin({ onLogin }) {
         <div className="login-header">
           <div className="logo">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16 2C8.268 2 2 8.268 2 16C2 23.732 8.268 30 16 30C23.732 30 30 23.732 30 16C30 8.268 23.732 2 16 2Z" stroke="#6366F1" strokeWidth="2" />
-              <path d="M12 21V11L22 16L12 21Z" fill="#6366F1" />
+              <path d="M16 2C8.268 2 2 8.268 2 16C2 23.732 8.268 30 16 30C23.732 30 30 23.732 30 16C30 8.268 23.732 2 16 2Z" stroke="#6366F1" strokeWidth="2"/>
+              <path d="M12 21V11L22 16L12 21Z" fill="#6366F1"/>
             </svg>
             <span>Propscholar Admin</span>
           </div>
           <h2>Welcome back</h2>
           <p>Sign in to your admin dashboard</p>
         </div>
-
+        
         <form onSubmit={handleSubmit} className="login-form">
           <div className="input-group">
             <label htmlFor="email">Email</label>
-            <input
+            <input 
               id="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              type="email"
-              placeholder="admin@example.com"
-              required
+              value={email} 
+              onChange={e=>setEmail(e.target.value)} 
+              type="email" 
+              placeholder="admin@example.com" 
+              required 
             />
           </div>
-
+          
           <div className="input-group">
             <label htmlFor="password">Password</label>
-            <input
+            <input 
               id="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              type="password"
-              placeholder="••••••••"
-              required
+              value={password} 
+              onChange={e=>setPassword(e.target.value)} 
+              type="password" 
+              placeholder="••••••••" 
+              required 
             />
           </div>
-
+          
           {status && <div className="login-error">{status}</div>}
-
-          <button
-            type="submit"
+          
+          <button 
+            type="submit" 
             className={`login-button ${isLoading ? 'loading' : ''}`}
             disabled={isLoading}
           >
@@ -85,14 +82,14 @@ export function AdminLogin({ onLogin }) {
           </button>
         </form>
       </div>
-
+      
       <div className="login-background">
         <div className="orb orb-1"></div>
         <div className="orb orb-2"></div>
         <div className="orb orb-3"></div>
       </div>
     </div>
-  );
+  )
 }
 
 // ============= BYTES UTILITY =============
@@ -104,7 +101,6 @@ function bytesToSize(bytes) {
 }
 
 // ============= MAIN DASHBOARD =============
-// This is the one and only default export.
 export default function AdminDashboard() {
   const [shorts, setShorts] = useState([]);
   const [video, setVideo] = useState(null);
@@ -138,7 +134,7 @@ export default function AdminDashboard() {
 
     axios.get(HOST + "/views")
       .then(res => setScrollCounts(res.data))
-      .catch(() => { });
+      .catch(() => {});
   };
 
   useEffect(() => {
@@ -251,10 +247,7 @@ export default function AdminDashboard() {
   );
 
   // Require login
-  if (!loggedIn) {
-    // Note: We now import and use AdminLogin here as a named import.
-    return <AdminLogin onLogin={() => setLoggedIn(true)} />;
-  }
+  if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />;
 
   // Prepare main content depending on activeTab
   let mainContent;
@@ -265,19 +258,19 @@ export default function AdminDashboard() {
     mainContent = (
       <div className="main-content">
         <div className="content-header">
-          <button
+          <button 
             className="sidebar-toggle"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
           <h1>Scrollable Videos</h1>
           <div className="header-actions">
             <div className="stats-badge">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="currentColor" />
+                <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="currentColor"/>
               </svg>
               {shorts.length} videos
             </div>
@@ -289,18 +282,18 @@ export default function AdminDashboard() {
             <div className="empty-state">
               <div className="empty-icon">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M14 2V8H20" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M16 13H8" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M16 17H8" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M10 9H9H8" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2Z" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M14 2V8H20" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M16 13H8" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M16 17H8" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M10 9H9H8" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
               <h3>No videos uploaded yet</h3>
               <p>Upload your first video to get started</p>
             </div>
           )}
-
+          
           {shorts.map((s, i) => {
             const filename = s.filename;
             const state = editState[filename] || {};
@@ -312,17 +305,17 @@ export default function AdminDashboard() {
               <div key={filename} className="video-card">
                 <div className="video-card-header">
                   <span className="video-number">VIDEO-{i + 1}</span>
-                  <button
+                  <button 
                     className="delete-btn"
                     onClick={() => handleDelete(filename)}
                     title="Delete video"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </button>
                 </div>
-
+                
                 <div className="video-wrapper">
                   <video
                     src={HOST + s.url}
@@ -330,18 +323,18 @@ export default function AdminDashboard() {
                     loop
                   />
                 </div>
-
+                
                 <div className="video-meta">
                   <div className="video-filename">{filename}</div>
                   <div className="video-views">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#0fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="#0fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#0fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="#0fa" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                     {viewCount} views
                   </div>
                 </div>
-
+                
                 <div className="caption-editor">
                   <label>Caption / Title</label>
                   <textarea
@@ -368,7 +361,7 @@ export default function AdminDashboard() {
                       ) : state.saved ? (
                         <>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           </svg>
                           Saved
                         </>
@@ -391,42 +384,42 @@ export default function AdminDashboard() {
         <div className="sidebar-header">
           <div className="app-logo">
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16 2C8.268 2 2 8.268 2 16C2 23.732 8.268 30 16 30C23.732 30 30 23.732 30 16C30 8.268 23.732 2 16 2Z" stroke="#6366F1" strokeWidth="2" />
-              <path d="M12 21V11L22 16L12 21Z" fill="#6366F1" />
+              <path d="M16 2C8.268 2 2 8.268 2 16C2 23.732 8.268 30 16 30C23.732 30 30 23.732 30 16C30 8.268 23.732 2 16 2Z" stroke="#6366F1" strokeWidth="2"/>
+              <path d="M12 21V11L22 16L12 21Z" fill="#6366F1"/>
             </svg>
             <span>Propscholar Admin</span>
           </div>
-
+          
           <button onClick={handleLogout} className="logout-btn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15M10 17L15 12M15 12L10 7M15 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15M10 17L15 12M15 12L10 7M15 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
         </div>
-
+        
         <div className="sidebar-tabs">
-          <button
-            onClick={() => setActiveTab('videos')}
+          <button 
+            onClick={() => setActiveTab('videos')} 
             className={`tab-btn ${activeTab === 'videos' ? 'active' : ''}`}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M23 7L16 12L23 17V7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M14 5H3C1.89543 5 1 5.89543 1 7V17C1 18.1046 1.89543 19 3 19H14C15.1046 19 16 18.1046 16 17V7C16 5.89543 15.1046 5 14 5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M23 7L16 12L23 17V7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M14 5H3C1.89543 5 1 5.89543 1 7V17C1 18.1046 1.89543 19 3 19H14C15.1046 19 16 18.1046 16 17V7C16 5.89543 15.1046 5 14 5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             Videos
           </button>
-
-          <button
-            onClick={() => setActiveTab('comments')}
+          
+          <button 
+            onClick={() => setActiveTab('comments')} 
             className={`tab-btn ${activeTab === 'comments' ? 'active' : ''}`}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             Comments
           </button>
         </div>
-
+        
         {activeTab === 'videos' && (
           <div className="sidebar-content">
             <div className="upload-section">
@@ -434,7 +427,7 @@ export default function AdminDashboard() {
                 <label htmlFor="upload" className="upload-label">
                   <div className="upload-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15M17 8L12 3M12 3L7 8M12 3V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15M17 8L12 3M12 3L7 8M12 3V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
                   <span>{video ? video.name : 'Select video to upload'}</span>
@@ -445,7 +438,7 @@ export default function AdminDashboard() {
                     onChange={(e) => setVideo(e.target.files[0])}
                   />
                 </label>
-
+                
                 <button
                   type="submit"
                   disabled={uploading || !video}
@@ -458,24 +451,24 @@ export default function AdminDashboard() {
                     </>
                   ) : 'Upload Video'}
                 </button>
-
+                
                 {uploadProgress > 0 && (
                   <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{ width: `${uploadProgress}%` }}
+                    <div 
+                      className="progress-fill" 
+                      style={{width: `${uploadProgress}%`}}
                     ></div>
                   </div>
                 )}
               </form>
-
+              
               {status && (
                 <div className={`status-message ${status.includes("Success") ? 'success' : 'error'}`}>
                   {status}
                 </div>
               )}
             </div>
-
+            
             <div className="stats-section">
               <h3>Storage Overview</h3>
               <div className="stats-grid">
@@ -489,7 +482,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
-
+            
             <div className="files-section">
               <h3>Uploaded Files</h3>
               <div className="files-list">
@@ -501,13 +494,13 @@ export default function AdminDashboard() {
                       <div className="file-name">{s.filename}</div>
                       <div className="file-size">{s.size ? bytesToSize(Number(s.size)) : ""}</div>
                     </div>
-                    <button
+                    <button 
                       className="file-delete"
                       onClick={() => handleDelete(s.filename)}
                       title="Delete file"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
                   </div>
@@ -520,7 +513,7 @@ export default function AdminDashboard() {
 
       {/* MAIN CONTENT */}
       {mainContent}
-
+      
       <style jsx>{`
         /* Global Styles */
         * {
@@ -528,15 +521,15 @@ export default function AdminDashboard() {
           margin: 0;
           padding: 0;
         }
-
+        
         body {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
           background: #f8fafc;
           color: #334155;
           line-height: 1.6;
         }
-
-        /* Login Styles */
+        
+        /* Enhanced Login Styles */
         .login-container {
           min-height: 100vh;
           display: flex;
@@ -544,9 +537,9 @@ export default function AdminDashboard() {
           justify-content: center;
           position: relative;
           overflow: hidden;
-          background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-
+        
         .login-background {
           position: absolute;
           top: 0;
@@ -556,183 +549,248 @@ export default function AdminDashboard() {
           z-index: 0;
           overflow: hidden;
         }
-
+        
         .orb {
           position: absolute;
           border-radius: 50%;
-          filter: blur(60px);
-          opacity: 0.6;
+          filter: blur(80px);
+          opacity: 0.4;
+          animation: float 6s ease-in-out infinite;
         }
-
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        
         .orb-1 {
+          width: 400px;
+          height: 400px;
+          background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+          top: -200px;
+          right: -200px;
+          animation-delay: 0s;
+        }
+        
+        .orb-2 {
+          width: 600px;
+          height: 600px;
+          background: linear-gradient(45deg, #45b7d1, #96ceb4);
+          bottom: -300px;
+          left: -300px;
+          animation-delay: 2s;
+        }
+        
+        .orb-3 {
           width: 300px;
           height: 300px;
-          background: #818cf8;
-          top: -150px;
-          right: -150px;
-        }
-
-        .orb-2 {
-          width: 500px;
-          height: 500px;
-          background: #38bdf8;
-          bottom: -250px;
-          left: -250px;
-        }
-
-        .orb-3 {
-          width: 200px;
-          height: 200px;
-          background: #7dd3fc;
+          background: linear-gradient(45deg, #feca57, #ff9ff3);
           top: 50%;
-          right: 20%;
+          right: 15%;
+          animation-delay: 4s;
         }
-
+        
         .login-card {
           background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          border-radius: 20px;
-          padding: 40px;
+          backdrop-filter: blur(20px);
+          border-radius: 24px;
+          padding: 48px;
           width: 100%;
-          max-width: 420px;
+          max-width: 440px;
           z-index: 10;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.5);
+          box-shadow: 0 32px 64px rgba(0, 0, 0, 0.15), 
+                      0 16px 32px rgba(0, 0, 0, 0.1),
+                      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          transition: all 0.3s ease;
         }
-
+        
+        .login-card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2), 
+                      0 20px 40px rgba(0, 0, 0, 0.15),
+                      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+        
         .login-header {
           text-align: center;
-          margin-bottom: 30px;
+          margin-bottom: 36px;
         }
-
+        
         .logo {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 10px;
-          margin-bottom: 20px;
+          gap: 12px;
+          margin-bottom: 24px;
           color: #4f46e5;
           font-weight: 700;
-          font-size: 20px;
+          font-size: 22px;
         }
-
+        
+        .logo svg {
+          filter: drop-shadow(0 2px 4px rgba(79, 70, 229, 0.2));
+        }
+        
         .login-header h2 {
-          font-size: 26px;
-          font-weight: 700;
+          font-size: 28px;
+          font-weight: 800;
           color: #1e293b;
-          margin-bottom: 8px;
+          margin-bottom: 10px;
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
-
+        
         .login-header p {
           color: #64748b;
-          font-size: 15px;
+          font-size: 16px;
+          font-weight: 500;
         }
-
+        
         .login-form {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 24px;
         }
-
+        
         .input-group {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 10px;
         }
-
+        
         .input-group label {
           font-size: 14px;
-          font-weight: 500;
+          font-weight: 600;
           color: #475569;
+          margin-left: 4px;
         }
-
+        
         .input-group input {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
-          padding: 14px 16px;
+          background: rgba(248, 250, 252, 0.8);
+          backdrop-filter: blur(10px);
+          border: 2px solid rgba(226, 232, 240, 0.6);
+          border-radius: 14px;
+          padding: 16px 20px;
           color: #1e293b;
           font-size: 16px;
-          transition: all 0.2s;
+          font-weight: 500;
+          transition: all 0.3s ease;
+          box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
         }
-
+        
         .input-group input:focus {
           outline: none;
           border-color: #818cf8;
-          box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+          background: rgba(255, 255, 255, 0.95);
+          box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.15),
+                      inset 0 2px 4px rgba(0, 0, 0, 0.04);
+          transform: translateY(-1px);
         }
-
+        
         .input-group input::placeholder {
           color: #94a3b8;
+          font-weight: 400;
         }
-
+        
         .login-error {
-          background: rgba(239, 68, 68, 0.1);
+          background: rgba(239, 68, 68, 0.08);
           color: #dc2626;
-          padding: 12px;
-          border-radius: 10px;
+          padding: 16px 20px;
+          border-radius: 12px;
           font-size: 14px;
+          font-weight: 500;
           text-align: center;
           border: 1px solid rgba(239, 68, 68, 0.2);
+          backdrop-filter: blur(10px);
+          animation: shake 0.5s ease-in-out;
         }
-
+        
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+        
         .login-button {
-          background: linear-gradient(to right, #4f46e5, #6366f1);
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
           border: none;
-          border-radius: 10px;
-          padding: 16px;
+          border-radius: 14px;
+          padding: 18px 24px;
           font-size: 16px;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.3s ease;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+          gap: 10px;
+          box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3),
+                      0 4px 8px rgba(102, 126, 234, 0.2);
+          position: relative;
+          overflow: hidden;
         }
-
-        .login-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3);
+        
+        .login-button::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+          transition: left 0.5s ease;
         }
-
+        
+        .login-button:hover:not(:disabled) {
+          transform: translateY(-3px);
+          box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4),
+                      0 6px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .login-button:hover:not(:disabled)::before {
+          left: 100%;
+        }
+        
+        .login-button:active:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+        }
+        
         .login-button:disabled {
           opacity: 0.7;
           cursor: not-allowed;
           transform: none;
         }
-
+        
         .login-button.loading {
-          background: #6366f1;
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
         }
-
+        
         .spinner {
-          width: 16px;
-          height: 16px;
-          border: 2px solid transparent;
+          width: 18px;
+          height: 18px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
           border-top: 2px solid white;
           border-radius: 50%;
           animation: spin 1s linear infinite;
         }
-
+        
         @keyframes spin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
-
+        
         /* Dashboard Styles */
         .admin-dashboard {
           min-height: 100vh;
           display: flex;
           background: #f8fafc;
         }
-
+        
         .sidebar {
           width: 340px;
           background: white;
@@ -742,13 +800,13 @@ export default function AdminDashboard() {
           transition: all 0.3s ease;
           box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
         }
-
+        
         .admin-dashboard.sidebar-collapsed .sidebar {
           transform: translateX(-100%);
           opacity: 0;
           width: 0;
         }
-
+        
         .sidebar-header {
           padding: 24px;
           display: flex;
@@ -756,7 +814,7 @@ export default function AdminDashboard() {
           justify-content: space-between;
           border-bottom: 1px solid #e2e8f0;
         }
-
+        
         .app-logo {
           display: flex;
           align-items: center;
@@ -765,7 +823,7 @@ export default function AdminDashboard() {
           font-weight: 700;
           font-size: 18px;
         }
-
+        
         .logout-btn {
           background: rgba(239, 68, 68, 0.1);
           color: #dc2626;
@@ -779,18 +837,18 @@ export default function AdminDashboard() {
           cursor: pointer;
           transition: all 0.2s;
         }
-
+        
         .logout-btn:hover {
           background: rgba(239, 68, 68, 0.2);
         }
-
+        
         .sidebar-tabs {
           padding: 16px;
           display: flex;
           flex-direction: column;
           gap: 4px;
         }
-
+        
         .tab-btn {
           display: flex;
           align-items: center;
@@ -805,18 +863,18 @@ export default function AdminDashboard() {
           font-size: 15px;
           font-weight: 500;
         }
-
+        
         .tab-btn:hover {
           background: #f1f5f9;
           color: #334155;
         }
-
+        
         .tab-btn.active {
           background: #eff6ff;
           color: #2563eb;
           box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
         }
-
+        
         .sidebar-content {
           flex: 1;
           padding: 0 16px 24px;
@@ -825,20 +883,20 @@ export default function AdminDashboard() {
           flex-direction: column;
           gap: 24px;
         }
-
+        
         .upload-section {
           background: #f8fafc;
           border-radius: 16px;
           padding: 20px;
           border: 1px solid #e2e8f0;
         }
-
+        
         .upload-form {
           display: flex;
           flex-direction: column;
           gap: 16px;
         }
-
+        
         .upload-label {
           display: flex;
           flex-direction: column;
@@ -851,12 +909,12 @@ export default function AdminDashboard() {
           transition: all 0.2s;
           text-align: center;
         }
-
+        
         .upload-label:hover {
           border-color: #818cf8;
           background: #f8fafc;
         }
-
+        
         .upload-icon {
           width: 48px;
           height: 48px;
@@ -867,16 +925,16 @@ export default function AdminDashboard() {
           justify-content: center;
           color: #3b82f6;
         }
-
+        
         .upload-label span {
           font-size: 15px;
           color: #64748b;
         }
-
+        
         .upload-label input {
           display: none;
         }
-
+        
         .upload-btn {
           background: linear-gradient(to right, #4f46e5, #6366f1);
           color: white;
@@ -893,35 +951,35 @@ export default function AdminDashboard() {
           gap: 8px;
           box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
         }
-
+        
         .upload-btn:hover:not(:disabled) {
           transform: translateY(-1px);
           box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
         }
-
+        
         .upload-btn:disabled {
           opacity: 0.7;
           cursor: not-allowed;
         }
-
+        
         .upload-btn.uploading {
           background: #6366f1;
         }
-
+        
         .progress-bar {
           height: 6px;
           background: #e2e8f0;
           border-radius: 3px;
           overflow: hidden;
         }
-
+        
         .progress-fill {
           height: 100%;
           background: linear-gradient(90deg, #4f46e5, #6366f1);
           border-radius: 3px;
           transition: width 0.3s;
         }
-
+        
         .status-message {
           padding: 12px;
           border-radius: 8px;
@@ -929,19 +987,19 @@ export default function AdminDashboard() {
           text-align: center;
           margin-top: 12px;
         }
-
+        
         .status-message.success {
           background: rgba(16, 185, 129, 0.1);
           color: #059669;
           border: 1px solid rgba(16, 185, 129, 0.2);
         }
-
+        
         .status-message.error {
           background: rgba(239, 68, 68, 0.1);
           color: #dc2626;
           border: 1px solid rgba(239, 68, 68, 0.2);
         }
-
+        
         .stats-section h3,
         .files-section h3 {
           font-size: 14px;
@@ -951,357 +1009,401 @@ export default function AdminDashboard() {
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
-
+        
         .stats-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 12px;
         }
-
+        
         .stat-item {
           background: white;
           border-radius: 12px;
           padding: 16px;
           text-align: center;
           border: 1px solid #e2e8f0;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
-
-        .stat-item .stat-value {
-          font-size: 24px;
+        
+        .stat-value {
+          font-size: 20px;
           font-weight: 700;
-          color: #1e293b;
-          line-height: 1;
+          color: #4f46e5;
+          margin-bottom: 4px;
         }
-
-        .stat-item .stat-label {
-          font-size: 13px;
+        
+        .stat-label {
+          font-size: 12px;
           color: #64748b;
-          margin-top: 4px;
         }
-
+        
         .files-list {
           display: flex;
           flex-direction: column;
           gap: 8px;
         }
-
+        
+        .empty-files {
+          text-align: center;
+          padding: 24px;
+          color: #94a3b8;
+          font-size: 14px;
+        }
+        
         .file-item {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: #f1f5f9;
+          padding: 12px;
+          background: white;
           border-radius: 8px;
-          padding: 12px 16px;
-        }
-
-        .file-info {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .file-name {
-          font-size: 14px;
-          font-weight: 500;
-          color: #334155;
-        }
-
-        .file-size {
-          font-size: 12px;
-          color: #64748b;
-          margin-top: 2px;
-        }
-
-        .file-delete {
-          background: none;
-          border: none;
-          color: #ef4444;
-          cursor: pointer;
-          opacity: 0.7;
-          transition: opacity 0.2s;
-        }
-
-        .file-delete:hover {
-          opacity: 1;
-        }
-
-        .empty-files {
-          text-align: center;
-          color: #94a3b8;
-          font-size: 14px;
-          padding: 20px;
-        }
-
-        .main-content {
-          flex: 1;
-          padding: 32px;
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
+          border: 1px solid #e2e8f0;
+          transition: all 0.2s;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
         
-        @media (max-width: 768px) {
-          .main-content {
-            padding: 16px;
-          }
+        .file-item:hover {
+          background: #f8fafc;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
-
-        .content-header {
+        
+        .file-info {
+          flex: 1;
+          min-width: 0;
+        }
+        
+        .file-name {
+          font-size: 13px;
+          color: #334155;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          margin-bottom: 4px;
+        }
+        
+        .file-size {
+          font-size: 11px;
+          color: #64748b;
+        }
+        
+        .file-delete {
+          background: rgba(239, 68, 68, 0.1);
+          color: #dc2626;
+          border: none;
+          width: 28px;
+          height: 28px;
+          border-radius: 6px;
           display: flex;
           align-items: center;
-          justify-content: space-between;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        
+        .file-delete:hover {
+          background: rgba(239, 68, 68, 0.2);
+        }
+        
+        /* Main Content */
+        .main-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+        
+        .content-header {
+          padding: 24px 32px;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          border-bottom: 1px solid #e2e8f0;
+          background: white;
         }
         
         .sidebar-toggle {
-          display: none;
-          background: none;
+          background: #f1f5f9;
           border: none;
-          color: #64748b;
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           cursor: pointer;
-          margin-right: 16px;
+          color: #64748b;
+          transition: all 0.2s;
         }
         
-        @media (max-width: 1024px) {
-          .sidebar-toggle {
-            display: block;
-          }
-          .admin-dashboard.sidebar-open .sidebar {
-            transform: translateX(0);
-            width: 300px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            z-index: 50;
-          }
-          .admin-dashboard.sidebar-collapsed .main-content {
-            flex-grow: 1;
-            margin-left: 0;
-          }
+        .sidebar-toggle:hover {
+          background: #e2e8f0;
+          color: #334155;
         }
-
+        
         .content-header h1 {
-          font-size: 28px;
+          font-size: 24px;
           font-weight: 700;
           color: #1e293b;
+          margin-right: auto;
         }
         
         .header-actions {
           display: flex;
           align-items: center;
-          gap: 16px;
+          gap: 12px;
         }
         
         .stats-badge {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
+          padding: 8px 12px;
           background: #eff6ff;
           color: #2563eb;
-          padding: 8px 16px;
-          border-radius: 20px;
+          border-radius: 8px;
           font-size: 14px;
           font-weight: 600;
         }
-
+        
         .video-grid {
+          flex: 1;
+          padding: 24px 32px;
+          overflow-y: auto;
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
           gap: 24px;
+          align-content: flex-start;
+          background: #f1f5f9;
         }
-
+        
+        .empty-state {
+          grid-column: 1 / -1;
+          text-align: center;
+          padding: 60px 20px;
+          color: #64748b;
+        }
+        
+        .empty-icon {
+          margin-bottom: 16px;
+          opacity: 0.5;
+        }
+        
+        .empty-state h3 {
+          font-size: 18px;
+          font-weight: 600;
+          margin-bottom: 8px;
+          color: #475569;
+        }
+        
         .video-card {
           background: white;
-          border-radius: 16px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          border-radius: 12px;
           overflow: hidden;
           border: 1px solid #e2e8f0;
-          display: flex;
-          flex-direction: column;
+          transition: all 0.2s;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
-
+        
+        .video-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+          border-color: #c7d2fe;
+        }
+        
         .video-card-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 16px;
+          padding: 16px 16px 0;
         }
-
+        
         .video-number {
-          background: #f0f9ff;
-          color: #3b82f6;
           font-size: 12px;
-          font-weight: 600;
-          padding: 4px 8px;
-          border-radius: 6px;
+          font-weight: 700;
+          color: #4f46e5;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
         }
-
+        
         .delete-btn {
-          background: none;
+          background: rgba(239, 68, 68, 0.1);
+          color: #dc2626;
           border: none;
-          color: #ef4444;
-          cursor: pointer;
-          opacity: 0.7;
-          transition: opacity 0.2s;
-        }
-
-        .delete-btn:hover {
-          opacity: 1;
-        }
-
-        .video-wrapper {
-          width: 100%;
-          background: #000;
+          width: 28px;
+          height: 28px;
+          border-radius: 6px;
           display: flex;
-          justify-content: center;
           align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
         }
-
+        
+        .delete-btn:hover {
+          background: rgba(239, 68, 68, 0.2);
+        }
+        
+        .video-wrapper {
+          padding: 12px;
+        }
+        
         .video-wrapper video {
           width: 100%;
-          height: auto;
-          display: block;
+          height: 200px;
+          background: #f1f5f9;
+          border-radius: 8px;
+          object-fit: cover;
         }
-
+        
         .video-meta {
+          padding: 0 16px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 12px 16px;
-          border-top: 1px solid #e2e8f0;
         }
-
+        
         .video-filename {
-          font-size: 14px;
+          font-size: 12px;
           color: #64748b;
+          white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          white-space: nowrap;
-          max-width: 60%;
+          max-width: 180px;
         }
-
+        
         .video-views {
           display: flex;
           align-items: center;
           gap: 6px;
-          font-size: 14px;
-          font-weight: 500;
-          color: #10b981;
+          font-size: 12px;
+          color: #059669;
+          font-weight: 600;
         }
-
+        
         .caption-editor {
           padding: 16px;
-          border-top: 1px solid #e2e8f0;
         }
         
         .caption-editor label {
-          font-size: 13px;
-          font-weight: 500;
-          color: #475569;
           display: block;
+          font-size: 13px;
+          font-weight: 600;
+          color: #4f46e5;
           margin-bottom: 8px;
         }
-
+        
         .caption-editor textarea {
           width: 100%;
-          resize: none;
+          background: #f8fafc;
           border: 1px solid #e2e8f0;
           border-radius: 8px;
-          padding: 10px;
-          font-size: 14px;
+          padding: 12px;
           color: #334155;
-          background: #f8fafc;
-          transition: border-color 0.2s;
+          font-size: 14px;
+          resize: vertical;
+          min-height: 80px;
+          transition: all 0.2s;
         }
         
         .caption-editor textarea:focus {
           outline: none;
-          border-color: #6366f1;
+          border-color: #818cf8;
+          box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
         }
-
+        
+        .caption-editor textarea.error {
+          border-color: #dc2626;
+        }
+        
         .caption-actions {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-top: 10px;
-          font-size: 12px;
+          margin-top: 8px;
         }
-
+        
         .char-count {
-          color: #94a3b8;
+          font-size: 12px;
+          color: #64748b;
         }
         
         .error-text {
-          color: #ef4444;
-          font-weight: 500;
+          font-size: 12px;
+          color: #dc2626;
+          margin-right: auto;
+          margin-left: 12px;
         }
         
         .save-btn {
-          background: #6366f1;
-          color: white;
-          border: none;
-          padding: 8px 16px;
-          border-radius: 8px;
-          font-size: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
           display: flex;
           align-items: center;
           gap: 6px;
-        }
-
-        .save-btn:hover:not(:disabled) {
           background: #4f46e5;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          padding: 8px 16px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
         }
-
+        
+        .save-btn:hover:not(:disabled) {
+          background: #4338ca;
+        }
+        
         .save-btn:disabled {
-          background: #d1d5db;
+          opacity: 0.5;
           cursor: not-allowed;
         }
-
+        
         .save-btn.loading {
           background: #6366f1;
         }
-
+        
         .save-btn.saved {
-          background: #10b981;
-        }
-
-        .empty-state {
-          grid-column: 1 / -1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          padding: 40px;
-          margin-top: 40px;
+          background: #059669;
         }
         
-        .empty-icon {
-          width: 80px;
-          height: 80px;
-          background: #eef2ff;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 20px;
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+          .video-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          }
         }
         
-        .empty-state h3 {
-          font-size: 20px;
-          font-weight: 600;
-          color: #475569;
-          margin-bottom: 8px;
+        @media (max-width: 768px) {
+          .admin-dashboard {
+            flex-direction: column;
+          }
+          
+          .sidebar {
+            width: 100%;
+            height: auto;
+          }
+          
+          .admin-dashboard.sidebar-collapsed .sidebar {
+            transform: translateY(-100%);
+            height: 0;
+          }
+          
+          .sidebar-content {
+            overflow-y: visible;
+          }
+          
+          .content-header {
+            padding: 16px;
+          }
+          
+          .video-grid {
+            padding: 16px;
+            grid-template-columns: 1fr;
+          }
+          
+          .login-card {
+            margin: 20px;
+            padding: 32px 24px;
+          }
         }
-        
-        .empty-state p {
-          color: #94a3b8;
-          font-size: 15px;
-        }
-      `}</style>
-    </div>
-  );
-}
