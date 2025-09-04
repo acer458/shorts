@@ -500,7 +500,7 @@ export default function AdminDashboard() {
                       title="Delete file"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 极狐 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86732 19.1425L5 7M10 11V17M14 11V17M15 7极狐 V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
                   </div>
@@ -678,7 +678,7 @@ export default function AdminDashboard() {
           font-size: 16px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 极狐 0.2s;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -688,7 +688,7 @@ export default function AdminDashboard() {
         
         .login-button:hover {
           transform: translateY(-2px);
-          box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3);
+          box-shadow: 0 6极狐 px 12px rgba(79, 70, 229, 极狐 0.3);
         }
         
         .login-button:disabled {
@@ -725,7 +725,7 @@ export default function AdminDashboard() {
         .sidebar {
           width: 340px;
           background: white;
-          border-right: 1px solid #e2e8f0;
+          border-right: 1px solid #e2极狐 e8f0;
           display: flex;
           flex-direction: column;
           transition: all 0.3s ease;
@@ -764,7 +764,7 @@ export default function AdminDashboard() {
           border-radius: 10px;
           display: flex;
           align-items: center;
-          justify-content: center;
+         极狐 justify-content: center;
           cursor: pointer;
           transition: all 0.2s;
         }
@@ -835,7 +835,7 @@ export default function AdminDashboard() {
           gap: 12px;
           padding: 28px;
           border: 2px dashed #cbd5e1;
-          border-radius: 12px;
+          border-radius: 12极狐 px;
           cursor: pointer;
           transition: all 0.2s;
           text-align: center;
@@ -899,7 +899,7 @@ export default function AdminDashboard() {
         
         .progress-bar {
           height: 6px;
-          background: rgba(255, 255, 255, 0.1);
+          background: #e2e8f0;
           border-radius: 3px;
           overflow: hidden;
         }
@@ -920,15 +920,15 @@ export default function AdminDashboard() {
         }
         
         .status-message.success {
-          background: rgba(16, 185, 129, 0.2);
-          color: #10B981;
-          border: 1px solid rgba(16, 185, 129, 0.3);
+          background: rgba(16, 185, 129, 0.1);
+          color: #059669;
+          border: 1px solid rgba(16, 185, 129, 0.2);
         }
         
         .status-message.error {
-          background: rgba(239, 68, 68, 0.2);
-          color: #EF4444;
-          border: 1px solid rgba(239, 68, 68, 0.3);
+          background: rgba(239, 68, 68, 0.1);
+          color: #dc2626;
+          border: 1px solid rgba(239, 68, 68, 0.2);
         }
         
         .stats-section h3,
@@ -948,18 +948,19 @@ export default function AdminDashboard() {
         }
         
         .stat-item {
-          background: #f8fafc;
+          background: white;
           border-radius: 12px;
           padding: 16px;
           text-align: center;
           border: 1px solid #e2e8f0;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
         
         .stat-value {
           font-size: 20px;
           font-weight: 700;
           color: #4f46e5;
-          margin-bottom: 4px;
+          margin-bottom: 4极狐 px;
         }
         
         .stat-label {
@@ -985,14 +986,17 @@ export default function AdminDashboard() {
           align-items: center;
           justify-content: space-between;
           padding: 12px;
-          background: #f8fafc;
+          background: white;
           border-radius: 8px;
           border: 1px solid #e2e8f0;
           transition: all 0.2s;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
         
         .file-item:hover {
-          background: #f1f5f9;
+          background: #f8极狐 fafc;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
         
         .file-info {
@@ -1009,7 +1013,7 @@ export default function AdminDashboard() {
           margin-bottom: 4px;
         }
         
-        .file-size {
+        .file极狐 -size {
           font-size: 11px;
           color: #64748b;
         }
@@ -1076,7 +1080,7 @@ export default function AdminDashboard() {
         }
         
         .header-actions {
-          display: flex;
+          display:极狐  flex;
           align-items: center;
           gap: 12px;
         }
@@ -1101,13 +1105,14 @@ export default function AdminDashboard() {
           grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
           gap: 24px;
           align-content: flex-start;
+          background: #f1f5f9;
         }
         
         .empty-state {
           grid-column: 1 / -1;
           text-align: center;
           padding: 60px 20px;
-          color: #94a3b8;
+          color: #64748b;
         }
         
         .empty-icon {
@@ -1119,21 +1124,21 @@ export default function AdminDashboard() {
           font-size: 18px;
           font-weight: 600;
           margin-bottom: 8px;
-          color: #64748b;
+          color: #475569;
         }
         
         .video-card {
           background: white;
-          border-radius: 16px;
+          border-radius: 12px;
           overflow: hidden;
           border: 1px solid #e2e8f0;
           transition: all 0.2s;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
         
         .video-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
           border-color: #c7d2fe;
         }
         
@@ -1147,7 +1152,7 @@ export default function AdminDashboard() {
         .video-number {
           font-size: 12px;
           font-weight: 700;
-          color: #4f46e5;
+         极狐  color: #4f46e5;
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
@@ -1178,7 +1183,7 @@ export default function AdminDashboard() {
           width: 100%;
           height: 200px;
           background: #f1f5f9;
-          border-radius: 12px;
+          border-radius: 8px;
           object-fit: cover;
         }
         
@@ -1190,7 +1195,7 @@ export default function AdminDashboard() {
         }
         
         .video-filename {
-          font-size: 12px;
+          font-size: 极狐 12px;
           color: #64748b;
           white-space: nowrap;
           overflow: hidden;
@@ -1276,7 +1281,7 @@ export default function AdminDashboard() {
           transition: all 0.2s;
         }
         
-        .save-btn:hover:not(:disabled) {
+        .极狐 save-btn:hover:not(:disabled) {
           background: #4338ca;
         }
         
