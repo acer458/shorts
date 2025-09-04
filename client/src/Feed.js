@@ -2,8 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
-
-
 // ---- CONFIG ----
 const HOST = "https://shorts-t2dk.onrender.com";
 const COMMENT_SPAM_DELAY_MS = 5000; // 5 seconds delay between each comment per video
@@ -39,6 +37,186 @@ function fakeAvatar(i) {
   return urls[i % urls.length];
 }
 
+// ---- ANIMATED HEART COMPONENT ----
+function AnimatedHeart({ visible, onAnimationEnd }) {
+  return (
+    <div
+      className="heart-animation-container"
+      style={{
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        transform: "translate(-50%, -50%)",
+        zIndex: 106,
+        pointerEvents: "none",
+        opacity: visible ? 1 : 0,
+        transition: "opacity 0.2s ease",
+      }}
+    >
+      <div className="heart-main-animate">❤️</div>
+      <div className="gradient-ring ring-1-animate"></div>
+      <div className="gradient-ring ring-2-animate"></div>
+      <div className="gradient-ring ring-3-animate"></div>
+      <div className="particle" style={{ "--tx": "-60px", "--ty": "-50px" }}></div>
+      <div className="particle" style={{ "--tx": "-70px", "--ty": "20px" }}></div>
+      <div className="particle" style={{ "--tx": "-40px", "--ty": "60px" }}></div>
+      <div className="particle" style={{ "--tx": "50px", "--ty": "-60px" }}></div>
+      <div className="particle" style={{ "--tx": "60px", "--ty": "10px" }}></div>
+      <div className="particle" style={{ "--tx": "40px", "--ty": "60px" }}></div>
+      <div className="glow-effect"></div>
+      
+      <style>
+        {`
+          .heart-animation-container {
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+          
+          .heart-main-animate {
+            position: absolute;
+            font-size: 70px;
+            z-index: 4;
+            background: linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(255, 80, 80, 0.5));
+            animation: heart-appear 1.4s cubic-bezier(0.21, 0.61, 0.35, 1) forwards;
+          }
+          
+          .gradient-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 2;
+          }
+          
+          .ring-1-animate {
+            background: radial-gradient(circle, rgba(255, 82, 82, 0.7) 0%, rgba(255, 107, 107, 0.4) 40%, transparent 70%);
+            animation: ring-pulse 1.8s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
+          }
+          
+          .ring-2-animate {
+            background: radial-gradient(circle, rgba(255, 107, 107, 0.5) 0%, rgba(255, 142, 142, 0.3) 30%, transparent 60%);
+            animation: ring-pulse 1.8s cubic-bezier(0.23, 1, 0.32, 1) 0.2s forwards;
+          }
+          
+          .ring-3-animate {
+            background: radial-gradient(circle, rgba(255, 142, 142, 0.4) 0%, rgba(255, 82, 82, 0.2) 20%, transparent 50%);
+            animation: ring-pulse 1.8s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards;
+          }
+          
+          .particle {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            opacity: 0;
+            z-index: 1;
+            background: #ff5252;
+            animation: particle-float 1.5s ease-out forwards;
+          }
+          
+          .particle:nth-child(4) { animation-delay: 0.1s; }
+          .particle:nth-child(5) { animation-delay: 0.2s; }
+          .particle:nth-child(6) { animation-delay: 0.3s; }
+          .particle:nth-child(7) { animation-delay: 0.4s; }
+          .particle:nth-child(8) { animation-delay: 0.5s; }
+          .particle:nth-child(9) { animation-delay: 0.6s; }
+          
+          .glow-effect {
+            position: absolute;
+            width: 140%;
+            height: 140%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 82, 82, 0.3) 0%, rgba(255, 107, 107, 0.2) 30%, rgba(255, 142, 142, 0.1) 60%, transparent 80%);
+            opacity: 0;
+            z-index: 0;
+            filter: blur(20px);
+            animation: glow-pulse 2.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+          }
+          
+          @keyframes heart-appear {
+            0% {
+              opacity: 0;
+              transform: scale(0) rotate(-10deg);
+            }
+            15% {
+              opacity: 1;
+              transform: scale(1.25) rotate(3deg);
+            }
+            25% {
+              transform: scale(0.92) rotate(-1deg);
+            }
+            35% {
+              transform: scale(1.08) rotate(1deg);
+            }
+            45%, 65% {
+              opacity: 1;
+              transform: scale(1) rotate(0deg);
+            }
+            80% {
+              opacity: 0.8;
+              transform: scale(1);
+            }
+            100% {
+              opacity: 0;
+              transform: scale(1.4) rotate(3deg);
+            }
+          }
+          
+          @keyframes ring-pulse {
+            0% {
+              opacity: 0.7;
+              transform: scale(0);
+            }
+            50% {
+              opacity: 0.4;
+            }
+            100% {
+              opacity: 0;
+              transform: scale(2.4);
+            }
+          }
+          
+          @keyframes particle-float {
+            0% {
+              opacity: 0;
+              transform: translate(0, 0) scale(0);
+            }
+            20% {
+              opacity: 0.9;
+            }
+            100% {
+              opacity: 0;
+              transform: translate(var(--tx), var(--ty)) scale(1.6);
+            }
+          }
+          
+          @keyframes glow-pulse {
+            0% {
+              opacity: 0;
+              transform: scale(0.8);
+            }
+            30% {
+              opacity: 0.6;
+            }
+            100% {
+              opacity: 0;
+              transform: scale(2.2);
+            }
+          }
+        `}
+      </style>
+    </div>
+  );
+}
+
 // ---- SVG ICONS ----
 function HeartSVG({ filled }) {
   return (
@@ -52,7 +230,6 @@ function HeartSVG({ filled }) {
         display: "block",
         transition: "transform .15s ease, filter .2s ease",
         transform: filled ? "scale(1.02)" : "scale(1.0)",
-        // Optional extra CSS glow
         filter: filled
           ? "drop-shadow(0 0 10px rgba(237,73,86,0.35)) drop-shadow(0 0 18px rgba(255,72,112,0.18))"
           : "none",
@@ -110,6 +287,7 @@ function HeartSVG({ filled }) {
     </svg>
   );
 }
+
 function PauseIcon() {
   return (
     <svg width={82} height={82} viewBox="0 0 82 82">
@@ -119,85 +297,6 @@ function PauseIcon() {
     </svg>
   );
 }
-function PulseHeart({ visible }) {
-  return (
-    <div
-      aria-hidden
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: "50%",
-        zIndex: 106,
-        transform: "translate(-50%,-50%)",
-        pointerEvents: "none",
-        opacity: visible ? 1 : 0,
-        animation: visible ? "heartPulse3 .92s cubic-bezier(.16,.9,.24,1)" : "none",
-      }}
-    >
-      <svg viewBox="0 0 96 96" width={94} height={94} style={{ display: "block" }}>
-        <defs>
-          {/* Gradient for the heart */}
-          <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#ff7a7a" />
-            <stop offset="50%" stopColor="#ed4956" />
-            <stop offset="100%" stopColor="#ff3d6e" />
-          </linearGradient>
-
-          {/* Layered glow: inner + outer for depth */}
-          <filter id="heartOuterGlow" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="g1" />
-            <feColorMatrix
-              in="g1"
-              type="matrix"
-              values="
-                1 0 0 0 0
-                0 1 0 0 0
-                0 0 1 0 0
-                0 0 0 0.35 0
-              "
-              result="glow1"
-            />
-            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="g2" />
-            <feColorMatrix
-              in="g2"
-              type="matrix"
-              values="
-                1 0 0 0 0
-                0 1 0 0 0
-                0 0 1 0 0
-                0 0 0 0.18 0
-              "
-              result="glow2"
-            />
-            <feMerge>
-              <feMergeNode in="glow2" />
-              <feMergeNode in="glow1" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        <path
-          d="M48 86C48 86 12 60 12 32.5 12 18.8 24.5 10 36 10c6.2 0 11.9 3.3 12 3.3S53.8 10 60 10c11.5 0 24 8.8 24 22.5C84 60 48 86 48 86Z"
-          fill="url(#heartGrad)"
-          stroke="#ed4956"
-          strokeWidth="7"
-          filter="url(#heartOuterGlow)"
-        />
-      </svg>
-
-      <style>{`
-        @keyframes heartPulse3 {
-          0%   { opacity: 0; transform: translate(-50%,-50%) scale(.85); }
-          35%  { opacity: 1; transform: translate(-50%,-50%) scale(1.18); }
-          60%  { opacity: 1; transform: translate(-50%,-50%) scale(.96); }
-          100% { opacity: 0; transform: translate(-50%,-50%) scale(1.0); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
 
 function MuteMicIcon({ muted }) {
   return muted ? (
@@ -340,6 +439,7 @@ function SkeletonShort() {
     </div>
   );
 }
+
 // COMMENT_ROW_COMPONENTS
 function CommentSkeletonRow() {
   return (
@@ -420,6 +520,7 @@ function CommentSkeletonRow() {
     </div>
   );
 }
+
 // ---- ANTI-INSPECT ----
 function useAntiInspect() {
   useEffect(() => {
@@ -495,9 +596,8 @@ export default function Feed() {
   const [expandedCaptions, setExpandedCaptions] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
   const [commentLikes, setCommentLikes] = useState({});
-
   const [moreOpen, setMoreOpen] = useState({});
-
+  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
 
   // Bottom sheet drag
   const [modalDragY, setModalDragY] = useState(0);
@@ -557,8 +657,7 @@ export default function Feed() {
     setTimeout(() => (pageLock.current = false), 500);
   }
 
-
-    // Close the More menu when clicking anywhere outside the actions column
+  // Close the More menu when clicking anywhere outside the actions column
   useEffect(() => {
     const hasOpen = Object.values(moreOpen).some(Boolean);
     if (!hasOpen) return;
@@ -588,8 +687,6 @@ export default function Feed() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [moreOpen]);
-  
-
 
   // ---- Wheel and swipe listeners for feed ----
   // FEED_GESTURES_GUARD
@@ -929,15 +1026,13 @@ export default function Feed() {
       if (!isLiked(filename)) {
         handleLike(idx, filename);
       }
-      setShowPulseHeart(true);
-      requestAnimationFrame(() => {
-        setTimeout(() => setShowPulseHeart(false), 700);
-      });
+      setShowHeartAnimation(true);
+      setTimeout(() => setShowHeartAnimation(false), 1400);
     };
 
     return {
       onClick: (e) => {
-        // Always block bubbling so nested buttons don’t cause parent toggles
+        // Always block bubbling so nested buttons don't cause parent toggles
         e.preventDefault();
         e.stopPropagation();
     
@@ -1005,6 +1100,7 @@ export default function Feed() {
       },
     };
   }
+  
   // ---- Seek ----
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
@@ -1068,6 +1164,9 @@ export default function Feed() {
           overflow: "hidden",
         }}
       >
+        {/* Heart Animation */}
+        {isCurrent && <AnimatedHeart visible={showHeartAnimation} />}
+
         {/* Spam Alert */}
         {isCurrent && spamAlert.show && (
           <div
@@ -1091,7 +1190,7 @@ export default function Feed() {
               textAlign: "center",
               backdropFilter: "blur(6px)",
             }}
-          >
+            >
             {spamAlert.message || "Please wait before commenting again."}
           </div>
         )}
@@ -1236,22 +1335,12 @@ export default function Feed() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-          
-              // Drop just beneath the pop card while it's open; otherwise keep original stack
               zIndex: Object.values(moreOpen).some(Boolean) ? 90 : 105,
-          
-              // Let taps reach the pop card while menu is open; otherwise remain non-interactive
               pointerEvents: Object.values(moreOpen).some(Boolean) ? "none" : "none",
-          
-              // Keep the original soft dark veil, and slightly soften it more when menu is open
               background: Object.values(moreOpen).some(Boolean)
                 ? "rgba(0,0,0,0.22)"
                 : "rgba(0,0,0,0.26)",
-          
-              // Preserve your original entrance animation for smoothness
               animation: "pauseOverlayIn .32s cubic-bezier(.2,.9,.25,1)",
-          
-              // Avoid creating a competing stacking context when the menu is open
               transform: Object.values(moreOpen).some(Boolean) ? "none" : undefined,
               filter: Object.values(moreOpen).some(Boolean) ? "none" : undefined,
               backdropFilter: Object.values(moreOpen).some(Boolean) ? "none" : undefined,
@@ -1297,8 +1386,6 @@ export default function Feed() {
             `}</style>
           </div>
         )}
-
-        {isCurrent && <PulseHeart visible={showPulseHeart} />}
 
         {/* Progress bar */}
         <div
@@ -1352,7 +1439,6 @@ export default function Feed() {
           )}
         </div>
 
-
         {/* Right side actions */}
         <div
           data-actions="right"
@@ -1383,6 +1469,8 @@ export default function Feed() {
               onClick={(e) => {
                 e.stopPropagation();
                 handleLike(idx, filename);
+                setShowHeartAnimation(true);
+                setTimeout(() => setShowHeartAnimation(false), 1400);
               }}
               style={{
                 background: "none",
@@ -1538,10 +1626,9 @@ export default function Feed() {
                 />
               </svg>
             </button>
-            {/* label removed */}
           </div>
         
-          {/* Three-dots “More” button */}
+          {/* Three-dots "More" button */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <button
               aria-label="More"
@@ -1583,17 +1670,17 @@ export default function Feed() {
             </button>
           </div>
         
-          {/* Floating “More” menu card */}
+          {/* Floating "More" menu card */}
           {moreOpen[filename] && (
             <div
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation?.(); }}
               style={{
-                position: "fixed",             // take out of parent stacking quirks
+                position: "fixed",
                 right: 16,
-                bottom: 140,                   // align near actions; adjust if needed
-                zIndex: 9999,                  // above pause overlay
-                isolation: "isolate",          // new stacking context for children
+                bottom: 140,
+                zIndex: 9999,
+                isolation: "isolate",
                 pointerEvents: "auto",
               }}
             >
@@ -1668,7 +1755,7 @@ export default function Feed() {
                     e.stopPropagation();
                     e.nativeEvent.stopImmediatePropagation?.();
                     window.open("https://propscholar.com", "_blank", "noopener,noreferrer");
-                    setMoreOpen({}); // optional: close after nav
+                    setMoreOpen({});
                   }}
                 >
                   <span></span> <span>Home</span>
