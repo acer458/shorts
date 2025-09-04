@@ -495,11 +495,6 @@ export default function Feed() {
   const [expandedCaptions, setExpandedCaptions] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
   const [commentLikes, setCommentLikes] = useState({});
-  const heartOverlayRef = useRef(null);
-  const [animLock, setAnimLock] = useState(false);
-  const lastTapRef = useRef(0);
-  const lastXYRef = useRef([0,0]);
-
 
   const [moreOpen, setMoreOpen] = useState({});
 
@@ -1289,186 +1284,75 @@ export default function Feed() {
               }
             `}</style>
             
-          {/* HEART_BURST_STYLE */}
-          <style>{`
-            .heart-burst {
-              animation: heartBurst .36s cubic-bezier(.2,.9,.25,1);
-            }
-            @keyframes heartBurst {
-              0%   { transform: scale(.88); filter: drop-shadow(0 0 0 rgba(237,73,86,0)); }
-              55%  { transform: scale(1.22); filter: drop-shadow(0 0 14px rgba(237,73,86,0.45)); }
-              100% { transform: scale(1.02); filter: drop-shadow(0 0 10px rgba(237,73,86,0.35)); }
-            }
-          
-            /* Heart burst animation CSS (overlay + mini pulse) */
-            .feed-heart-overlay {
-              position: absolute;
-              inset: 0;
-              display: grid;
-              place-items: center;
-              pointer-events: none;
-              z-index: 9999;
-            }
-            .feed-heart-stage { position: relative; width: 240px; height: 240px; }
-            .feed-heart-main, .feed-heart-child, .feed-heart-ring, .feed-heart-particle, .feed-heart-glow { position: absolute; opacity: 0; }
-            .feed-heart-main {
-              font-size: 100px; z-index: 4; transform: scale(0);
-              background: linear-gradient(135deg,#ff5252 0%,#ff6b6b 25%,#ff8e8e 50%,#ff5252 100%);
-              -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-              filter: drop-shadow(0 0 15px rgba(255,80,80,.5));
-              animation: oscillate 4s ease-in-out infinite;
-            }
-            .feed-heart-child {
-              font-size: 36px; z-index: 3; transform: scale(0);
-              background: linear-gradient(135deg,#ff5252 0%,#ff6b6b 25%,#ff8e8e 50%,#ff5252 100%);
-              -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-              filter: drop-shadow(0 0 8px rgba(255,80,80,.4));
-            }
-            .feed-heart-ring { width:140px; height:140px; border-radius:50%; z-index:2; }
-            .feed-ring-1 { background: radial-gradient(circle, rgba(255,82,82,.7) 0%, rgba(255,107,107,.4) 40%, transparent 70%); }
-            .feed-ring-2 { background: radial-gradient(circle, rgba(255,107,107,.5) 0%, rgba(255,142,142,.3) 30%, transparent 60%); }
-            .feed-ring-3 { background: radial-gradient(circle, rgba(255,142,142,.4) 0%, rgba(255,82,82,.2) 20%, transparent 50%); }
-            .feed-heart-particle { width:16px; height:16px; border-radius:50%; z-index:1; }
-            .feed-heart-glow {
-              width:200px; height:200px; border-radius:50%;
-              background: radial-gradient(circle, rgba(255,82,82,.3) 0%, rgba(255,107,107,.2) 30%, rgba(255,142,142,.1) 60%, transparent 80%);
-              filter: blur(20px); z-index:0;
-            }
-            .animate-heart { animation: heart-appear 2.8s cubic-bezier(0.21,0.61,0.35,1) forwards; }
-            .animate-child { animation: child-heart-appear 3s cubic-bezier(0.21,0.61,0.35,1) forwards; }
-            .animate-ring-1 { animation: ring-pulse 3.2s cubic-bezier(0.23,1,0.32,1) .1s forwards; }
-            .animate-ring-2 { animation: ring-pulse 3.2s cubic-bezier(0.23,1,0.32,1) .2s forwards; }
-            .animate-ring-3 { animation: ring-pulse 3.2s cubic-bezier(0.23,1,0.32,1) .3s forwards; }
-            .animate-particle { animation: particle-float 2.5s ease-out forwards; }
-            .animate-glow { animation: glow-pulse 3.4s cubic-bezier(0.23,1,0.32,1) forwards; }
-            .heart-mini-pulse { animation: mini-pulse 900ms cubic-bezier(.22,1,.36,1); transform-origin: 50% 50%; }
-          
-            @keyframes oscillate {
-              0%,100% { transform: scale(1) rotate(0deg); }
-              25% { transform: scale(1.03) rotate(.8deg); }
-              75% { transform: scale(.98) rotate(-.8deg); }
-            }
-            @keyframes heart-appear {
-              0% { opacity:0; transform: scale(0) rotate(-10deg); }
-              15% { opacity:1; transform: scale(1.25) rotate(3deg); }
-              25% { transform: scale(0.92) rotate(-1deg); }
-              35% { transform: scale(1.08) rotate(1deg); }
-              45%,65% { opacity:1; transform: scale(1) rotate(0deg); }
-              80% { opacity:.8; transform: scale(1); }
-              100% { opacity:0; transform: scale(1.4) rotate(3deg); }
-            }
-            @keyframes child-heart-appear {
-              0% { opacity:0; transform: scale(0) translateY(0) translateX(0); }
-              30% { opacity:.9; transform: scale(1) translateY(var(--ty)) translateX(var(--tx)); }
-              70% { opacity:.8; }
-              100% { opacity:0; transform: scale(1.15) translateY(var(--ty)) translateX(var(--tx)); }
-            }
-            @keyframes ring-pulse {
-              0% { opacity:.7; transform: scale(0); }
-              50% { opacity:.4; }
-              100% { opacity:0; transform: scale(2.4); }
-            }
-            @keyframes particle-float {
-              0% { opacity:0; transform: translate(0,0) scale(0); }
-              20% { opacity:.9; }
-              100% { opacity:0; transform: translate(var(--tx), var(--ty)) scale(1.6); }
-            }
-            @keyframes glow-pulse {
-              0% { opacity:0; transform: scale(.8); }
-              30% { opacity:.6; }
-              100% { opacity:0; transform: scale(2.2); }
-            }
-            @keyframes mini-pulse {
-              0% { transform: scale(.6); opacity:.8; }
-              35% { transform: scale(1.25); opacity:1; }
-              60% { transform: scale(.95); }
-              100% { transform: scale(1); }
-            }
-          `}</style>
+            {/* HEART_BURST_STYLE */}
+            <style>{`
+              .heart-burst {
+                animation: heartBurst .36s cubic-bezier(.2,.9,.25,1);
+              }
+              @keyframes heartBurst {
+                0%   { transform: scale(.88); filter: drop-shadow(0 0 0 rgba(237,73,86,0)); }
+                55%  { transform: scale(1.22); filter: drop-shadow(0 0 14px rgba(237,73,86,0.45)); }
+                100% { transform: scale(1.02); filter: drop-shadow(0 0 10px rgba(237,73,86,0.35)); }
+              }
+            `}</style>
           </div>
-          )}
-          {isCurrent && <PulseHeart visible={showPulseHeart} />}
-          
-          /* Progress bar */
-        <>
-          {/* Progress bar */}
+        )}
+
+        {isCurrent && <PulseHeart visible={showPulseHeart} />}
+
+        {/* Progress bar */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 4,
+            background: "rgba(255,255,255,0.18)",
+            zIndex: 32,
+            borderRadius: 2,
+            overflow: "hidden",
+            cursor: "pointer",
+          }}
+          onClick={(e) => handleSeek(idx, e, false)}
+          onTouchMove={(e) => handleSeek(idx, e, true)}
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(prog * 100)}
+        >
           <div
             style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 4,
-              background: "rgba(255,255,255,0.18)",
-              zIndex: 32,
+              width: `${Math.min(Math.max(prog * 100, 0), 100)}%`,
+              height: "100%",
+              background:
+                "linear-gradient(90deg, #6f00ff 0%, #1e00ff 35%, #006aff 65%, #00d5ff 100%)",
+              boxShadow:
+                "0 0 6px rgba(58,160,255,0.55), 0 0 14px rgba(107,198,255,0.35)",
+              transition: "width 0.22s cubic-bezier(.4,1,.5,1)",
               borderRadius: 2,
-              overflow: "hidden",
-              cursor: "pointer",
+              pointerEvents: "none",
             }}
-            onClick={(e) => handleSeek(idx, e, false)}
-            onTouchMove={(e) => handleSeek(idx, e, true)}
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(prog * 100)}
-          >
+          />
+          {prog > 0 && (
             <div
+              aria-hidden
               style={{
-                width: `${Math.min(Math.max(prog * 100, 0), 100)}%`,
-                height: "100%",
-                background:
-                  "linear-gradient(90deg, #6f00ff 0%, #1e00ff 35%, #006aff 65%, #00d5ff 100%)",
+                position: "absolute",
+                right: 0,
+                bottom: 0,
+                top: 0,
+                width: 0,
                 boxShadow:
-                  "0 0 6px rgba(58,160,255,0.55), 0 0 14px rgba(107,198,255,0.35)",
-                transition: "width 0.22s cubic-bezier(.4,1,.5,1)",
+                  "0 0 10px 4px rgba(107,198,255,0.45), 0 0 18px 8px rgba(58,160,255,0.25)",
                 borderRadius: 2,
                 pointerEvents: "none",
               }}
             />
-            {prog > 0 && (
-              <div
-                aria-hidden
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  bottom: 0,
-                  top: 0,
-                  width: 0,
-                  boxShadow:
-                    "0 0 10px 4px rgba(107,198,255,0.45), 0 0 18px 8px rgba(58,160,255,0.25)",
-                  borderRadius: 2,
-                  pointerEvents: "none",
-                }}
-              />
-            )}
-          </div>
-        
-          {/* Heart overlay root (hidden until animated) */}
-          <div className="feed-heart-overlay" ref={heartOverlayRef}>
-            <div className="feed-heart-stage">
-              <div className="feed-heart-main">❤️</div>
-        
-              <div className="feed-heart-child" style={{ "--ty": "-70px", "--tx": "-30px" }}>❤️</div>
-              <div className="feed-heart-child" style={{ "--ty": "-80px", "--tx": "40px" }}>❤️</div>
-              <div className="feed-heart-child" style={{ "--ty": "70px", "--tx": "-40px" }}>❤️</div>
-              <div className="feed-heart-child" style={{ "--ty": "80px", "--tx": "30px" }}>❤️</div>
-        
-              <div className="feed-heart-ring feed-ring-1"></div>
-              <div className="feed-heart-ring feed-ring-2"></div>
-              <div className="feed-heart-ring feed-ring-3"></div>
-        
-              <div className="feed-heart-particle" style={{ "--tx": "-60px", "--ty": "-50px", background: "#ff5252" }}></div>
-              <div className="feed-heart-particle" style={{ "--tx": "-70px", "--ty": "20px", background: "#ff6b6b" }}></div>
-              <div className="feed-heart-particle" style={{ "--tx": "-40px", "--ty": "60px", background: "#ff8e8e" }}></div>
-              <div className="feed-heart-particle" style={{ "--tx": "50px", "--ty": "-60px", background: "#ff5252" }}></div>
-              <div className="feed-heart-particle" style={{ "--tx": "60px", "--ty": "10px", background: "#ff6b6b" }}></div>
-              <div className="feed-heart-particle" style={{ "--tx": "40px", "--ty": "60px", background: "#ff8e8e" }}></div>
-        
-              <div className="feed-heart-glow"></div>
-            </div>
-          </div>
-        </>
-        
+          )}
+        </div>
+
+
         {/* Right side actions */}
         <div
           data-actions="right"
@@ -1496,22 +1380,8 @@ export default function Feed() {
             <button
               aria-label={liked ? "Unlike" : "Like"}
               disabled={likePending[filename]}
-              onClickCapture={(e) => { e.stopPropagation(); }}
               onClick={(e) => {
                 e.stopPropagation();
-                if (!animLock) {
-                  setAnimLock(true);
-                  // big overlay animation
-                  playHeartAnimation();
-                  // mini pulse on this button's icon only
-                  const scope = e.currentTarget;
-                  const icon = scope.querySelector("svg, span, path") || scope;
-                  icon.classList.remove("heart-mini-pulse");
-                  void icon.offsetWidth;
-                  icon.classList.add("heart-mini-pulse");
-                  setTimeout(() => icon.classList.remove("heart-mini-pulse"), 1000);
-                  setTimeout(() => setAnimLock(false), 1200);
-                }
                 handleLike(idx, filename);
               }}
               style={{
@@ -1530,7 +1400,7 @@ export default function Feed() {
               onFocus={(e) => { e.currentTarget.style.transform = "scale(1.02)"; }}
               onBlur={(e) => { e.currentTarget.style.transform = "scale(1.0)"; }}
             >
-              <span style={{ display: "inline-block" }}>
+              <span className={!liked ? "liked-pulse" : ""} style={{ display: "inline-block" }}>
                 <HeartSVG filled={liked} />
               </span>
             </button>
@@ -1538,9 +1408,7 @@ export default function Feed() {
               {v.likes || 0}
             </span>
           </div>
-        </div>
-
-
+        
           {/* Comment */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <button
@@ -1749,6 +1617,7 @@ export default function Feed() {
                 }}
 
               >
+
                 <style>
                   {`
                   @keyframes menuIn {
@@ -1787,89 +1656,6 @@ export default function Feed() {
                     @keyframes itemIn { 0%{opacity:0} 100%{opacity:1} }
                     .nav-item { transition: background .18s ease, color .18s ease, border-color .2s ease; }
                   }
-                  /* Heart burst animation CSS */
-                  .feed-heart-overlay {
-                    position: absolute;
-                    inset: 0;
-                    display: grid;
-                    place-items: center;
-                    pointer-events: none;
-                    z-index: 9999;
-                  }
-                  .feed-heart-stage { position: relative; width: 240px; height: 240px; }
-                  .feed-heart-main, .feed-heart-child, .feed-heart-ring, .feed-heart-particle, .feed-heart-glow { position: absolute; opacity: 0; }
-                  .feed-heart-main {
-                    font-size: 100px; z-index: 4; transform: scale(0);
-                    background: linear-gradient(135deg,#ff5252 0%,#ff6b6b 25%,#ff8e8e 50%,#ff5252 100%);
-                    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-                    filter: drop-shadow(0 0 15px rgba(255,80,80,.5));
-                    animation: oscillate 4s ease-in-out infinite;
-                  }
-                  .feed-heart-child {
-                    font-size: 36px; z-index: 3; transform: scale(0);
-                    background: linear-gradient(135deg,#ff5252 0%,#ff6b6b 25%,#ff8e8e 50%,#ff5252 100%);
-                    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-                    filter: drop-shadow(0 0 8px rgba(255,80,80,.4));
-                  }
-                  .feed-heart-ring { width:140px; height:140px; border-radius:50%; z-index:2; }
-                  .feed-ring-1 { background: radial-gradient(circle, rgba(255,82,82,.7) 0%, rgba(255,107,107,.4) 40%, transparent 70%); }
-                  .feed-ring-2 { background: radial-gradient(circle, rgba(255,107,107,.5) 0%, rgba(255,142,142,.3) 30%, transparent 60%); }
-                  .feed-ring-3 { background: radial-gradient(circle, rgba(255,142,142,.4) 0%, rgba(255,82,82,.2) 20%, transparent 50%); }
-                  .feed-heart-particle { width:16px; height:16px; border-radius:50%; z-index:1; }
-                  .feed-heart-glow {
-                    width:200px; height:200px; border-radius:50%;
-                    background: radial-gradient(circle, rgba(255,82,82,.3) 0%, rgba(255,107,107,.2) 30%, rgba(255,142,142,.1) 60%, transparent 80%);
-                    filter: blur(20px); z-index:0;
-                  }
-                  .animate-heart { animation: heart-appear 2.8s cubic-bezier(0.21,0.61,0.35,1) forwards; }
-                  .animate-child { animation: child-heart-appear 3s cubic-bezier(0.21,0.61,0.35,1) forwards; }
-                  .animate-ring-1 { animation: ring-pulse 3.2s cubic-bezier(0.23,1,0.32,1) .1s forwards; }
-                  .animate-ring-2 { animation: ring-pulse 3.2s cubic-bezier(0.23,1,0.32,1) .2s forwards; }
-                  .animate-ring-3 { animation: ring-pulse 3.2s cubic-bezier(0.23,1,0.32,1) .3s forwards; }
-                  .animate-particle { animation: particle-float 2.5s ease-out forwards; }
-                  .animate-glow { animation: glow-pulse 3.4s cubic-bezier(0.23,1,0.32,1) forwards; }
-                  .heart-mini-pulse { animation: mini-pulse 900ms cubic-bezier(.22,1,.36,1); transform-origin: 50% 50%; }
-                
-                  @keyframes heart-appear {
-                    0% { opacity:0; transform: scale(0) rotate(-10deg); }
-                    15% { opacity:1; transform: scale(1.25) rotate(3deg); }
-                    25% { transform: scale(0.92) rotate(-1deg); }
-                    35% { transform: scale(1.08) rotate(1deg); }
-                    45%,65% { opacity:1; transform: scale(1) rotate(0deg); }
-                    80% { opacity:.8; transform: scale(1); }
-                    100% { opacity:0; transform: scale(1.4) rotate(3deg); }
-                  }
-                  @keyframes child-heart-appear {
-                    0% { opacity:0; transform: scale(0) translateY(0) translateX(0); }
-                    30% { opacity:.9; transform: scale(1) translateY(var(--ty)) translateX(var(--tx)); }
-                    70% { opacity:.8; }
-                    100% { opacity:0; transform: scale(1.15) translateY(var(--ty)) translateX(var(--tx)); }
-                  }
-                  @keyframes ring-pulse {
-                    0% { opacity:.7; transform: scale(0); }
-                    50% { opacity:.4; }
-                    100% { opacity:0; transform: scale(2.4); }
-                  }
-                  @keyframes particle-float {
-                    0% { opacity:0; transform: translate(0,0) scale(0); }
-                    20% { opacity:.9; }
-                    100% { opacity:0; transform: translate(var(--tx), var(--ty)) scale(1.6); }
-                  }
-                  @keyframes glow-pulse {
-                    0% { opacity:0; transform: scale(.8); }
-                    30% { opacity:.6; }
-                    100% { opacity:0; transform: scale(2.2); }
-                  }
-                  @keyframes mini-pulse {
-                    0% { transform: scale(.6); opacity:.8; }
-                    35% { transform: scale(1.25); opacity:1; }
-                    60% { transform: scale(.95); }
-                    100% { transform: scale(1); }
-                  }
-                
-                  /* Prevent double-tap zoom for this viewport */
-                  .feed-viewport { touch-action: manipulation; }
-
 
                   `}
                 </style>
