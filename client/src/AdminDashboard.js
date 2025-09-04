@@ -6,7 +6,8 @@ import AllComments from './components/AllComments';
 const HOST = "https://shorts-t2dk.onrender.com";
 
 // ============= LOGIN FORM COMPONENT =============
-// This component does not need to be exported, as it is only used by AdminDashboard.
+// This component is only used within AdminDashboard, so it does not need to be exported.
+// REMOVING 'export default' from this component.
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -102,6 +103,7 @@ function bytesToSize(bytes) {
 }
 
 // ============= MAIN DASHBOARD =============
+// This is the one and only default export for this file.
 export default function AdminDashboard() {
   const [shorts, setShorts] = useState([]);
   const [video, setVideo] = useState(null);
