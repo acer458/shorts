@@ -117,85 +117,155 @@ function PauseIcon() {
     </svg>
   );
 }
+import React, { useState, useEffect } from "react";
+
+// Helper array to create particles programmatically
+const particles = [
+  { tx: -90, ty: -60, color: "#ff5252", delay: "0s" },
+  { tx: -100, ty: 25, color: "#ff6b6b", delay: "0.1s" },
+  { tx: 80, ty: -70, color: "#ff5252", delay: "0.2s" },
+  { tx: 70, ty: 80, color: "#ff8e8e", delay: "0.3s" },
+  { tx: -40, ty: 90, color: "#ff6b6b", delay: "0.4s" },
+  { tx: 50, ty: 20, color: "#ff8e8e", delay: "0.5s" },
+];
+
 function PulseHeart({ visible }) {
+  // 1. We introduce an internal state to manage the animation lifecycle.
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // 2. This effect watches the `visible` prop from the parent.
+  // When it becomes `true`, we set our internal state to `true` to start the animation.
+  useEffect(() => {
+    if (visible) {
+      setIsAnimating(true);
+    }
+  }, [visible]);
+
+  // 4. This function is called when the longest animation completes.
+  // It resets the internal state, which causes the component to unmount.
+  const handleAnimationEnd = () => {
+    setIsAnimating(false);
+  };
+
+  // If we are not animating, we render nothing. This is key.
+  if (!isAnimating) {
+    return null;
+  }
+
+  // 3. The component now renders based on its own `isAnimating` state.
   return (
     <div
       aria-hidden
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: "50%",
-        zIndex: 106,
-        transform: "translate(-50%,-50%)",
-        pointerEvents: "none",
-        opacity: visible ? 1 : 0,
-        animation: visible ? "heartPulse3 .92s cubic-bezier(.16,.9,.24,1)" : "none",
-      }}
+      className="heart-animation-container"
+      // 5. We attach the event listener to the element with the longest animation duration (the glow).
+      onAnimationEnd={handleAnimationEnd}
     >
-      <svg viewBox="0 0 96 96" width={94} height={94} style={{ display: "block" }}>
-        <defs>
-          {/* Gradient for the heart */}
-          <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#ff7a7a" />
-            <stop offset="50%" stopColor="#ed4956" />
-            <stop offset="100%" stopColor="#ff3d6e" />
-          </linearGradient>
+      <div className="glow-effect" />
+      <div className="gradient-ring ring-1" />
+      <div className="gradient-ring ring-2" />
+      <div className="gradient-ring ring-3" />
 
-          {/* Layered glow: inner + outer for depth */}
-          <filter id="heartOuterGlow" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="g1" />
-            <feColorMatrix
-              in="g1"
-              type="matrix"
-              values="
-                1 0 0 0 0
-                0 1 0 0 0
-                0 0 1 0 0
-                0 0 0 0.35 0
-              "
-              result="glow1"
-            />
-            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="g2" />
-            <feColorMatrix
-              in="g2"
-              type="matrix"
-              values="
-                1 0 0 0 0
-                0 1 0 0 0
-                0 0 1 0 0
-                0 0 0 0.18 0
-              "
-              result="glow2"
-            />
-            <feMerge>
-              <feMergeNode in="glow2" />
-              <feMergeNode in="glow1" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        <path
-          d="M48 86C48 86 12 60 12 32.5 12 18.8 24.5 10 36 10c6.2 0 11.9 3.3 12 3.3S53.8 10 60 10c11.5 0 24 8.8 24 22.5C84 60 48 86 48 86Z"
-          fill="url(#heartGrad)"
-          stroke="#ed4956"
-          strokeWidth="7"
-          filter="url(#heartOuterGlow)"
+      {particles.map((p, i) => (
+        <div
+          key={i}
+          className="particle"
+          style={{
+            "--tx": `${p.tx}px`,
+            "--ty": `${p.ty}px`,
+            background: p.color,
+            animationDelay: p.delay,
+          }}
         />
-      </svg>
+      ))}
+      
+      <div className="heart-main">
+        <svg viewBox="0 0 96 96" width={94} height={94}>
+          <defs>
+            <linearGradient id="heartGradNew" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#ff7a7a" />
+              <stop offset="50%" stopColor="#ff5252" />
+              <stop offset="100%" stopColor="#ff3d6e" />
+            </linearGradient>
+          </defs>
+          <path
+            d="M48 86C48 86 12 60 12 32.5 12 18.8 24.5 10 36 10c6.2 0 11.9 3.3 12 3.3S53.8 10 60 10c11.5 0 24 8.8 24 22.5C84 60 48 86 48 86Z"
+            fill="url(#heartGradNew)"
+          />
+        </svg>
+      </div>
 
       <style>{`
-        @keyframes heartPulse3 {
-          0%  { opacity: 0; transform: translate(-50%,-50%) scale(.85); }
-          35% { opacity: 1; transform: translate(-50%,-50%) scale(1.18); }
-          60% { opacity: 1; transform: translate(-50%,-50%) scale(.96); }
-          100% { opacity: 0; transform: translate(-50%,-50%) scale(1.0); }
+        .heart-animation-container {
+          position: absolute; left: 50%; top: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 106; pointer-events: none; display: flex;
+          justify-content: center; align-items: center;
+          width: 240px; height: 240px;
+        }
+        .heart-main, .gradient-ring, .particle, .glow-effect {
+          position: absolute; opacity: 0;
+          will-change: transform, opacity; /* Performance hint */
+        }
+        .heart-main {
+          z-index: 4;
+          filter: drop-shadow(0 4px 12px rgba(255, 80, 80, 0.6));
+          animation: heart-appear 2.8s cubic-bezier(0.21, 0.61, 0.35, 1) forwards;
+        }
+        @keyframes heart-appear {
+          0% { opacity: 0; transform: scale(0) rotate(-15deg); }
+          15% { opacity: 1; transform: scale(1.25) rotate(5deg); }
+          25% { transform: scale(0.95) rotate(-2deg); }
+          35% { transform: scale(1.05) rotate(2deg); }
+          45%, 65% { opacity: 1; transform: scale(1) rotate(0deg); }
+          85% { opacity: 0.8; transform: scale(1.1); }
+          100% { opacity: 0; transform: scale(1.5); }
+        }
+        .gradient-ring {
+          width: 140px; height: 140px; border-radius: 50%; z-index: 2;
+        }
+        .ring-1 {
+          background: radial-gradient(circle, rgba(255, 82, 82, 0.7) 0%, rgba(255, 107, 107, 0.4) 40%, transparent 70%);
+          animation: ring-pulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
+        }
+        .ring-2 {
+          background: radial-gradient(circle, rgba(255, 107, 107, 0.5) 0%, rgba(255, 142, 142, 0.3) 30%, transparent 60%);
+          animation: ring-pulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) 0.2s forwards;
+        }
+        .ring-3 {
+          background: radial-gradient(circle, rgba(255, 142, 142, 0.4) 0%, rgba(255, 82, 82, 0.2) 20%, transparent 50%);
+          animation: ring-pulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards;
+        }
+        @keyframes ring-pulse {
+          0% { opacity: 0.7; transform: scale(0); }
+          50% { opacity: 0.4; }
+          100% { opacity: 0; transform: scale(2.4); }
+        }
+        .particle {
+          width: 16px; height: 16px; border-radius: 50%; z-index: 1;
+          animation: particle-float 2.5s ease-out forwards;
+        }
+        @keyframes particle-float {
+          0% { opacity: 0; transform: translate(0, 0) scale(0); }
+          20% { opacity: 0.9; }
+          100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1.6); }
+        }
+        .glow-effect {
+          width: 200px; height: 200px; border-radius: 50%;
+          background: radial-gradient(circle, rgba(255, 82, 82, 0.3) 0%, rgba(255, 107, 107, 0.1) 60%, transparent 80%);
+          filter: blur(20px); z-index: 0;
+          animation: glow-pulse 3.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+        @keyframes glow-pulse {
+          0% { opacity: 0; transform: scale(0.8); }
+          30% { opacity: 0.6; }
+          100% { opacity: 0; transform: scale(2.2); }
         }
       `}</style>
     </div>
   );
 }
 
+export default PulseHeart;
 
 function MuteMicIcon({ muted }) {
   return muted ? (
