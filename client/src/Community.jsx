@@ -313,29 +313,6 @@ const CommunityPage = () => {
     { value: "Weekly", label: "Giveaways", icon: "🎁" },
   ];
 
-  const benefits = [
-    {
-      title: "Expert Guidance",
-      description: "Learn from experienced traders who've been where you are",
-      icon: "🚀",
-    },
-    {
-      title: "Real-time Updates",
-      description: "Get instant notifications on market movements and opportunities",
-      icon: "📈",
-    },
-    {
-      title: "Collaborative Learning",
-      description: "Share ideas, strategies and get feedback from the community",
-      icon: "🤝",
-    },
-    {
-      title: "Exclusive Resources",
-      description: "Access tools and content available only to community members",
-      icon: "🔒",
-    },
-  ];
-
   const toggleMenu = () => setMenuOpen((v) => !v);
 
   return (
@@ -359,9 +336,8 @@ const CommunityPage = () => {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(74, 163, 255, 0.5) !important;
           }
-          .benefit-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2) !important;
+          .glow-button {
+            animation: pulse 2s infinite;
           }
           @media (max-width: 768px) {
             .mobile-menu {
@@ -421,7 +397,9 @@ const CommunityPage = () => {
               <a href="#" style={styles.navLink}>
                 About
               </a>
-              <button style={styles.ctaButton}>Get Started</button>
+              <button style={{...styles.ctaButton, ...styles.glowButton}} className="glow-button">
+                Get Started
+              </button>
             </nav>
           ) : (
             <>
@@ -473,7 +451,9 @@ const CommunityPage = () => {
                 <a href="#" style={styles.navLink}>
                   About
                 </a>
-                <button style={styles.ctaButton}>Get Started</button>
+                <button style={{...styles.ctaButton, ...styles.glowButton}} className="glow-button">
+                  Get Started
+                </button>
               </nav>
             </>
           )}
@@ -524,30 +504,12 @@ const CommunityPage = () => {
           </div>
         </section>
 
-        {/* Benefits Section */}
-        <section style={styles.benefitsSection}>
+        {/* Stats Section - Now as "Why Join Our Community" */}
+        <section style={styles.statsSection}>
           <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? "2rem" : "2.5rem" }}>
             Why Join Our Community?
           </h2>
 
-          <div
-            style={{
-              ...styles.benefitsGrid,
-              gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(280px, 1fr))",
-            }}
-          >
-            {benefits.map((benefit, index) => (
-              <div key={index} style={styles.benefitCard} className="benefit-card">
-                <div style={styles.benefitIcon}>{benefit.icon}</div>
-                <h3 style={styles.benefitTitle}>{benefit.title}</h3>
-                <p style={styles.benefitDescription}>{benefit.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Stats Section */}
-        <section style={styles.statsSection}>
           <div
             style={{
               ...styles.statsGrid,
@@ -661,6 +623,10 @@ const styles = {
     cursor: "pointer",
     transition: "all 0.3s ease",
   },
+  glowButton: {
+    boxShadow: "0 0 10px #4aa3ff, 0 0 20px #4aa3ff",
+    animation: "pulse 2s infinite",
+  },
   menuButton: {
     display: "flex",
     flexDirection: "column",
@@ -709,7 +675,7 @@ const styles = {
     transition: "all 0.3s ease",
     animation: "pulse 2s infinite",
   },
-  benefitsSection: { marginBottom: "80px" },
+  statsSection: { marginBottom: "80px", textAlign: "center" },
   sectionTitle: {
     fontWeight: "800",
     textAlign: "center",
@@ -718,21 +684,6 @@ const styles = {
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
   },
-  benefitsGrid: { display: "grid", gap: "30px" },
-  benefitCard: {
-    background: "rgba(25, 30, 56, 0.7)",
-    backdropFilter: "blur(10px)",
-    borderRadius: "20px",
-    padding: "30px",
-    textAlign: "center",
-    border: "1px solid rgba(74, 163, 255, 0.2)",
-    transition: "all 0.3s ease",
-    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-  },
-  benefitIcon: { fontSize: "3rem", marginBottom: "20px" },
-  benefitTitle: { fontSize: "1.5rem", fontWeight: "700", margin: "0 0 15px 0", color: "#FFFFFF" },
-  benefitDescription: { color: "#C3C8E6", fontSize: "1rem", lineHeight: "1.6", margin: "0" },
-  statsSection: { marginBottom: "80px" },
   statsGrid: { display: "flex", justifyContent: "center", flexWrap: "wrap" },
   statCard: {
     background: "rgba(25, 30, 56, 0.7)",
