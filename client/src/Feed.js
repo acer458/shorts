@@ -131,32 +131,59 @@ function PulseHeart({ visible }) {
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
         opacity: visible ? 1 : 0,
-        transition: "opacity 0.5s ease-out",
+        transition: "opacity 0.6s ease-out",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        width: "240px",
-        height: "240px",
+        width: "280px",
+        height: "280px",
+        willChange: "transform, opacity",
       }}
     >
       {/* Main Heart */}
       <div
         style={{
           position: "absolute",
-          fontSize: "100px",
-          zIndex: 4,
+          fontSize: "110px",
+          zIndex: 10,
           background: "linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%)",
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
           WebkitTextFillColor: "transparent",
-          filter: "drop-shadow(0 0 15px rgba(255, 80, 80, 0.5))",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "scale(1)" : "scale(0)",
-          animation: visible ? "heartAppear 3.2s cubic-bezier(0.21, 0.61, 0.35, 1) forwards" : "none",
+          filter: "drop-shadow(0 0 18px rgba(255, 80, 80, 0.7))",
+          opacity: 0,
+          transform: "scale(0)",
+          animation: visible ? "heartAppear 4.2s cubic-bezier(0.21, 0.61, 0.35, 1) forwards" : "none",
         }}
       >
         ❤️
       </div>
+
+      {/* Secondary Hearts */}
+      {[1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            fontSize: "42px",
+            zIndex: 9,
+            background: "linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            filter: "drop-shadow(0 0 10px rgba(255, 80, 80, 0.5))",
+            opacity: 0,
+            transform: "scale(0)",
+            animation: visible ? `secondaryHeartAppear 4s cubic-bezier(0.21, 0.61, 0.35, 1) ${i * 0.15}s forwards` : "none",
+            ...(i === 1 && { "--ty": "-75px", "--tx": "-35px" }),
+            ...(i === 2 && { "--ty": "-85px", "--tx": "45px" }),
+            ...(i === 3 && { "--ty": "75px", "--tx": "-45px" }),
+            ...(i === 4 && { "--ty": "80px", "--tx": "40px" }),
+          }}
+        >
+          ❤️
+        </div>
+      ))}
 
       {/* Child Hearts */}
       {[1, 2, 3].map((i) => (
@@ -164,8 +191,8 @@ function PulseHeart({ visible }) {
           key={i}
           style={{
             position: "absolute",
-            fontSize: "36px",
-            zIndex: 3,
+            fontSize: "32px",
+            zIndex: 8,
             background: "linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%)",
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
@@ -173,10 +200,10 @@ function PulseHeart({ visible }) {
             filter: "drop-shadow(0 0 8px rgba(255, 80, 80, 0.4))",
             opacity: 0,
             transform: "scale(0)",
-            animation: visible ? `childHeartAppear 3.4s cubic-bezier(0.21, 0.61, 0.35, 1) ${i * 0.25}s forwards` : "none",
-            ...(i === 1 && { "--ty": "-70px", "--tx": "-30px" }),
-            ...(i === 2 && { "--ty": "-80px", "--tx": "40px" }),
-            ...(i === 3 && { "--ty": "70px", "--tx": "-40px" }),
+            animation: visible ? `childHeartAppear 3.8s cubic-bezier(0.21, 0.61, 0.35, 1) ${i * 0.2}s forwards` : "none",
+            ...(i === 1 && { "--ty": "-60px", "--tx": "-60px" }),
+            ...(i === 2 && { "--ty": "60px", "--tx": "60px" }),
+            ...(i === 3 && { "--ty": "-65px", "--tx": "65px" }),
           }}
         >
           ❤️
@@ -184,44 +211,49 @@ function PulseHeart({ visible }) {
       ))}
 
       {/* Gradient Rings */}
-      {[1, 2, 3].map((i) => (
+      {[1, 2, 3, 4].map((i) => (
         <div
           key={i}
           className={`gradient-ring ring-${i}`}
           style={{
             position: "absolute",
-            width: "140px",
-            height: "140px",
+            width: "160px",
+            height: "160px",
             borderRadius: "50%",
             opacity: 0,
-            zIndex: 2,
-            animation: visible ? `ringPulse 3.6s cubic-bezier(0.23, 1, 0.32, 1) ${i * 0.15}s forwards` : "none",
-            ...(i === 1 && { background: "radial-gradient(circle, rgba(255, 82, 82, 0.7) 0%, rgba(255, 107, 107, 0.4) 40%, transparent 70%)" }),
-            ...(i === 2 && { background: "radial-gradient(circle, rgba(255, 107, 107, 0.5) 0%, rgba(255, 142, 142, 0.3) 30%, transparent 60%)" }),
-            ...(i === 3 && { background: "radial-gradient(circle, rgba(255, 142, 142, 0.4) 0%, rgba(255, 82, 82, 0.2) 20%, transparent 50%)" }),
+            zIndex: 7,
+            animation: visible ? `ringPulse 4.4s cubic-bezier(0.23, 1, 0.32, 1) ${i * 0.12}s forwards` : "none",
+            ...(i === 1 && { background: "radial-gradient(circle, rgba(255, 82, 82, 0.8) 0%, rgba(255, 107, 107, 0.5) 40%, transparent 70%)" }),
+            ...(i === 2 && { background: "radial-gradient(circle, rgba(255, 107, 107, 0.6) 0%, rgba(255, 142, 142, 0.4) 30%, transparent 60%)" }),
+            ...(i === 3 && { background: "radial-gradient(circle, rgba(255, 142, 142, 0.5) 0%, rgba(255, 82, 82, 0.3) 20%, transparent 50%)" }),
+            ...(i === 4 && { background: "radial-gradient(circle, rgba(255, 82, 82, 0.4) 0%, rgba(255, 107, 107, 0.2) 20%, transparent 50%)" }),
           }}
         />
       ))}
 
       {/* Particles */}
       {[
-        { tx: -60, ty: -50, bg: "#ff5252" },
-        { tx: -70, ty: 20, bg: "#ff6b6b" },
-        { tx: 50, ty: -60, bg: "#ff5252" },
-        { tx: 40, ty: 60, bg: "#ff8e8e" }
+        { tx: -70, ty: -60, bg: "#ff5252", size: "18px", delay: 0.1 },
+        { tx: -80, ty: 25, bg: "#ff6b6b", size: "16px", delay: 0.2 },
+        { tx: 60, ty: -70, bg: "#ff5252", size: "20px", delay: 0.15 },
+        { tx: 50, ty: 70, bg: "#ff8e8e", size: "14px", delay: 0.25 },
+        { tx: -50, ty: 80, bg: "#ff6b6b", size: "16px", delay: 0.3 },
+        { tx: 70, ty: 30, bg: "#ff5252", size: "18px", delay: 0.18 },
+        { tx: -70, ty: 40, bg: "#ff8e8e", size: "14px", delay: 0.22 },
+        { tx: 80, ty: -40, bg: "#ff6b6b", size: "16px", delay: 0.28 }
       ].map((particle, i) => (
         <div
           key={i}
           className="particle"
           style={{
             position: "absolute",
-            width: "16px",
-            height: "16px",
+            width: particle.size,
+            height: particle.size,
             borderRadius: "50%",
             opacity: 0,
-            zIndex: 1,
+            zIndex: 6,
             background: particle.bg,
-            animation: visible ? `particleFloat 3s ease-out ${i * 0.2}s forwards` : "none",
+            animation: visible ? `particleFloat 3.6s ease-out ${particle.delay}s forwards` : "none",
             "--tx": `${particle.tx}px`,
             "--ty": `${particle.ty}px`,
           }}
@@ -233,14 +265,14 @@ function PulseHeart({ visible }) {
         className="glow-effect"
         style={{
           position: "absolute",
-          width: "200px",
-          height: "200px",
+          width: "220px",
+          height: "220px",
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255, 82, 82, 0.3) 0%, rgba(255, 107, 107, 0.2) 30%, rgba(255, 142, 142, 0.1) 60%, transparent 80%)",
+          background: "radial-gradient(circle, rgba(255, 82, 82, 0.4) 0%, rgba(255, 107, 107, 0.3) 30%, rgba(255, 142, 142, 0.2) 60%, transparent 80%)",
           opacity: 0,
-          zIndex: 0,
-          filter: "blur(20px)",
-          animation: visible ? "glowPulse 3.8s cubic-bezier(0.23, 1, 0.32, 1) forwards" : "none",
+          zIndex: 5,
+          filter: "blur(25px)",
+          animation: visible ? "glowPulse 4.6s cubic-bezier(0.23, 1, 0.32, 1) forwards" : "none",
         }}
       />
 
@@ -248,33 +280,63 @@ function PulseHeart({ visible }) {
         @keyframes heartAppear {
           0% {
             opacity: 0;
-            transform: scale(0) rotate(-10deg);
+            transform: scale(0) rotate(-12deg);
           }
-          15% {
+          12% {
             opacity: 1;
-            transform: scale(1.25) rotate(3deg);
+            transform: scale(1.3) rotate(4deg);
           }
-          25% {
-            transform: scale(0.92) rotate(-1deg);
+          22% {
+            transform: scale(0.95) rotate(-2deg);
           }
-          35% {
-            transform: scale(1.08) rotate(1deg);
+          32% {
+            transform: scale(1.12) rotate(2deg);
           }
-          45%, 65% {
+          42%, 60% {
             opacity: 1;
             transform: scale(1) rotate(0deg);
           }
-          75% {
-            opacity: 0.9;
-            transform: scale(1);
+          70% {
+            opacity: 0.95;
+            transform: scale(1.05);
           }
-          85% {
-            opacity: 0.6;
-            transform: scale(1.2);
+          80% {
+            opacity: 0.85;
+            transform: scale(1.1);
+          }
+          90% {
+            opacity: 0.5;
+            transform: scale(1.25);
           }
           100% {
             opacity: 0;
-            transform: scale(1.4) rotate(3deg);
+            transform: scale(1.5) rotate(4deg);
+          }
+        }
+        
+        @keyframes secondaryHeartAppear {
+          0% {
+            opacity: 0;
+            transform: scale(0) translateY(0) translateX(0);
+          }
+          20% {
+            opacity: 0.95;
+            transform: scale(1.1) translateY(var(--ty)) translateX(var(--tx));
+          }
+          40% {
+            opacity: 0.9;
+            transform: scale(1) translateY(var(--ty)) translateX(var(--tx));
+          }
+          65% {
+            opacity: 0.85;
+          }
+          80% {
+            opacity: 0.5;
+            transform: scale(1.1) translateY(var(--ty)) translateX(var(--tx));
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.2) translateY(var(--ty)) translateX(var(--tx));
           }
         }
         
@@ -285,36 +347,44 @@ function PulseHeart({ visible }) {
           }
           25% {
             opacity: 0.9;
+            transform: scale(1.05) translateY(var(--ty)) translateX(var(--tx));
+          }
+          50% {
+            opacity: 0.85;
             transform: scale(1) translateY(var(--ty)) translateX(var(--tx));
           }
-          65% {
-            opacity: 0.8;
+          70% {
+            opacity: 0.7;
           }
           85% {
             opacity: 0.4;
-            transform: scale(1.1) translateY(var(--ty)) translateX(var(--tx));
+            transform: scale(1.08) translateY(var(--ty)) translateX(var(--tx));
           }
           100% {
             opacity: 0;
-            transform: scale(1.15) translateY(var(--ty)) translateX(var(--tx));
+            transform: scale(1.12) translateY(var(--ty)) translateX(var(--tx));
           }
         }
         
         @keyframes ringPulse {
           0% {
-            opacity: 0.7;
+            opacity: 0.8;
             transform: scale(0);
           }
-          40% {
-            opacity: 0.5;
+          30% {
+            opacity: 0.6;
           }
-          70% {
-            opacity: 0.3;
+          60% {
+            opacity: 0.4;
             transform: scale(2.2);
+          }
+          80% {
+            opacity: 0.2;
+            transform: scale(2.5);
           }
           100% {
             opacity: 0;
-            transform: scale(2.4);
+            transform: scale(2.8);
           }
         }
         
@@ -323,53 +393,48 @@ function PulseHeart({ visible }) {
             opacity: 0;
             transform: translate(0, 0) scale(0);
           }
-          25% {
-            opacity: 0.9;
+          20% {
+            opacity: 0.95;
           }
-          75% {
-            opacity: 0.5;
-            transform: translate(var(--tx), var(--ty)) scale(1.4);
+          60% {
+            opacity: 0.7;
+            transform: translate(calc(var(--tx) * 0.7), calc(var(--ty) * 0.7)) scale(1.3);
+          }
+          80% {
+            opacity: 0.4;
+            transform: translate(var(--tx), var(--ty)) scale(1.5);
           }
           100% {
             opacity: 0;
-            transform: translate(var(--tx), var(--ty)) scale(1.6);
+            transform: translate(calc(var(--tx) * 1.1), calc(var(--ty) * 1.1)) scale(1.6);
           }
         }
         
         @keyframes glowPulse {
           0% {
             opacity: 0;
-            transform: scale(0.8);
+            transform: scale(0.7);
           }
-          35% {
-            opacity: 0.6;
+          30% {
+            opacity: 0.7;
           }
-          75% {
+          60% {
+            opacity: 0.5;
+            transform: scale(1.8);
+          }
+          80% {
             opacity: 0.3;
-            transform: scale(2.0);
+            transform: scale(2.1);
           }
           100% {
             opacity: 0;
-            transform: scale(2.2);
-          }
-        }
-        
-        @keyframes oscillate {
-          0%, 100% {
-            transform: scale(1) rotate(0deg);
-          }
-          25% {
-            transform: scale(1.03) rotate(0.8deg);
-          }
-          75% {
-            transform: scale(0.98) rotate(-0.8deg);
+            transform: scale(2.4);
           }
         }
       `}</style>
     </div>
   );
 }
-
 function MuteMicIcon({ muted }) {
   return muted ? (
     <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
