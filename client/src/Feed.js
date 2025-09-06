@@ -485,7 +485,7 @@ export default function Feed({ user }) {
   useAntiInspect();
   const location = useLocation();
   const navigate = useNavigate();
-
+  const clickTimerRef = useRef(null);
   // CORE STATE
   const [shorts, setShorts] = useState([]);
   const [aloneVideo, setAloneVideo] = useState(null);
@@ -951,98 +951,56 @@ export default function Feed({ user }) {
   }
 
   // ---- Tap + Heart UI ----
-  function handleVideoEvents(idx, filename) {
-    let clickTimer = null;
-    let lastTap = 0;
-    const SINGLE_DELAY = 600;
+function handleVideoEvents(idx, filename) {
+  const SINGLE_TAP_DELAY_MS = 300; // A faster, more responsive delay
 
-    const likeThenPulse = () => {
-      // Prevent spamming the animation if it's already playing
-      if (heartAnimationKey) return;
-    
-      // Only trigger a "like" action, not an "unlike"
-      if (!isLiked(filename)) {
-        handleLike(idx, filename);
-      }
-    
-      setHeartAnimationKey(Date.now()); // Trigger the animation with a new key
-    
-      // Set a timer to remove the animation component from the DOM after it finishes
+  const likeThenPulse = () => {
+    if (heartAnimationKey) return;
+    if (!isLiked(filename)) {
+      setHeartAnimationKey(Date.now());
       setTimeout(() => {
         setHeartAnimationKey(null);
-      }, 3400); // 3.4 seconds, matching the longest animation
-    };
+      }, 3400);
+    }
+    handleLike(idx, filename);
+  };
 
-    return {
-      onClick: (e) => {
-        // Always block bubbling so nested buttons don’t cause parent toggles
-        e.preventDefault();
-        e.stopPropagation();
-      
-        // If a timer already exists, do nothing (waiting to see if dblclick happens)
-        if (clickTimer) return;
-      
-        // Schedule single click (pause/play) — will be canceled by dblclick
-        clickTimer = setTimeout(() => {
-          clickTimer = null;
-          const vid = videoRefs.current[idx];
-          if (!vid) return;
-          if (vid.paused) {
-            vid.play();
-            setShowPause(false);
-          } else {
-            vid.pause();
-            setShowPause(true);
-          }
-        }, SINGLE_DELAY);
-      },
-      
-      onDoubleClick: (e) => {
-        // Treat as like-only, kill pending single click
-        e.preventDefault();
-        e.stopPropagation();
-        if (clickTimer) {
-          clearTimeout(clickTimer);
-          clickTimer = null;
-        }
-        likeThenPulse();
-      },
-      
-      onTouchEnd: (e) => {
-        if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
-        const now = Date.now();
-        const isDouble = now - lastTap < 260;
-        lastTap = now;
-      
-        if (isDouble) {
-          // Double tap: like only, never pause
-          e.preventDefault();
-          e.stopPropagation();
-          if (clickTimer) {
-            clearTimeout(clickTimer);
-            clickTimer = null;
-          }
-          likeThenPulse();
-          return;
-        }
-      
-        // Single tap: schedule pause/play, cancellable if a second tap arrives
-        if (clickTimer) clearTimeout(clickTimer);
-        clickTimer = setTimeout(() => {
-          clickTimer = null;
-          const vid = videoRefs.current[idx];
-          if (!vid) return;
-          if (vid.paused) {
-            vid.play();
-            setShowPause(false);
-          } else {
-            vid.pause();
-            setShowPause(true);
-          }
-        }, SINGLE_DELAY);
-      },
-    };
-  }
+  const handleSingleTap = () => {
+    const vid = videoRefs.current[idx];
+    if (!vid) return;
+    if (vid.paused) {
+      vid.play();
+      setShowPause(false);
+    } else {
+      vid.pause();
+      setShowPause(true);
+    }
+  };
+
+  return {
+    onClick: () => {
+      // If a double-click timer is already running, cancel it and do nothing.
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
+      // Set a timer for a single tap. If onDoubleClick fires, it will clear this.
+      clickTimerRef.current = setTimeout(() => {
+        clickTimerRef.current = null;
+        handleSingleTap();
+      }, SINGLE_TAP_DELAY_MS);
+    },
+    onDoubleClick: () => {
+      // A double-click happened, so clear the pending single-tap timer.
+      if (clickTimerRef.current) {
+        clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
+      // Now, perform the like action.
+      likeThenPulse();
+    },
+  };
+}
   // ---- Seek ----
   function handleSeek(idx, e, isTouch = false) {
     let clientX;
