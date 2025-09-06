@@ -1,3 +1,4 @@
+// AdminDashboard.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import AllComments from './components/AllComments';
@@ -1646,6 +1647,19 @@ export default function AdminDashboard() {
               <path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 3.89543 3.89543 3 5 3H19C20.1046 3 21 3.89543 21 5V15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             Comments
+          </button>
+
+          {/* New Users Tab */}
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M17.5 17C19.7091 17 21.5 15.2091 21.5 13C21.5 10.7909 19.7091 9 17.5 9C15.2909 9 13.5 10.7909 13.5 13C13.5 15.2091 15.2909 17 17.5 17Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Users
           </button>
         </div>
         
