@@ -131,7 +131,7 @@ function PulseHeart({ visible }) {
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
         opacity: visible ? 1 : 0,
-        transition: "opacity 0.2s ease-out",
+        transition: "opacity 0.5s ease-out",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -152,7 +152,7 @@ function PulseHeart({ visible }) {
           filter: "drop-shadow(0 0 15px rgba(255, 80, 80, 0.5))",
           opacity: visible ? 1 : 0,
           transform: visible ? "scale(1)" : "scale(0)",
-          animation: visible ? "heartAppear 2.8s cubic-bezier(0.21, 0.61, 0.35, 1) forwards" : "none",
+          animation: visible ? "heartAppear 3.2s cubic-bezier(0.21, 0.61, 0.35, 1) forwards" : "none",
         }}
       >
         ❤️
@@ -173,7 +173,7 @@ function PulseHeart({ visible }) {
             filter: "drop-shadow(0 0 8px rgba(255, 80, 80, 0.4))",
             opacity: 0,
             transform: "scale(0)",
-            animation: visible ? `childHeartAppear 3s cubic-bezier(0.21, 0.61, 0.35, 1) ${i * 0.2}s forwards` : "none",
+            animation: visible ? `childHeartAppear 3.4s cubic-bezier(0.21, 0.61, 0.35, 1) ${i * 0.25}s forwards` : "none",
             ...(i === 1 && { "--ty": "-70px", "--tx": "-30px" }),
             ...(i === 2 && { "--ty": "-80px", "--tx": "40px" }),
             ...(i === 3 && { "--ty": "70px", "--tx": "-40px" }),
@@ -195,7 +195,7 @@ function PulseHeart({ visible }) {
             borderRadius: "50%",
             opacity: 0,
             zIndex: 2,
-            animation: visible ? `ringPulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) ${i * 0.1}s forwards` : "none",
+            animation: visible ? `ringPulse 3.6s cubic-bezier(0.23, 1, 0.32, 1) ${i * 0.15}s forwards` : "none",
             ...(i === 1 && { background: "radial-gradient(circle, rgba(255, 82, 82, 0.7) 0%, rgba(255, 107, 107, 0.4) 40%, transparent 70%)" }),
             ...(i === 2 && { background: "radial-gradient(circle, rgba(255, 107, 107, 0.5) 0%, rgba(255, 142, 142, 0.3) 30%, transparent 60%)" }),
             ...(i === 3 && { background: "radial-gradient(circle, rgba(255, 142, 142, 0.4) 0%, rgba(255, 82, 82, 0.2) 20%, transparent 50%)" }),
@@ -221,7 +221,7 @@ function PulseHeart({ visible }) {
             opacity: 0,
             zIndex: 1,
             background: particle.bg,
-            animation: visible ? `particleFloat 2.5s ease-out ${i * 0.15}s forwards` : "none",
+            animation: visible ? `particleFloat 3s ease-out ${i * 0.2}s forwards` : "none",
             "--tx": `${particle.tx}px`,
             "--ty": `${particle.ty}px`,
           }}
@@ -240,7 +240,7 @@ function PulseHeart({ visible }) {
           opacity: 0,
           zIndex: 0,
           filter: "blur(20px)",
-          animation: visible ? "glowPulse 3.4s cubic-bezier(0.23, 1, 0.32, 1) forwards" : "none",
+          animation: visible ? "glowPulse 3.8s cubic-bezier(0.23, 1, 0.32, 1) forwards" : "none",
         }}
       />
 
@@ -264,9 +264,13 @@ function PulseHeart({ visible }) {
             opacity: 1;
             transform: scale(1) rotate(0deg);
           }
-          80% {
-            opacity: 0.8;
+          75% {
+            opacity: 0.9;
             transform: scale(1);
+          }
+          85% {
+            opacity: 0.6;
+            transform: scale(1.2);
           }
           100% {
             opacity: 0;
@@ -279,12 +283,16 @@ function PulseHeart({ visible }) {
             opacity: 0;
             transform: scale(0) translateY(0) translateX(0);
           }
-          30% {
+          25% {
             opacity: 0.9;
             transform: scale(1) translateY(var(--ty)) translateX(var(--tx));
           }
-          70% {
+          65% {
             opacity: 0.8;
+          }
+          85% {
+            opacity: 0.4;
+            transform: scale(1.1) translateY(var(--ty)) translateX(var(--tx));
           }
           100% {
             opacity: 0;
@@ -297,8 +305,12 @@ function PulseHeart({ visible }) {
             opacity: 0.7;
             transform: scale(0);
           }
-          50% {
-            opacity: 0.4;
+          40% {
+            opacity: 0.5;
+          }
+          70% {
+            opacity: 0.3;
+            transform: scale(2.2);
           }
           100% {
             opacity: 0;
@@ -311,8 +323,12 @@ function PulseHeart({ visible }) {
             opacity: 0;
             transform: translate(0, 0) scale(0);
           }
-          20% {
+          25% {
             opacity: 0.9;
+          }
+          75% {
+            opacity: 0.5;
+            transform: translate(var(--tx), var(--ty)) scale(1.4);
           }
           100% {
             opacity: 0;
@@ -325,8 +341,12 @@ function PulseHeart({ visible }) {
             opacity: 0;
             transform: scale(0.8);
           }
-          30% {
+          35% {
             opacity: 0.6;
+          }
+          75% {
+            opacity: 0.3;
+            transform: scale(2.0);
           }
           100% {
             opacity: 0;
@@ -349,7 +369,6 @@ function PulseHeart({ visible }) {
     </div>
   );
 }
-
 
 function MuteMicIcon({ muted }) {
   return muted ? (
