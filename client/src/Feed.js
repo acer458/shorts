@@ -392,20 +392,6 @@ function PulseHeart({ visible }) {
     </div>
   );
 }
-function MuteMicIcon({ muted }) {
-  return muted ? (
-    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff2" stroke="#fff" />
-      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff" />
-      <line x1="4.8" y1="4.8" x2="19.2" y2="19.2" stroke="#fff" strokeWidth="2.6" />
-    </svg>
-  ) : (
-    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff1" stroke="#fff" />
-      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff" />
-    </svg>
-  );
-}
 
 // ---- SKELETON SHORT ----
 function SkeletonShort() {
