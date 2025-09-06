@@ -128,70 +128,222 @@ function PulseHeart({ visible }) {
         left: "50%",
         top: "50%",
         zIndex: 106,
-        transform: "translate(-50%,-50%)",
+        transform: "translate(-50%, -50%)",
         pointerEvents: "none",
         opacity: visible ? 1 : 0,
-        animation: visible ? "heartPulse3 .92s cubic-bezier(.16,.9,.24,1)" : "none",
+        transition: "opacity 0.2s ease-out",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        width: "240px",
+        height: "240px",
       }}
     >
-      <svg viewBox="0 0 96 96" width={94} height={94} style={{ display: "block" }}>
-        <defs>
-          {/* Gradient for the heart */}
-          <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#ff7a7a" />
-            <stop offset="50%" stopColor="#ed4956" />
-            <stop offset="100%" stopColor="#ff3d6e" />
-          </linearGradient>
+      {/* Main Heart */}
+      <div
+        style={{
+          position: "absolute",
+          fontSize: "100px",
+          zIndex: 4,
+          background: "linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%)",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          filter: "drop-shadow(0 0 15px rgba(255, 80, 80, 0.5))",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "scale(1)" : "scale(0)",
+          animation: visible ? "heartAppear 2.8s cubic-bezier(0.21, 0.61, 0.35, 1) forwards" : "none",
+        }}
+      >
+        ❤️
+      </div>
 
-          {/* Layered glow: inner + outer for depth */}
-          <filter id="heartOuterGlow" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="g1" />
-            <feColorMatrix
-              in="g1"
-              type="matrix"
-              values="
-                1 0 0 0 0
-                0 1 0 0 0
-                0 0 1 0 0
-                0 0 0 0.35 0
-              "
-              result="glow1"
-            />
-            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="g2" />
-            <feColorMatrix
-              in="g2"
-              type="matrix"
-              values="
-                1 0 0 0 0
-                0 1 0 0 0
-                0 0 1 0 0
-                0 0 0 0.18 0
-              "
-              result="glow2"
-            />
-            <feMerge>
-              <feMergeNode in="glow2" />
-              <feMergeNode in="glow1" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
+      {/* Child Hearts */}
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            fontSize: "36px",
+            zIndex: 3,
+            background: "linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            filter: "drop-shadow(0 0 8px rgba(255, 80, 80, 0.4))",
+            opacity: 0,
+            transform: "scale(0)",
+            animation: visible ? `childHeartAppear 3s cubic-bezier(0.21, 0.61, 0.35, 1) ${i * 0.2}s forwards` : "none",
+            ...(i === 1 && { "--ty": "-70px", "--tx": "-30px" }),
+            ...(i === 2 && { "--ty": "-80px", "--tx": "40px" }),
+            ...(i === 3 && { "--ty": "70px", "--tx": "-40px" }),
+          }}
+        >
+          ❤️
+        </div>
+      ))}
 
-        <path
-          d="M48 86C48 86 12 60 12 32.5 12 18.8 24.5 10 36 10c6.2 0 11.9 3.3 12 3.3S53.8 10 60 10c11.5 0 24 8.8 24 22.5C84 60 48 86 48 86Z"
-          fill="url(#heartGrad)"
-          stroke="#ed4956"
-          strokeWidth="7"
-          filter="url(#heartOuterGlow)"
+      {/* Gradient Rings */}
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className={`gradient-ring ring-${i}`}
+          style={{
+            position: "absolute",
+            width: "140px",
+            height: "140px",
+            borderRadius: "50%",
+            opacity: 0,
+            zIndex: 2,
+            animation: visible ? `ringPulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) ${i * 0.1}s forwards` : "none",
+            ...(i === 1 && { background: "radial-gradient(circle, rgba(255, 82, 82, 0.7) 0%, rgba(255, 107, 107, 0.4) 40%, transparent 70%)" }),
+            ...(i === 2 && { background: "radial-gradient(circle, rgba(255, 107, 107, 0.5) 0%, rgba(255, 142, 142, 0.3) 30%, transparent 60%)" }),
+            ...(i === 3 && { background: "radial-gradient(circle, rgba(255, 142, 142, 0.4) 0%, rgba(255, 82, 82, 0.2) 20%, transparent 50%)" }),
+          }}
         />
-      </svg>
+      ))}
+
+      {/* Particles */}
+      {[
+        { tx: -60, ty: -50, bg: "#ff5252" },
+        { tx: -70, ty: 20, bg: "#ff6b6b" },
+        { tx: 50, ty: -60, bg: "#ff5252" },
+        { tx: 40, ty: 60, bg: "#ff8e8e" }
+      ].map((particle, i) => (
+        <div
+          key={i}
+          className="particle"
+          style={{
+            position: "absolute",
+            width: "16px",
+            height: "16px",
+            borderRadius: "50%",
+            opacity: 0,
+            zIndex: 1,
+            background: particle.bg,
+            animation: visible ? `particleFloat 2.5s ease-out ${i * 0.15}s forwards` : "none",
+            "--tx": `${particle.tx}px`,
+            "--ty": `${particle.ty}px`,
+          }}
+        />
+      ))}
+
+      {/* Glow Effect */}
+      <div
+        className="glow-effect"
+        style={{
+          position: "absolute",
+          width: "200px",
+          height: "200px",
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(255, 82, 82, 0.3) 0%, rgba(255, 107, 107, 0.2) 30%, rgba(255, 142, 142, 0.1) 60%, transparent 80%)",
+          opacity: 0,
+          zIndex: 0,
+          filter: "blur(20px)",
+          animation: visible ? "glowPulse 3.4s cubic-bezier(0.23, 1, 0.32, 1) forwards" : "none",
+        }}
+      />
 
       <style>{`
-        @keyframes heartPulse3 {
-          0%   { opacity: 0; transform: translate(-50%,-50%) scale(.85); }
-          35%  { opacity: 1; transform: translate(-50%,-50%) scale(1.18); }
-          60%  { opacity: 1; transform: translate(-50%,-50%) scale(.96); }
-          100% { opacity: 0; transform: translate(-50%,-50%) scale(1.0); }
+        @keyframes heartAppear {
+          0% {
+            opacity: 0;
+            transform: scale(0) rotate(-10deg);
+          }
+          15% {
+            opacity: 1;
+            transform: scale(1.25) rotate(3deg);
+          }
+          25% {
+            transform: scale(0.92) rotate(-1deg);
+          }
+          35% {
+            transform: scale(1.08) rotate(1deg);
+          }
+          45%, 65% {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+          }
+          80% {
+            opacity: 0.8;
+            transform: scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.4) rotate(3deg);
+          }
+        }
+        
+        @keyframes childHeartAppear {
+          0% {
+            opacity: 0;
+            transform: scale(0) translateY(0) translateX(0);
+          }
+          30% {
+            opacity: 0.9;
+            transform: scale(1) translateY(var(--ty)) translateX(var(--tx));
+          }
+          70% {
+            opacity: 0.8;
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.15) translateY(var(--ty)) translateX(var(--tx));
+          }
+        }
+        
+        @keyframes ringPulse {
+          0% {
+            opacity: 0.7;
+            transform: scale(0);
+          }
+          50% {
+            opacity: 0.4;
+          }
+          100% {
+            opacity: 0;
+            transform: scale(2.4);
+          }
+        }
+        
+        @keyframes particleFloat {
+          0% {
+            opacity: 0;
+            transform: translate(0, 0) scale(0);
+          }
+          20% {
+            opacity: 0.9;
+          }
+          100% {
+            opacity: 0;
+            transform: translate(var(--tx), var(--ty)) scale(1.6);
+          }
+        }
+        
+        @keyframes glowPulse {
+          0% {
+            opacity: 0;
+            transform: scale(0.8);
+          }
+          30% {
+            opacity: 0.6;
+          }
+          100% {
+            opacity: 0;
+            transform: scale(2.2);
+          }
+        }
+        
+        @keyframes oscillate {
+          0%, 100% {
+            transform: scale(1) rotate(0deg);
+          }
+          25% {
+            transform: scale(1.03) rotate(0.8deg);
+          }
+          75% {
+            transform: scale(0.98) rotate(-0.8deg);
+          }
         }
       `}</style>
     </div>
