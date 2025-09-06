@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { useLocation, useNavigate } from "react-router-dom"; 
+import { useLocation, useNavigate } from "react-router-dom";
 
 
 
@@ -110,6 +110,15 @@ function HeartSVG({ filled }) {
     </svg>
   );
 }
+function PauseIcon() {
+  return (
+    <svg width={82} height={82} viewBox="0 0 82 82">
+      <circle cx="41" cy="41" r="40" fill="#000A" />
+      <rect x="26" y="20" width="10" height="42" rx="3" fill="#fff" />
+      <rect x="46" y="20" width="10" height="42" rx="3" fill="#fff" />
+    </svg>
+  );
+}
 function PulseHeart({ visible }) {
   return (
     <div
@@ -119,277 +128,89 @@ function PulseHeart({ visible }) {
         left: "50%",
         top: "50%",
         zIndex: 106,
-        transform: "translate(-50%, -50%)",
+        transform: "translate(-50%,-50%)",
         pointerEvents: "none",
         opacity: visible ? 1 : 0,
-        transition: "opacity 0.5s ease-out",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        width: "240px",
-        height: "240px",
-        willChange: "transform, opacity",
+        animation: visible ? "heartPulse3 .92s cubic-bezier(.16,.9,.24,1)" : "none",
       }}
     >
-      {/* Main Heart */}
-      <div
-        style={{
-          position: "absolute",
-          fontSize: "100px",
-          zIndex: 10,
-          background: "linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%)",
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          filter: "drop-shadow(0 0 15px rgba(255, 80, 80, 0.5))",
-          opacity: 0,
-          transform: "scale(0)",
-          animation: visible ? "heartAppear 1.5s cubic-bezier(0.21, 0.61, 0.35, 1) forwards" : "none",
-        }}
-      >
-        ❤️
-      </div>
+      <svg viewBox="0 0 96 96" width={94} height={94} style={{ display: "block" }}>
+        <defs>
+          {/* Gradient for the heart */}
+          <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ff7a7a" />
+            <stop offset="50%" stopColor="#ed4956" />
+            <stop offset="100%" stopColor="#ff3d6e" />
+          </linearGradient>
 
-      {/* Secondary Hearts */}
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            fontSize: "42px",
-            zIndex: 9,
-            background: "linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%)",
-            WebkitBackgroundClip: "text",
-            backgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            filter: "drop-shadow(0 0 10px rgba(255, 80, 80, 0.5))",
-            opacity: 0,
-            transform: "scale(0)",
-            animation: visible ? `secondaryHeartAppear 1.5s cubic-bezier(0.21, 0.61, 0.35, 1) ${i * 0.1}s forwards` : "none",
-            ...(i === 1 && { "--ty": "-70px", "--tx": "-30px" }),
-            ...(i === 2 && { "--ty": "-80px", "--tx": "40px" }),
-            ...(i === 3 && { "--ty": "70px", "--tx": "-40px" }),
-          }}
-        >
-          ❤️
-        </div>
-      ))}
+          {/* Layered glow: inner + outer for depth */}
+          <filter id="heartOuterGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="g1" />
+            <feColorMatrix
+              in="g1"
+              type="matrix"
+              values="
+                1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 0.35 0
+              "
+              result="glow1"
+            />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="g2" />
+            <feColorMatrix
+              in="g2"
+              type="matrix"
+              values="
+                1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 0.18 0
+              "
+              result="glow2"
+            />
+            <feMerge>
+              <feMergeNode in="glow2" />
+              <feMergeNode in="glow1" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
 
-      {/* Gradient Rings */}
-      {[1, 2].map((i) => (
-        <div
-          key={i}
-          className={`gradient-ring ring-${i}`}
-          style={{
-            position: "absolute",
-            width: "140px",
-            height: "140px",
-            borderRadius: "50%",
-            opacity: 0,
-            zIndex: 7,
-            animation: visible ? `ringPulse 1.5s cubic-bezier(0.23, 1, 0.32, 1) ${i * 0.08}s forwards` : "none",
-            ...(i === 1 && { background: "radial-gradient(circle, rgba(255, 82, 82, 0.7) 0%, rgba(255, 107, 107, 0.4) 40%, transparent 70%)" }),
-            ...(i === 2 && { background: "radial-gradient(circle, rgba(255, 107, 107, 0.5) 0%, rgba(255, 142, 142, 0.3) 30%, transparent 60%)" }),
-          }}
+        <path
+          d="M48 86C48 86 12 60 12 32.5 12 18.8 24.5 10 36 10c6.2 0 11.9 3.3 12 3.3S53.8 10 60 10c11.5 0 24 8.8 24 22.5C84 60 48 86 48 86Z"
+          fill="url(#heartGrad)"
+          stroke="#ed4956"
+          strokeWidth="7"
+          filter="url(#heartOuterGlow)"
         />
-      ))}
-
-      {/* Particles */}
-      {[
-        { tx: -60, ty: -50, bg: "#ff5252", size: "16px", delay: 0.05 },
-        { tx: -70, ty: 20, bg: "#ff6b6b", size: "14px", delay: 0.1 },
-        { tx: 50, ty: -60, bg: "#ff5252", size: "16px", delay: 0.08 },
-        { tx: 40, ty: 60, bg: "#ff8e8e", size: "12px", delay: 0.12 }
-      ].map((particle, i) => (
-        <div
-          key={i}
-          className="particle"
-          style={{
-            position: "absolute",
-            width: particle.size,
-            height: particle.size,
-            borderRadius: "50%",
-            opacity: 0,
-            zIndex: 6,
-            background: particle.bg,
-            animation: visible ? `particleFloat 1.5s ease-out ${particle.delay}s forwards` : "none",
-            "--tx": `${particle.tx}px`,
-            "--ty": `${particle.ty}px`,
-          }}
-        />
-      ))}
-
-      {/* Glow Effect */}
-      <div
-        className="glow-effect"
-        style={{
-          position: "absolute",
-          width: "200px",
-          height: "200px",
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(255, 82, 82, 0.3) 0%, rgba(255, 107, 107, 0.2) 30%, rgba(255, 142, 142, 0.1) 60%, transparent 80%)",
-          opacity: 0,
-          zIndex: 5,
-          filter: "blur(20px)",
-          animation: visible ? "glowPulse 1.5s cubic-bezier(0.23, 1, 0.32, 1) forwards" : "none",
-        }}
-      />
+      </svg>
 
       <style>{`
-        @keyframes heartAppear {
-          0% {
-            opacity: 0;
-            transform: scale(0) rotate(-10deg);
-          }
-          20% {
-            opacity: 1;
-            transform: scale(1.25) rotate(3deg);
-          }
-          35% {
-            transform: scale(0.95) rotate(-1deg);
-          }
-          45% {
-            transform: scale(1.08) rotate(1deg);
-          }
-          55% {
-            opacity: 1;
-            transform: scale(1) rotate(0deg);
-          }
-          65% {
-            opacity: 0.9;
-            transform: scale(1.05);
-          }
-          75% {
-            opacity: 0.7;
-            transform: scale(1.15);
-          }
-          85% {
-            opacity: 0.4;
-            transform: scale(1.3);
-          }
-          95% {
-            opacity: 0.2;
-            transform: scale(1.4);
-          }
-          100% {
-            opacity: 0;
-            transform: scale(1.45) rotate(3deg);
-          }
-        }
-        
-        @keyframes secondaryHeartAppear {
-          0% {
-            opacity: 0;
-            transform: scale(0) translateY(0) translateX(0);
-          }
-          30% {
-            opacity: 0.9;
-            transform: scale(1.05) translateY(var(--ty)) translateX(var(--tx));
-          }
-          50% {
-            opacity: 0.85;
-            transform: scale(1) translateY(var(--ty)) translateX(var(--tx));
-          }
-          65% {
-            opacity: 0.7;
-          }
-          75% {
-            opacity: 0.5;
-            transform: scale(1.08) translateY(var(--ty)) translateX(var(--tx));
-          }
-          85% {
-            opacity: 0.3;
-            transform: scale(1.1) translateY(var(--ty)) translateX(var(--tx));
-          }
-          95% {
-            opacity: 0.1;
-            transform: scale(1.12) translateY(var(--ty)) translateX(var(--tx));
-          }
-          100% {
-            opacity: 0;
-            transform: scale(1.14) translateY(var(--ty)) translateX(var(--tx));
-          }
-        }
-        
-        @keyframes ringPulse {
-          0% {
-            opacity: 0.7;
-            transform: scale(0);
-          }
-          30% {
-            opacity: 0.6;
-          }
-          50% {
-            opacity: 0.4;
-            transform: scale(1.8);
-          }
-          70% {
-            opacity: 0.2;
-            transform: scale(2.2);
-          }
-          90% {
-            opacity: 0.1;
-            transform: scale(2.5);
-          }
-          100% {
-            opacity: 0;
-            transform: scale(2.6);
-          }
-        }
-        
-        @keyframes particleFloat {
-          0% {
-            opacity: 0;
-            transform: translate(0, 0) scale(0);
-          }
-          25% {
-            opacity: 0.9;
-          }
-          50% {
-            opacity: 0.7;
-            transform: translate(calc(var(--tx) * 0.6), calc(var(--ty) * 0.6)) scale(1.2);
-          }
-          70% {
-            opacity: 0.4;
-            transform: translate(calc(var(--tx) * 0.9), calc(var(--ty) * 0.9)) scale(1.4);
-          }
-          90% {
-            opacity: 0.2;
-            transform: translate(calc(var(--tx) * 1.05), calc(var(--ty) * 1.05)) scale(1.5);
-          }
-          100% {
-            opacity: 0;
-            transform: translate(calc(var(--tx) * 1.1), calc(var(--ty) * 1.1)) scale(1.55);
-          }
-        }
-        
-        @keyframes glowPulse {
-          0% {
-            opacity: 0;
-            transform: scale(0.8);
-          }
-          35% {
-            opacity: 0.6;
-          }
-          60% {
-            opacity: 0.4;
-            transform: scale(1.6);
-          }
-          80% {
-            opacity: 0.2;
-            transform: scale(2.0);
-          }
-          95% {
-            opacity: 0.1;
-            transform: scale(2.2);
-          }
-          100% {
-            opacity: 0;
-            transform: scale(2.3);
-          }
+        @keyframes heartPulse3 {
+          0%   { opacity: 0; transform: translate(-50%,-50%) scale(.85); }
+          35%  { opacity: 1; transform: translate(-50%,-50%) scale(1.18); }
+          60%  { opacity: 1; transform: translate(-50%,-50%) scale(.96); }
+          100% { opacity: 0; transform: translate(-50%,-50%) scale(1.0); }
         }
       `}</style>
     </div>
+  );
+}
+
+
+function MuteMicIcon({ muted }) {
+  return muted ? (
+    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff2" stroke="#fff" />
+      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff" />
+      <line x1="4.8" y1="4.8" x2="19.2" y2="19.2" stroke="#fff" strokeWidth="2.6" />
+    </svg>
+  ) : (
+    <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="2" width="6" height="12" rx="3" fill="#fff1" stroke="#fff" />
+      <path d="M5 10v2a7 7 0 0 0 14 0v-2" stroke="#fff" />
+    </svg>
   );
 }
 
@@ -1103,7 +924,7 @@ export default function Feed() {
     let clickTimer = null;
     let lastTap = 0;
     const SINGLE_DELAY = 600;
-  
+
     const likeThenPulse = () => {
       if (!isLiked(filename)) {
         handleLike(idx, filename);
@@ -1113,10 +934,10 @@ export default function Feed() {
         setTimeout(() => setShowPulseHeart(false), 700);
       });
     };
-  
+
     return {
       onClick: (e) => {
-        // Always block bubbling so nested buttons don't cause parent toggles
+        // Always block bubbling so nested buttons don’t cause parent toggles
         e.preventDefault();
         e.stopPropagation();
     
@@ -1168,13 +989,8 @@ export default function Feed() {
         }
     
         // Single tap: schedule pause/play, cancellable if a second tap arrives
+        if (clickTimer) clearTimeout(clickTimer);
         clickTimer = setTimeout(() => {
-          // Check if another tap occurred during the delay (double tap)
-          if (Date.now() - lastTap < 260) {
-            clickTimer = null;
-            return; // Don't execute single tap action if it was actually a double tap
-          }
-          
           clickTimer = null;
           const vid = videoRefs.current[idx];
           if (!vid) return;
