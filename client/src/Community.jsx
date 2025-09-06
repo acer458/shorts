@@ -45,10 +45,11 @@ export const Footer = ({ isMobile }) => {
       marginBottom: 13,
       fontWeight: 500,
       fontSize: isMobile ? 14 : 16,
-      transition: "color 0.16s",
+      transition: "all 0.3s ease",
       gap: 8,
       borderRadius: "50%",
       padding: 2,
+      opacity: 0.85,
     },
     linkImg: {
       width: isMobile ? 16 : 18,
@@ -57,6 +58,7 @@ export const Footer = ({ isMobile }) => {
       borderRadius: "50%",
       background: "none",
       display: "block",
+      transition: "transform 0.3s ease",
     },
     divider: {
       width: isMobile ? "85%" : "92%",
@@ -124,7 +126,7 @@ export const Footer = ({ isMobile }) => {
       color: "#e6eaff",
       textDecoration: "none",
       opacity: 0.7,
-      transition: "opacity 0.2s",
+      transition: "opacity 0.3s ease, color 0.3s ease",
       fontWeight: 500,
       fontSize: isMobile ? 13 : 15,
     },
@@ -171,127 +173,151 @@ export const Footer = ({ isMobile }) => {
   };
 
   return (
-    <footer style={styles.wrapper}>
-      <div style={styles.colsRow}>
-        <div style={styles.col}>
-          <div style={{ ...styles.colTitle, ...styles.company }}>Company</div>
-          <a
-            href="https://propscholar.com/about"
-            style={styles.link}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            About Us
-          </a>
-          <a href="#" style={styles.link} target="_blank" rel="noopener noreferrer">
-            Terms & Conditions
-          </a>
-          <a href="#" style={styles.link} target="_blank" rel="noopener noreferrer">
-            Privacy Policy
-          </a>
-          <a
-            href="https://help.propscholar.com"
-            style={styles.link}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            FAQ
-          </a>
-        </div>
-
-        <div style={styles.col}>
-          <div style={{ ...styles.colTitle, ...styles.contact }}>Contact</div>
-          <div style={{ marginBottom: 9, color: "#e6eaff", fontSize: isMobile ? 14 : 16 }}>
-            Email Support
+    <>
+      <style>
+        {`
+          .footer-link:hover {
+            opacity: 1 !important;
+            color: #4aa3ff !important;
+            transform: translateX(5px);
+          }
+          .footer-link:hover img {
+            transform: rotate(360deg) scale(1.1);
+          }
+          .footer-lower-link:hover {
+            opacity: 1 !important;
+            color: #4aa3ff !important;
+          }
+        `}
+      </style>
+      <footer style={styles.wrapper}>
+        <div style={styles.colsRow}>
+          <div style={styles.col}>
+            <div style={{ ...styles.colTitle, ...styles.company }}>Company</div>
+            <a
+              href="https://propscholar.com/about"
+              style={styles.link}
+              className="footer-link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              About Us
+            </a>
+            <a href="#" style={styles.link} className="footer-link" target="_blank" rel="noopener noreferrer">
+              Terms & Conditions
+            </a>
+            <a href="#" style={styles.link} className="footer-link" target="_blank" rel="noopener noreferrer">
+              Privacy Policy
+            </a>
+            <a
+              href="https://help.propscholar.com"
+              style={styles.link}
+              className="footer-link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              FAQ
+            </a>
           </div>
-          <a
-            href="mailto:support@propscholar.shop"
-            style={{ ...styles.link, color: "#4aa3ff" }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            support@propscholar.shop
-          </a>
+
+          <div style={styles.col}>
+            <div style={{ ...styles.colTitle, ...styles.contact }}>Contact</div>
+            <div style={{ marginBottom: 9, color: "#e6eaff", fontSize: isMobile ? 14 : 16 }}>
+              Email Support
+            </div>
+            <a
+              href="mailto:support@propscholar.shop"
+              style={{ ...styles.link, color: "#4aa3ff" }}
+              className="footer-link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              support@propscholar.shop
+            </a>
+          </div>
+
+          <div style={styles.col}>
+            <div style={{ ...styles.colTitle, ...styles.social }}>Socials</div>
+            <a
+              href="https://instagram.com/yourprofile"
+              style={styles.link}
+              className="footer-link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img src={socialIcons.instagram} alt="Instagram" style={styles.linkImg} />
+              Instagram
+            </a>
+            <a
+              href="https://x.com/propscholar"
+              style={{
+                ...styles.link,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                borderRadius: 0,
+                padding: 0,
+              }}
+              className="footer-link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {socialIcons.x}
+              X
+            </a>
+            <a
+              href="https://discord.gg/ZXqcq5Mj"
+              style={styles.link}
+              className="footer-link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img src={socialIcons.discord} alt="Discord" style={styles.linkImg} />
+              Discord
+            </a>
+          </div>
         </div>
 
-        <div style={styles.col}>
-          <div style={{ ...styles.colTitle, ...styles.social }}>Socials</div>
-          <a
-            href="https://instagram.com/yourprofile"
-            style={styles.link}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img src={socialIcons.instagram} alt="Instagram" style={styles.linkImg} />
-            Instagram
-          </a>
-          <a
-            href="https://x.com/propscholar"
-            style={{
-              ...styles.link,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              borderRadius: 0,
-              padding: 0,
-            }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {socialIcons.x}
-            X
-          </a>
-          <a
-            href="https://discord.gg/ZXqcq5Mj"
-            style={styles.link}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img src={socialIcons.discord} alt="Discord" style={styles.linkImg} />
-            Discord
-          </a>
-        </div>
-      </div>
+        <div style={styles.divider} />
 
-      <div style={styles.divider} />
-
-      <div style={styles.lowerBar}>
-        <div style={styles.logoRow}>
-          <img
-            src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
-            alt="PropScholar Logo"
-            style={styles.logoImg}
-          />
-          <span style={styles.brand}>PropScholar</span>
+        <div style={styles.lowerBar}>
+          <div style={styles.logoRow}>
+            <img
+              src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
+              alt="PropScholar Logo"
+              style={styles.logoImg}
+            />
+            <span style={styles.brand}>PropScholar</span>
+          </div>
+          <div style={styles.copyright}>© 2025 PropScholar. All rights reserved.</div>
+          <div style={styles.lowerLinks}>
+            <a href="#" style={styles.lowerLink} className="footer-lower-link" target="_blank" rel="noopener noreferrer">
+              Terms
+            </a>
+            <a href="#" style={styles.lowerLink} className="footer-lower-link" target="_blank" rel="noopener noreferrer">
+              Privacy
+            </a>
+          </div>
         </div>
-        <div style={styles.copyright}>© 2025 PropScholar. All rights reserved.</div>
-        <div style={styles.lowerLinks}>
-          <a href="#" style={styles.lowerLink} target="_blank" rel="noopener noreferrer">
-            Terms
-          </a>
-          <a href="#" style={styles.lowerLink} target="_blank" rel="noopener noreferrer">
-            Privacy
-          </a>
-        </div>
-      </div>
 
-      <div style={styles.disclaimer}>
-        <span style={styles.disclaimerTitle}>Disclaimer:</span>
-        PropScholar is a government-registered business under the MSME (Udyam) initiative. All
-        Test/Evaluation accounts provided by PropScholar are simulated and do not involve real
-        financial transactions or live market exposure. We are strictly an educational platform,
-        and our programs are designed to assess trading skills in a simulated environment. Our
-        evaluation process is entirely skill-based, and successful participants may be eligible
-        for a scholarship award. PropScholar does not act as or offer services as a broker,
-        custodian, or financial advisor. Participation in our programs is voluntary, and program
-        fees are not to be considered deposits or investments of any kind. All program fees are
-        used solely to cover operational expenses, including but not limited to staffing,
-        technology infrastructure, and other business-related costs. Nothing contained on our
-        platform or in our materials constitutes a solicitation or offer to buy or sell any
-        financial instrument, including but not limited to futures, options, or foreign exchange
-        products.
-      </div>
-    </footer>
+        <div style={styles.disclaimer}>
+          <span style={styles.disclaimerTitle}>Disclaimer:</span>
+          PropScholar is a government-registered business under the MSME (Udyam) initiative. All
+          Test/Evaluation accounts provided by PropScholar are simulated and do not involve real
+          financial transactions or live market exposure. We are strictly an educational platform,
+          and our programs are designed to assess trading skills in a simulated environment. Our
+          evaluation process is entirely skill-based, and successful participants may be eligible
+          for a scholarship award. PropScholar does not act as or offer services as a broker,
+          custodian, or financial advisor. Participation in our programs is voluntary, and program
+          fees are not to be considered deposits or investments of any kind. All program fees are
+          used solely to cover operational expenses, including but not limited to staffing,
+          technology infrastructure, and other business-related costs. Nothing contained on our
+          platform or in our materials constitutes a solicitation or offer to buy or sell any
+          financial instrument, including but not limited to futures, options, or foreign exchange
+          products.
+        </div>
+      </footer>
+    </>
   );
 };
 
@@ -324,13 +350,73 @@ const CommunityPage = () => {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
           }
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+          }
+          .stat-card {
+            cursor: pointer;
+          }
           .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3) !important;
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(74, 163, 255, 0.4) !important;
+            border-color: rgba(74, 163, 255, 0.5) !important;
+          }
+          .join-btn {
+            position: relative;
+            overflow: hidden;
+          }
+          .join-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
           }
           .join-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(74, 163, 255, 0.5) !important;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(74, 163, 255, 0.6), 0 0 30px rgba(138, 43, 226, 0.4) !important;
+          }
+          .join-btn:hover::before {
+            left: 100%;
+          }
+          .join-btn:active {
+            transform: translateY(-1px) scale(1.02);
+          }
+          .nav-link {
+            position: relative;
+          }
+          .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+          }
+          .nav-link:hover {
+            color: #4aa3ff !important;
+          }
+          .nav-link:hover::after {
+            width: 100%;
+          }
+          .cta-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 0 20px rgba(74, 163, 255, 0.8), 0 0 40px rgba(138, 43, 226, 0.5) !important;
+          }
+          .giveaway-card {
+            transition: all 0.4s ease;
+          }
+          .giveaway-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(74, 163, 255, 0.3) !important;
+            border-color: rgba(74, 163, 255, 0.5) !important;
           }
           @media (max-width: 768px) {
             .mobile-menu {
@@ -347,16 +433,38 @@ const CommunityPage = () => {
               box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
               z-index: 999;
               border-top: 1px solid rgba(74, 163, 255, 0.2);
+              animation: slideDown 0.3s ease;
+            }
+            @keyframes slideDown {
+              from {
+                opacity: 0;
+                transform: translateY(-20px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
             }
             .mobile-menu a {
               padding: 15px 0;
               text-align: center;
               border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+              transition: all 0.3s ease;
+            }
+            .mobile-menu a:hover {
+              background: rgba(74, 163, 255, 0.1);
+              color: #4aa3ff !important;
             }
             .mobile-menu button {
               margin-top: 15px;
               width: 100%;
             }
+          }
+          .discord-logo {
+            animation: float 5s ease-in-out infinite;
+          }
+          .discord-logo:hover {
+            animation: pulse 0.6s ease-in-out infinite;
           }
         `}
       </style>
@@ -375,22 +483,22 @@ const CommunityPage = () => {
 
           {!isMobile ? (
             <nav style={styles.nav}>
-              <a href="#" style={styles.navLink}>
+              <a href="#" style={styles.navLink} className="nav-link">
                 Home
               </a>
-              <a href="#" style={styles.navLink}>
+              <a href="#" style={styles.navLink} className="nav-link">
                 Community
               </a>
-              <a href="#" style={styles.navLink}>
+              <a href="#" style={styles.navLink} className="nav-link">
                 Shop
               </a>
-              <a href="#" style={styles.navLink}>
+              <a href="#" style={styles.navLink} className="nav-link">
                 FAQ
               </a>
-              <a href="#" style={styles.navLink}>
+              <a href="#" style={styles.navLink} className="nav-link">
                 About
               </a>
-              <button style={styles.ctaButton}>
+              <button style={styles.ctaButton} className="cta-btn">
                 Get Started
               </button>
             </nav>
@@ -444,7 +552,7 @@ const CommunityPage = () => {
                 <a href="#" style={styles.navLink}>
                   About
                 </a>
-                <button style={styles.ctaButton}>
+                <button style={styles.ctaButton} className="cta-btn">
                   Get Started
                 </button>
               </nav>
@@ -457,7 +565,7 @@ const CommunityPage = () => {
         {/* Hero Section */}
         <section style={styles.hero}>
           <div style={styles.heroContent}>
-            <div style={styles.discordLogo}>
+            <div style={styles.discordLogo} className="discord-logo">
               <svg viewBox="0 0 245 240" width="80" height="80">
                 <path
                   fill="#4aa3ff"
@@ -522,7 +630,7 @@ const CommunityPage = () => {
 
         {/* Giveaway Section */}
         <section style={styles.giveawaySection}>
-          <div style={{ ...styles.giveawayCard, padding: isMobile ? "30px" : "60px" }}>
+          <div style={{ ...styles.giveawayCard, padding: isMobile ? "30px" : "60px" }} className="giveaway-card">
             <div style={styles.giveawayContent}>
               <div style={styles.giveawayIcon}>🎁</div>
               <h2 style={{ ...styles.giveawayTitle, fontSize: isMobile ? "1.8rem" : "2.2rem" }}>Weekly Giveaways!</h2>
@@ -546,7 +654,7 @@ const CommunityPage = () => {
             <p style={{ ...styles.ctaText, fontSize: isMobile ? "1rem" : "1.2rem" }}>
               Join over 2,000 active traders in our Discord community. Get the support you need to succeed.
             </p>
-            <button style={{ ...styles.joinButton, ...styles.ctaButton }} className="join-btn">
+            <button style={{ ...styles.joinButton, ...styles.ctaButtonStyle }} className="join-btn">
               Join Discord Community
             </button>
           </div>
@@ -600,149 +708,4 @@ const styles = {
     fontSize: "24px",
     fontWeight: "700",
     background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    margin: "0",
-  },
-  nav: { display: "flex", alignItems: "center", gap: "30px" },
-  navLink: { 
-    color: "#E6E6FA", 
-    textDecoration: "none", 
-    fontSize: "16px", 
-    fontWeight: "500", 
-    transition: "color 0.3s ease",
-    padding: "8px 16px",
-    borderRadius: "20px",
-  },
-  ctaButton: {
-    background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
-    color: "white",
-    border: "none",
-    borderRadius: "20px",
-    padding: "10px 20px",
-    fontWeight: "600",
-    cursor: "pointer",
-    transition: "all 0.3s ease",
-    boxShadow: "0 0 10px rgba(74, 163, 255, 0.5), 0 0 20px rgba(74, 163, 255, 0.3)",
-  },
-  menuButton: {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    gap: "4px",
-    background: "transparent",
-    border: "none",
-    cursor: "pointer",
-    width: "30px",
-    height: "30px",
-    padding: "0",
-  },
-  menuIcon: { width: "25px", height: "3px", backgroundColor: "#4aa3ff", borderRadius: "2px", transition: "all 0.3s ease" },
-  hero: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    textAlign: "center",
-    padding: "40px 0",
-    marginBottom: "80px",
-  },
-  heroContent: { maxWidth: "800px" },
-  discordLogo: { marginBottom: "30px", animation: "float 5s ease-in-out infinite" },
-  heroTitle: { fontWeight: "800", margin: "0 0 20px 0", lineHeight: "1.2" },
-  highlight: { background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" },
-  heroSubtitle: {
-    color: "#C3C8E6",
-    lineHeight: "1.6",
-    margin: "0 0 40px 0",
-    maxWidth: "600px",
-    marginLeft: "auto",
-    marginRight: "auto",
-  },
-  buttonGroup: { display: "flex", gap: "20px", justifyContent: "center", flexWrap: "wrap" },
-  joinButton: {
-    background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
-    color: "white",
-    border: "none",
-    borderRadius: "50px",
-    padding: "16px 32px",
-    fontWeight: "600",
-    fontSize: "1rem",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    transition: "all 0.3s ease",
-    boxShadow: "0 0 15px rgba(74, 163, 255, 0.5)",
-  },
-  statsSection: { marginBottom: "80px", textAlign: "center" },
-  sectionTitle: {
-    fontWeight: "800",
-    textAlign: "center",
-    margin: "0 0 60px 0",
-    background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-  },
-  statsGrid: { display: "flex", justifyContent: "center", flexWrap: "wrap" },
-  statCard: {
-    background: "rgba(25, 30, 56, 0.7)",
-    backdropFilter: "blur(10px)",
-    borderRadius: "20px",
-    padding: "40px 30px",
-    textAlign: "center",
-    border: "1px solid rgba(74, 163, 255, 0.2)",
-    transition: "all 0.3s ease",
-    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-  },
-  statIcon: { fontSize: "3rem", marginBottom: "15px" },
-  statValue: {
-    fontSize: "2.5rem",
-    fontWeight: "800",
-    marginBottom: "10px",
-    background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-  },
-  statLabel: { color: "#C3C8E6", fontSize: "1.1rem", fontWeight: "500" },
-  giveawaySection: { marginBottom: "80px", display: "flex", justifyContent: "center" },
-  giveawayCard: {
-    background: "linear-gradient(135deg, rgba(74, 163, 255, 0.1) 0%, rgba(138, 43, 226, 0.1) 100%)",
-    backdropFilter: "blur(10px)",
-    borderRadius: "30px",
-    textAlign: "center",
-    border: "1px solid rgba(74, 163, 255, 0.3)",
-    maxWidth: "800px",
-    width: "100%",
-    boxShadow: "0 15px 35px rgba(0, 0, 0, 0.2)",
-  },
-  giveawayContent: { maxWidth: "600px", margin: "0 auto" },
-  giveawayIcon: { fontSize: "4rem", marginBottom: "20px", animation: "float 5s ease-in-out infinite" },
-  giveawayTitle: {
-    fontWeight: "800",
-    margin: "0 0 20px 0",
-    background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-  },
-  giveawayText: { color: "#C3C8E6", lineHeight: "1.6", margin: "0 0 30px 0" },
-  giveawayButton: { margin: "0 auto" },
-  ctaSection: {
-    background: "linear-gradient(90deg, rgba(25, 30, 56, 0.7) 0%, rgba(33, 39, 90, 0.7) 100%)",
-    backdropFilter: "blur(10px)",
-    borderRadius: "30px",
-    textAlign: "center",
-    border: "1px solid rgba(74, 163, 255, 0.2)",
-    marginBottom: "60px",
-  },
-  ctaContent: { maxWidth: "700px", margin: "0 auto" },
-  ctaTitle: {
-    fontWeight: "800",
-    margin: "0 0 20px 0",
-    background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-  },
-  ctaText: { color: "#C3C8E6", lineHeight: "1.6", margin: "0 0 40px 0" },
-  ctaButton: { margin: "0 auto", padding: "18px 40px" },
-};
-
-export default CommunityPage;
+    WebkitBackgroundCl
