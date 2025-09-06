@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import "./index.css"; // Ensure this is imported for styles
+import "./index.css";
 
 // UI helpers
 function MuteMicIcon({ muted }) {
@@ -30,7 +30,7 @@ function truncateString(str, maxLen = 90) {
 
 const HOST = "https://shorts-t2dk.onrender.com";
 
-export default function VideoPlayer({ user, onLogout }) {
+export default function VideoPlayer({ user }) {
   const { filename } = useParams();
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -54,7 +54,7 @@ export default function VideoPlayer({ user, onLogout }) {
         setComments(res.data.comments || []);
       })
       .catch(() => {
-        setVideo(null); // Video not found
+        setVideo(null);
       })
       .finally(() => setLoading(false));
   }, [filename]);
@@ -70,6 +70,10 @@ export default function VideoPlayer({ user, onLogout }) {
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
+    if (!user) {
+      setCommentError("Please log in to comment.");
+      return;
+    }
     setCommentError("");
     if (!newComment.trim()) {
       setCommentError("Comment cannot be empty.");
@@ -78,11 +82,6 @@ export default function VideoPlayer({ user, onLogout }) {
 
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        setCommentError("Please log in to comment.");
-        return;
-      }
-      
       const res = await axios.post(
         `${HOST}/shorts/${filename}/comment`,
         { text: newComment },
@@ -92,6 +91,20 @@ export default function VideoPlayer({ user, onLogout }) {
       setNewComment("");
     } catch (err) {
       setCommentError(err.response?.data?.error || "Failed to post comment.");
+    }
+  };
+
+  const handleLike = async () => {
+    if (!user) {
+      alert("Please log in to like this video!");
+      return;
+    }
+    // Your existing like logic here
+    try {
+      const res = await axios.post(`${HOST}/shorts/${filename}/like`);
+      setVideo(prev => ({ ...prev, likes: res.data.likes }));
+    } catch (err) {
+      console.error("Failed to like video", err);
     }
   };
 
@@ -147,10 +160,7 @@ export default function VideoPlayer({ user, onLogout }) {
   );
 
   return (
-    <div style={{
-      minHeight: "100dvh", width: "100vw", position: "relative", background: "#000",
-      display: "flex", alignItems: "center", justifyContent: "center"
-    }}>
+    <div className="video-player-page">
       <video
         ref={videoRef}
         src={HOST + video.url}
@@ -176,18 +186,6 @@ export default function VideoPlayer({ user, onLogout }) {
       {/* Video Details and Comments Section */}
       <div className="video-details-and-comments">
         <div className="video-details-section">
-          <div className="video-details-top">
-            <button className="back-to-feed-btn" onClick={() => navigate("/")}>← Feed</button>
-            {user && (
-              <div className="user-info-container">
-                <span className="user-name">Hello, {user.name}</span>
-                <button className="logout-btn" onClick={onLogout}>Logout</button>
-              </div>
-            )}
-            {!user && (
-              <button className="login-prompt-btn" onClick={() => navigate("/login")}>Login / Signup</button>
-            )}
-          </div>
           <div className="video-caption-author">
             <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 2 }}>
               @{video.author || "anonymous"}
@@ -222,8 +220,15 @@ export default function VideoPlayer({ user, onLogout }) {
             )}
           </div>
         </div>
+        <div className="social-actions">
+          <button className="like-btn" onClick={handleLike}>
+            <span role="img" aria-label="Like">❤️</span> {video.likes}
+          </button>
+        </div>
+      </div>
 
-        {/* Comment Section */}
+      {/* Comment Section */}
+      <div className="comments-section-container">
         <div className="comments-section">
           <h3>Comments</h3>
           <div className="comments-list">
