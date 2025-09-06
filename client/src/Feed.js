@@ -119,65 +119,46 @@ function PauseIcon() {
 }
 
 
-// Helper array to create particles programmatically
 const particles = [
   { tx: -90, ty: -60, color: "#ff5252", delay: "0s" },
   { tx: -100, ty: 25, color: "#ff6b6b", delay: "0.1s" },
   { tx: 80, ty: -70, color: "#ff5252", delay: "0.2s" },
   { tx: 70, ty: 80, color: "#ff8e8e", delay: "0.3s" },
-  { tx: -40, ty: 90, color: "#ff6b6b", delay: "0.4s" },
-  { tx: 50, ty: 20, color: "#ff8e8e", delay: "0.5s" },
 ];
 
 function PulseHeart({ visible }) {
-  // 1. We introduce an internal state to manage the animation lifecycle.
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // 2. This effect watches the `visible` prop from the parent.
-  // When it becomes `true`, we set our internal state to `true` to start the animation.
   useEffect(() => {
     if (visible) {
       setIsAnimating(true);
     }
   }, [visible]);
 
-  // 4. This function is called when the longest animation completes.
-  // It resets the internal state, which causes the component to unmount.
   const handleAnimationEnd = () => {
     setIsAnimating(false);
   };
 
-  // If we are not animating, we render nothing. This is key.
   if (!isAnimating) {
     return null;
   }
 
-  // 3. The component now renders based on its own `isAnimating` state.
   return (
     <div
       aria-hidden
       className="heart-animation-container"
-      // 5. We attach the event listener to the element with the longest animation duration (the glow).
       onAnimationEnd={handleAnimationEnd}
     >
       <div className="glow-effect" />
       <div className="gradient-ring ring-1" />
       <div className="gradient-ring ring-2" />
-      <div className="gradient-ring ring-3" />
-
       {particles.map((p, i) => (
         <div
           key={i}
           className="particle"
-          style={{
-            "--tx": `${p.tx}px`,
-            "--ty": `${p.ty}px`,
-            background: p.color,
-            animationDelay: p.delay,
-          }}
+          style={{ "--tx": `${p.tx}px`, "--ty": `${p.ty}px`, background: p.color, animationDelay: p.delay }}
         />
       ))}
-      
       <div className="heart-main">
         <svg viewBox="0 0 96 96" width={94} height={94}>
           <defs>
@@ -193,73 +174,89 @@ function PulseHeart({ visible }) {
           />
         </svg>
       </div>
-
       <style>{`
-        .heart-animation-container {
-          position: absolute; left: 50%; top: 50%;
-          transform: translate(-50%, -50%);
-          z-index: 106; pointer-events: none; display: flex;
-          justify-content: center; align-items: center;
-          width: 240px; height: 240px;
-        }
-        .heart-main, .gradient-ring, .particle, .glow-effect {
-          position: absolute; opacity: 0;
-          will-change: transform, opacity; /* Performance hint */
-        }
-        .heart-main {
-          z-index: 4;
-          filter: drop-shadow(0 4px 12px rgba(255, 80, 80, 0.6));
-          animation: heart-appear 2.8s cubic-bezier(0.21, 0.61, 0.35, 1) forwards;
-        }
-        @keyframes heart-appear {
-          0% { opacity: 0; transform: scale(0) rotate(-15deg); }
-          15% { opacity: 1; transform: scale(1.25) rotate(5deg); }
-          25% { transform: scale(0.95) rotate(-2deg); }
-          35% { transform: scale(1.05) rotate(2deg); }
-          45%, 65% { opacity: 1; transform: scale(1) rotate(0deg); }
-          85% { opacity: 0.8; transform: scale(1.1); }
-          100% { opacity: 0; transform: scale(1.5); }
-        }
-        .gradient-ring {
-          width: 140px; height: 140px; border-radius: 50%; z-index: 2;
-        }
-        .ring-1 {
-          background: radial-gradient(circle, rgba(255, 82, 82, 0.7) 0%, rgba(255, 107, 107, 0.4) 40%, transparent 70%);
-          animation: ring-pulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
-        }
-        .ring-2 {
-          background: radial-gradient(circle, rgba(255, 107, 107, 0.5) 0%, rgba(255, 142, 142, 0.3) 30%, transparent 60%);
-          animation: ring-pulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) 0.2s forwards;
-        }
-        .ring-3 {
-          background: radial-gradient(circle, rgba(255, 142, 142, 0.4) 0%, rgba(255, 82, 82, 0.2) 20%, transparent 50%);
-          animation: ring-pulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards;
-        }
-        @keyframes ring-pulse {
-          0% { opacity: 0.7; transform: scale(0); }
-          50% { opacity: 0.4; }
-          100% { opacity: 0; transform: scale(2.4); }
-        }
-        .particle {
-          width: 16px; height: 16px; border-radius: 50%; z-index: 1;
-          animation: particle-float 2.5s ease-out forwards;
-        }
-        @keyframes particle-float {
-          0% { opacity: 0; transform: translate(0, 0) scale(0); }
-          20% { opacity: 0.9; }
-          100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1.6); }
-        }
-        .glow-effect {
-          width: 200px; height: 200px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(255, 82, 82, 0.3) 0%, rgba(255, 107, 107, 0.1) 60%, transparent 80%);
-          filter: blur(20px); z-index: 0;
-          animation: glow-pulse 3.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-        }
-        @keyframes glow-pulse {
-          0% { opacity: 0; transform: scale(0.8); }
-          30% { opacity: 0.6; }
-          100% { opacity: 0; transform: scale(2.2); }
-        }
+        .heart-animation-container{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:106;pointer-events:none;display:flex;justify-content:center;align-items:center;width:240px;height:240px}.heart-main,.gradient-ring,.particle,.glow-effect{position:absolute;opacity:0;will-change:transform,opacity}.heart-main{z-index:4;filter:drop-shadow(0 4px 12px rgba(255,80,80,.6));animation:heart-appear 2.8s cubic-bezier(.21,.61,.35,1) forwards}@keyframes heart-appear{0%{opacity:0;transform:scale(0) rotate(-15deg)}15%{opacity:1;transform:scale(1.25) rotate(5deg)}25%{transform:scale(.95) rotate(-2deg)}35%{transform:scale(1.05) rotate(2deg)}45%,65%{opacity:1;transform:scale(1) rotate(0)}85%{opacity:.8;transform:scale(1.1)}100%{opacity:0;transform:scale(1.5)}}.gradient-ring{width:140px;height:140px;border-radius:50%;z-index:2}.ring-1{background:radial-gradient(circle,rgba(255,82,82,.7) 0,rgba(255,107,107,.4) 40%,transparent 70%);animation:ring-pulse 3.2s cubic-bezier(.23,1,.32,1) .1s forwards}.ring-2{background:radial-gradient(circle,rgba(255,107,107,.5) 0,rgba(255,142,142,.3) 30%,transparent 60%);animation:ring-pulse 3.2s cubic-bezier(.23,1,.32,1) .2s forwards}@keyframes ring-pulse{0%{opacity:.7;transform:scale(0)}50%{opacity:.4}100%{opacity:0;transform:scale(2.4)}}.particle{width:16px;height:16px;border-radius:50%;z-index:1;animation:particle-float 2.5s ease-out forwards}@keyframes particle-float{0%{opacity:0;transform:translate(0,0) scale(0)}20%{opacity:.9}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(1.6)}}.glow-effect{width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,82,82,.3) 0,rgba(255,107,107,.1) 60%,transparent 80%);filter:blur(20px);z-index:0;animation:glow-pulse 3.4s cubic-bezier(.23,1,.32,1) forwards}@keyframes glow-pulse{0%{opacity:0;transform:scale(.8)}30%{opacity:.6}100%{opacity:0;transform:scale(2.2)}}
+      `}</style>
+    </div>
+  );
+}
+
+
+//================================================================================
+// 2. THE LOGIC COMPONENT (Parent Container)
+// This new component handles the state and logic for liking and unliking.
+//================================================================================
+function LikeableImage() {
+  // State to track if the image is currently liked or not. THIS IS THE KEY.
+  const [isLiked, setIsLiked] = useState(false);
+  // State for the like count
+  const [likeCount, setLikeCount] = useState(99);
+   // State to TRIGGER the heart animation
+  const [showHeart, setShowHeart] = useState(false);
+
+  const handleDoubleClick = () => {
+    // If we are currently "unliked", this double-click means we should "like" it.
+    if (!isLiked) {
+      // Increment the counter
+      setLikeCount(currentCount => currentCount + 1);
+      // Show the heart animation
+      setShowHeart(true);
+      // After a brief moment, reset the trigger so it can be used again.
+      // The PulseHeart component will handle its own disappearance.
+      setTimeout(() => setShowHeart(false), 100);
+    } 
+    // Otherwise, if we are already "liked", this double-click means we should "unlike" it.
+    else {
+      // Decrement the counter
+      setLikeCount(currentCount => currentCount - 1);
+      // We DO NOT show the heart animation on an "unlike" action.
+    }
+    
+    // Finally, toggle the liked state for the next click.
+    setIsLiked(currentIsLiked => !currentIsLiked);
+  };
+
+  return (
+    <div className="app-container">
+      <div className="card">
+        <div 
+          className="image-container" 
+          onDoubleClick={handleDoubleClick}
+        >
+          {/* The PulseHeart animation component */}
+          <PulseHeart visible={showHeart} />
+          
+          <img 
+            src="https://placehold.co/400x500/1a1a2e/ffffff?text=Double-Click\nMe!" 
+            alt="Placeholder" 
+            className="main-image"
+          />
+        </div>
+        <div className="footer">
+          <button className="icon-button" onClick={handleDoubleClick}>
+            {isLiked ? (
+               <svg className="heart-icon liked" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            ) : (
+               <svg className="heart-icon" viewBox="0 0 24 24"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.5 15.55l-.01.01-.01-.01C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.99 10.05z"/></svg>
+            )}
+          </button>
+          <span className={`like-count ${isLiked ? 'liked' : ''}`}>
+            {likeCount} likes
+          </span>
+        </div>
+      </div>
+       <style>{`
+        .app-container { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; background: #121212; padding: 40px; }
+        .card { background: #1e1e1e; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #2a2a2a; }
+        .image-container { position: relative; cursor: pointer; user-select: none; }
+        .main-image { display: block; width: 400px; height: 500px; background: #333; }
+        .footer { display: flex; align-items: center; padding: 12px 16px; background: #252525; }
+        .icon-button { background: none; border: none; padding: 0; cursor: pointer; display: flex; align-items: center; }
+        .heart-icon { width: 28px; height: 28px; fill: #a8a8a8; transition: all 0.2s ease-in-out; }
+        .heart-icon.liked { fill: #ff3b58; transform: scale(1.1); animation: heart-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .like-count { margin-left: 12px; font-size: 16px; color: #a8a8a8; font-weight: 600; }
+        .like-count.liked { color: #f0f0f0; }
+        @keyframes heart-pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1.1); } }
       `}</style>
     </div>
   );
