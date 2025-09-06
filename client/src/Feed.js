@@ -119,16 +119,9 @@ function PauseIcon() {
 }
 
 
-// MODIFIED: A completely new, dynamic heart animation component
-function PulseHeart({ visible }) {
-  // We use a key to force React to re-render the entire element tree
-  // when the animation is triggered again. This is the cleanest way to
-  // restart CSS animations.
-  const animationKey = visible ? Date.now() : null;
-
+function PulseHeart() {
   return (
     <div
-      key={animationKey}
       aria-hidden
       style={{
         position: "absolute",
@@ -136,24 +129,21 @@ function PulseHeart({ visible }) {
         top: "50%",
         zIndex: 106,
         transform: "translate(-50%, -50%)",
-        pointerEvents: "none",
-        width: 240, // Container size from your example
+        pointerEvents: "none", // CRITICAL: This lets clicks pass through to the video
+        width: 240,
         height: 240,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        opacity: visible ? 1 : 0, // Fade in/out controlled by parent
       }}
     >
       {/* Main heart */}
-      <div className="heart-main" style={{ animationDelay: "0s" }}>
-        ❤️
-      </div>
+      <div className="heart-main">❤️</div>
 
       {/* Child hearts */}
-      <div className="child-heart" style={{ "--ty": "-70px", "--tx": "-30px", animationDelay: "0.1s" }}>❤️</div>
-      <div className="child-heart" style={{ "--ty": "-80px", "--tx": "40px", animationDelay: "0.2s" }}>❤️</div>
-      <div className="child-heart" style={{ "--ty": "70px", "--tx": "-40px", animationDelay: "0.3s" }}>❤️</div>
+      <div className="child-heart" style={{ "--ty": "-70px", "--tx": "-30px" }}>❤️</div>
+      <div className="child-heart" style={{ "--ty": "-80px", "--tx": "40px" }}>❤️</div>
+      <div className="child-heart" style={{ "--ty": "70px", "--tx": "-40px" }}>❤️</div>
 
       {/* Gradient rings */}
       <div className="gradient-ring ring-1"></div>
@@ -161,120 +151,63 @@ function PulseHeart({ visible }) {
       <div className="gradient-ring ring-3"></div>
 
       {/* Particles */}
-      <div className="particle" style={{ "--tx": "-60px", "--ty": "-50px", background: "#ff5252", animationDelay: "0.2s" }}></div>
-      <div className="particle" style={{ "--tx": "-70px", "--ty": "20px", background: "#ff6b6b", animationDelay: "0.3s" }}></div>
-      <div className="particle" style={{ "--tx": "50px", "--ty": "-60px", background: "#ff5252", animationDelay: "0.4s" }}></div>
-      <div className="particle" style={{ "--tx": "40px", "--ty": "60px", background: "#ff8e8e", animationDelay: "0.5s" }}></div>
+      <div className="particle" style={{ "--tx": "-60px", "--ty": "-50px", background: "#ff5252" }}></div>
+      <div className="particle" style={{ "--tx": "-70px", "--ty": "20px", background: "#ff6b6b" }}></div>
+      <div className="particle" style={{ "--tx": "50px", "--ty": "-60px", background: "#ff5252" }}></div>
+      <div className="particle" style={{ "--tx": "40px", "--ty": "60px", background: "#ff8e8e" }}></div>
 
       {/* Glow effect */}
       <div className="glow-effect"></div>
 
-      {/* All CSS and Keyframes are embedded here for easy copy-pasting */}
       <style>{`
         .heart-main, .child-heart, .gradient-ring, .particle, .glow-effect {
           position: absolute;
           opacity: 0;
-          will-change: transform, opacity; /* Performance hint */
+          will-change: transform, opacity;
         }
         
         .heart-main {
-          font-size: 100px;
-          z-index: 4;
+          font-size: 100px; z-index: 4;
           background: linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
+          -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
           filter: drop-shadow(0 0 15px rgba(255, 80, 80, 0.5));
           animation: heart-appear 2.8s cubic-bezier(0.21, 0.61, 0.35, 1) forwards;
         }
 
         .child-heart {
-          font-size: 36px;
-          z-index: 3;
+          font-size: 36px; z-index: 3;
           background: linear-gradient(135deg, #ff5252 0%, #ff6b6b 25%, #ff8e8e 50%, #ff5252 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
+          -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
           filter: drop-shadow(0 0 8px rgba(255, 80, 80, 0.4));
           animation: child-heart-appear 3s cubic-bezier(0.21, 0.61, 0.35, 1) forwards;
+          animation-delay: calc(var(--i, 0) * 0.1s + 0.1s);
         }
+        .child-heart:nth-of-type(1) { --i: 0; }
+        .child-heart:nth-of-type(2) { --i: 1; }
+        .child-heart:nth-of-type(3) { --i: 2; }
 
-        .gradient-ring {
-          width: 140px;
-          height: 140px;
-          border-radius: 50%;
-          z-index: 2;
-        }
-        .ring-1 {
-          background: radial-gradient(circle, rgba(255, 82, 82, 0.7) 0%, rgba(255, 107, 107, 0.4) 40%, transparent 70%);
-          animation: ring-pulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards;
-        }
-        .ring-2 {
-          background: radial-gradient(circle, rgba(255, 107, 107, 0.5) 0%, rgba(255, 142, 142, 0.3) 30%, transparent 60%);
-          animation: ring-pulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) 0.2s forwards;
-        }
-        .ring-3 {
-          background: radial-gradient(circle, rgba(255, 142, 142, 0.4) 0%, rgba(255, 82, 82, 0.2) 20%, transparent 50%);
-          animation: ring-pulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards;
-        }
+        .gradient-ring { width: 140px; height: 140px; border-radius: 50%; z-index: 2; }
+        .ring-1 { background: radial-gradient(circle, rgba(255, 82, 82, 0.7) 0%, rgba(255, 107, 107, 0.4) 40%, transparent 70%); animation: ring-pulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) 0.1s forwards; }
+        .ring-2 { background: radial-gradient(circle, rgba(255, 107, 107, 0.5) 0%, rgba(255, 142, 142, 0.3) 30%, transparent 60%); animation: ring-pulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) 0.2s forwards; }
+        .ring-3 { background: radial-gradient(circle, rgba(255, 142, 142, 0.4) 0%, rgba(255, 82, 82, 0.2) 20%, transparent 50%); animation: ring-pulse 3.2s cubic-bezier(0.23, 1, 0.32, 1) 0.3s forwards; }
 
-        .particle {
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          z-index: 1;
-          animation: particle-float 2.5s ease-out forwards;
-        }
+        .particle { width: 16px; height: 16px; border-radius: 50%; z-index: 1; animation: particle-float 2.5s ease-out forwards; }
+        .particle:nth-of-type(1) { animation-delay: 0.2s; }
+        .particle:nth-of-type(2) { animation-delay: 0.3s; }
+        .particle:nth-of-type(3) { animation-delay: 0.4s; }
+        .particle:nth-of-type(4) { animation-delay: 0.5s; }
 
-        .glow-effect {
-          width: 200px;
-          height: 200px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(255, 82, 82, 0.3) 0%, rgba(255, 107, 107, 0.2) 30%, rgba(255, 142, 142, 0.1) 60%, transparent 80%);
-          filter: blur(20px);
-          z-index: 0;
-          animation: glow-pulse 3.4s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-        }
+        .glow-effect { width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 82, 82, 0.3) 0%, rgba(255, 107, 107, 0.2) 30%, rgba(255, 142, 142, 0.1) 60%, transparent 80%); filter: blur(20px); z-index: 0; animation: glow-pulse 3.4s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
 
-        @keyframes heart-appear {
-          0% { opacity: 0; transform: scale(0) rotate(-10deg); }
-          15% { opacity: 1; transform: scale(1.25) rotate(3deg); }
-          25% { transform: scale(0.92) rotate(-1deg); }
-          35% { transform: scale(1.08) rotate(1deg); }
-          45%, 65% { opacity: 1; transform: scale(1) rotate(0deg); }
-          80% { opacity: 0.8; transform: scale(1); }
-          100% { opacity: 0; transform: scale(1.4) rotate(3deg); }
-        }
-
-        @keyframes child-heart-appear {
-          0% { opacity: 0; transform: scale(0) translateY(0) translateX(0); }
-          30% { opacity: 0.9; transform: scale(1) translateY(var(--ty)) translateX(var(--tx)); }
-          70% { opacity: 0.8; }
-          100% { opacity: 0; transform: scale(1.15) translateY(var(--ty)) translateX(var(--tx)); }
-        }
-
-        @keyframes ring-pulse {
-          0% { opacity: 0.7; transform: scale(0); }
-          50% { opacity: 0.4; }
-          100% { opacity: 0; transform: scale(2.4); }
-        }
-
-        @keyframes particle-float {
-          0% { opacity: 0; transform: translate(0, 0) scale(0); }
-          20% { opacity: 0.9; }
-          100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1.6); }
-        }
-
-        @keyframes glow-pulse {
-          0% { opacity: 0; transform: scale(0.8); }
-          30% { opacity: 0.6; }
-          100% { opacity: 0; transform: scale(2.2); }
-        }
+        @keyframes heart-appear { 0% { opacity: 0; transform: scale(0) rotate(-10deg); } 15% { opacity: 1; transform: scale(1.25) rotate(3deg); } 25% { transform: scale(0.92) rotate(-1deg); } 35% { transform: scale(1.08) rotate(1deg); } 45%, 65% { opacity: 1; transform: scale(1) rotate(0deg); } 80% { opacity: 0.8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.4) rotate(3deg); } }
+        @keyframes child-heart-appear { 0% { opacity: 0; transform: scale(0) translateY(0) translateX(0); } 30% { opacity: 0.9; transform: scale(1) translateY(var(--ty)) translateX(var(--tx)); } 70% { opacity: 0.8; } 100% { opacity: 0; transform: scale(1.15) translateY(var(--ty)) translateX(var(--tx)); } }
+        @keyframes ring-pulse { 0% { opacity: 0.7; transform: scale(0); } 50% { opacity: 0.4; } 100% { opacity: 0; transform: scale(2.4); } }
+        @keyframes particle-float { 0% { opacity: 0; transform: translate(0, 0) scale(0); } 20% { opacity: 0.9; } 100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1.6); } }
+        @keyframes glow-pulse { 0% { opacity: 0; transform: scale(0.8); } 30% { opacity: 0.6; } 100% { opacity: 0; transform: scale(2.2); } }
       `}</style>
     </div>
   );
 }
-
 
 function MuteMicIcon({ muted }) {
   return muted ? (
@@ -565,7 +498,7 @@ export default function Feed({ user }) {
   const [muted, setMuted] = useState(true);
   const [mutePulse, setMutePulse] = useState(false);
   const [showPause, setShowPause] = useState(false);
-  const [showPulseHeart, setShowPulseHeart] = useState(false);
+  const [heartAnimationKey, setHeartAnimationKey] = useState(null);
   const [likePending, setLikePending] = useState({});
   const [showComments, setShowComments] = useState(null);
   const [commentInputs, setCommentInputs] = useState({});
@@ -1024,11 +957,20 @@ export default function Feed({ user }) {
     const SINGLE_DELAY = 600;
 
     const likeThenPulse = () => {
-      handleLike(idx, filename);
-      setShowPulseHeart(true);
-      requestAnimationFrame(() => {
-        setTimeout(() => setShowPulseHeart(false), 3000);
-      });
+      // Prevent spamming the animation if it's already playing
+      if (heartAnimationKey) return;
+    
+      // Only trigger a "like" action, not an "unlike"
+      if (!isLiked(filename)) {
+        handleLike(idx, filename);
+      }
+    
+      setHeartAnimationKey(Date.now()); // Trigger the animation with a new key
+    
+      // Set a timer to remove the animation component from the DOM after it finishes
+      setTimeout(() => {
+        setHeartAnimationKey(null);
+      }, 3400); // 3.4 seconds, matching the longest animation
     };
 
     return {
@@ -1394,7 +1336,7 @@ export default function Feed({ user }) {
           </div>
         )}
 
-        {isCurrent && <PulseHeart visible={showPulseHeart} />}
+        {isCurrent && heartAnimationKey && <PulseHeart key={heartAnimationKey} />}
 
         {/* Progress bar */}
         <div
