@@ -95,7 +95,7 @@ app.post("/user/signup", async (req, res) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = { name, email, password: hashedPassword, id: crypto.randomUUID() };
+  const newUser = { name, email, password: hashedPassword, id: crypto.randomUUID(), createdAt: new Date() };
   users.push(newUser);
   saveUsers(users);
 
@@ -121,6 +121,42 @@ app.post("/user/login", async (req, res) => {
   const token = jwt.sign({ id: user.id, name: user.name }, SECRET, { expiresIn: "7d" });
   res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
 });
+
+
+// ======== New Admin User Dashboard Routes ========
+
+// Get a list of all registered users (admin-only)
+app.get('/admin/users', adminJwtAuth, (req, res) => {
+    const users = getUsers().map(({ password, ...userWithoutPassword }) => userWithoutPassword);
+    res.json(users);
+});
+
+// Download user data as CSV (admin-only)
+app.get('/admin/users/download-csv', adminJwtAuth, (req, res) => {
+    const users = getUsers().map(({ password, ...userWithoutPassword }) => userWithoutPassword);
+
+    if (users.length === 0) {
+        return res.status(404).send('No user data found.');
+    }
+
+    // A simple function to convert a JSON array to CSV string
+    const jsonToCsv = (items) => {
+        const header = Object.keys(items[0]);
+        const csvRows = [
+            header.join(','),
+            ...items.map(row => header.map(fieldName => JSON.stringify(row[fieldName])).join(','))
+        ];
+        return csvRows.join('\n');
+    };
+
+    const csvData = jsonToCsv(users);
+    
+    // Set headers to force download as a file
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=users.csv');
+    res.send(csvData);
+});
+// =================================================
 
 // ========== Multer for uploads ==========
 const storage = multer.diskStorage({
@@ -346,6 +382,3 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-
