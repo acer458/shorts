@@ -299,6 +299,7 @@ export const Footer = ({ isMobile }) => {
 const CommunityPage = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -313,6 +314,14 @@ const CommunityPage = () => {
     { value: "Weekly", label: "Giveaways", icon: "🎁" },
   ];
 
+  const navItems = [
+    { label: "Home", href: "#" },
+    { label: "Community", href: "#" },
+    { label: "Shop", href: "#" },
+    { label: "FAQ", href: "#" },
+    { label: "About", href: "#" },
+  ];
+
   const toggleMenu = () => setMenuOpen((v) => !v);
 
   return (
@@ -324,6 +333,14 @@ const CommunityPage = () => {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
           }
+          @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(200%) rotate(45deg); }
+          }
+          @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(74, 163, 255, 0.7), 0 0 30px rgba(74, 163, 255, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(74, 163, 255, 0.9), 0 0 40px rgba(74, 163, 255, 0.6); }
+          }
           .stat-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3) !important;
@@ -331,6 +348,33 @@ const CommunityPage = () => {
           .join-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(74, 163, 255, 0.5) !important;
+          }
+          .shine-effect {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+              to right,
+              rgba(255, 255, 255, 0) 0%,
+              rgba(255, 255, 255, 0.3) 50%,
+              rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(45deg);
+            opacity: 0;
+            transition: opacity 0.3s;
+          }
+          .cta-button:hover .shine-effect {
+            animation: shine 1.5s ease;
+            opacity: 1;
+          }
+          .nav-item:hover {
+            background: rgba(74, 163, 255, 0.15) !important;
+            color: #4aa3ff !important;
+          }
+          .cta-button {
+            animation: pulse 2s infinite;
           }
           @media (max-width: 768px) {
             .mobile-menu {
@@ -375,22 +419,28 @@ const CommunityPage = () => {
 
           {!isMobile ? (
             <nav style={styles.nav}>
-              <a href="#" style={styles.navLink}>
-                Home
-              </a>
-              <a href="#" style={styles.navLink}>
-                Community
-              </a>
-              <a href="#" style={styles.navLink}>
-                Shop
-              </a>
-              <a href="#" style={styles.navLink}>
-                FAQ
-              </a>
-              <a href="#" style={styles.navLink}>
-                About
-              </a>
-              <button style={styles.ctaButton}>
+              {navItems.map((item, index) => (
+                <a 
+                  key={index}
+                  href={item.href} 
+                  style={{
+                    ...styles.navLink,
+                    ...(hoveredItem === index ? styles.navLinkHover : {})
+                  }}
+                  className="nav-item"
+                  onMouseEnter={() => setHoveredItem(index)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                >
+                  {item.label}
+                </a>
+              ))}
+              <button 
+                style={styles.ctaButton}
+                className="cta-button"
+                onMouseEnter={() => setHoveredItem('cta')}
+                onMouseLeave={() => setHoveredItem(null)}
+              >
+                <span className="shine-effect"></span>
                 Get Started
               </button>
             </nav>
@@ -429,21 +479,11 @@ const CommunityPage = () => {
               </button>
 
               <nav className="mobile-menu" style={{ display: "none" }}>
-                <a href="#" style={styles.navLink}>
-                  Home
-                </a>
-                <a href="#" style={styles.navLink}>
-                  Community
-                </a>
-                <a href="#" style={styles.navLink}>
-                  Shop
-                </a>
-                <a href="#" style={styles.navLink}>
-                  FAQ
-                </a>
-                <a href="#" style={styles.navLink}>
-                  About
-                </a>
+                {navItems.map((item, index) => (
+                  <a key={index} href={item.href} style={styles.navLink}>
+                    {item.label}
+                  </a>
+                ))}
                 <button style={styles.ctaButton}>
                   Get Started
                 </button>
@@ -548,6 +588,7 @@ const CommunityPage = () => {
             </p>
             <button style={{ ...styles.joinButton, ...styles.ctaButton }} className="join-btn">
               Join Discord Community
+              <span className="shine-effect"></span>
             </button>
           </div>
         </section>
@@ -610,9 +651,14 @@ const styles = {
     textDecoration: "none", 
     fontSize: "16px", 
     fontWeight: "500", 
-    transition: "color 0.3s ease",
+    transition: "all 0.3s ease",
     padding: "8px 16px",
     borderRadius: "20px",
+    position: "relative",
+  },
+  navLinkHover: {
+    background: "rgba(74, 163, 255, 0.15)",
+    color: "#4aa3ff",
   },
   ctaButton: {
     background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
@@ -623,6 +669,9 @@ const styles = {
     fontWeight: "600",
     cursor: "pointer",
     transition: "all 0.3s ease",
+    boxShadow: "0 0 15px rgba(74, 163, 255, 0.7), 0 0 30px rgba(74, 163, 255, 0.4)",
+    position: "relative",
+    overflow: "hidden",
   },
   menuButton: {
     display: "flex",
@@ -670,6 +719,9 @@ const styles = {
     display: "flex",
     alignItems: "center",
     transition: "all 0.3s ease",
+    boxShadow: "0 0 15px rgba(74, 163, 255, 0.5)",
+    position: "relative",
+    overflow: "hidden",
   },
   statsSection: { marginBottom: "80px", textAlign: "center" },
   sectionTitle: {
