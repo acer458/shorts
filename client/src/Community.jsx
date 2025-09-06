@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-/* Named export so it can coexist with CommunityPage’s default export */
+/* Named export so it can coexist with CommunityPage's default export */
 export const Footer = ({ isMobile }) => {
   const styles = {
     wrapper: {
@@ -324,10 +324,6 @@ const CommunityPage = () => {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
           }
-          @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(74, 163, 255, 0.4); }
-            50% { box-shadow: 0 0 30px rgba(74, 163, 255, 0.8); }
-          }
           .stat-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3) !important;
@@ -335,9 +331,6 @@ const CommunityPage = () => {
           .join-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(74, 163, 255, 0.5) !important;
-          }
-          .glow-button {
-            animation: pulse 2s infinite;
           }
           @media (max-width: 768px) {
             .mobile-menu {
@@ -397,7 +390,7 @@ const CommunityPage = () => {
               <a href="#" style={styles.navLink}>
                 About
               </a>
-              <button style={{...styles.ctaButton, ...styles.glowButton}} className="glow-button">
+              <button style={styles.ctaButton}>
                 Get Started
               </button>
             </nav>
@@ -451,7 +444,7 @@ const CommunityPage = () => {
                 <a href="#" style={styles.navLink}>
                   About
                 </a>
-                <button style={{...styles.ctaButton, ...styles.glowButton}} className="glow-button">
+                <button style={styles.ctaButton}>
                   Get Started
                 </button>
               </nav>
@@ -612,20 +605,25 @@ const styles = {
     margin: "0",
   },
   nav: { display: "flex", alignItems: "center", gap: "30px" },
-  navLink: { color: "#E6E6FA", textDecoration: "none", fontSize: "16px", fontWeight: "500", transition: "color 0.3s ease" },
+  navLink: { 
+    color: "#E6E6FA", 
+    textDecoration: "none", 
+    fontSize: "16px", 
+    fontWeight: "500", 
+    transition: "color 0.3s ease",
+    padding: "8px 16px",
+    borderRadius: "20px",
+  },
   ctaButton: {
     background: "linear-gradient(90deg, #4aa3ff 0%, #8a2be2 100%)",
     color: "white",
     border: "none",
-    borderRadius: "30px",
-    padding: "12px 24px",
+    borderRadius: "20px",
+    padding: "10px 20px",
     fontWeight: "600",
     cursor: "pointer",
     transition: "all 0.3s ease",
-  },
-  glowButton: {
-    boxShadow: "0 0 10px #4aa3ff, 0 0 20px #4aa3ff",
-    animation: "pulse 2s infinite",
+    boxShadow: "0 0 10px rgba(74, 163, 255, 0.5), 0 0 20px rgba(74, 163, 255, 0.3)",
   },
   menuButton: {
     display: "flex",
@@ -673,7 +671,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     transition: "all 0.3s ease",
-    animation: "pulse 2s infinite",
+    boxShadow: "0 0 15px rgba(74, 163, 255, 0.5)",
   },
   statsSection: { marginBottom: "80px", textAlign: "center" },
   sectionTitle: {
