@@ -486,6 +486,7 @@ export default function Feed({ user }) {
   const location = useLocation();
   const navigate = useNavigate();
   const clickTimerRef = useRef(null);
+  const lastTapTimeRef = useRef(0);
   // CORE STATE
   const [shorts, setShorts] = useState([]);
   const [aloneVideo, setAloneVideo] = useState(null);
@@ -950,26 +951,28 @@ export default function Feed({ user }) {
     }
   }
 
-  // ---- Tap + Heart UI ----
 function handleVideoEvents(idx, filename) {
-  const SINGLE_TAP_DELAY_MS = 300; // A faster, more responsive delay
+  const DOUBLE_TAP_DELAY_MS = 280; // A standard delay for detecting a double-tap
 
-  const likeThenPulse = () => {
-    if (heartAnimationKey) return;
+  // Helper function for the "like" action and animation
+  const performLikeAction = () => {
+    // The animation should only play when we are LIKING the video.
+    // We check this *before* calling handleLike.
     if (!isLiked(filename)) {
       setHeartAnimationKey(Date.now());
-      setTimeout(() => {
-        setHeartAnimationKey(null);
-      }, 3400);
+      setTimeout(() => setHeartAnimationKey(null), 3400);
     }
+    // Always call handleLike. This is the key to fixing the "unlike" bug.
+    // The animation state no longer blocks this action.
     handleLike(idx, filename);
   };
 
-  const handleSingleTap = () => {
+  // Helper function for the "play/pause" action
+  const performSingleTapAction = () => {
     const vid = videoRefs.current[idx];
     if (!vid) return;
     if (vid.paused) {
-      vid.play();
+      vid.play().catch(() => {});
       setShowPause(false);
     } else {
       vid.pause();
@@ -978,26 +981,26 @@ function handleVideoEvents(idx, filename) {
   };
 
   return {
-    onClick: () => {
-      // If a double-click timer is already running, cancel it and do nothing.
-      if (clickTimerRef.current) {
-        clearTimeout(clickTimerRef.current);
-        clickTimerRef.current = null;
+    // This combines handlers for both mouse and touch events.
+    onClick: (e) => {
+      // This logic prevents the 300ms lag on mobile taps
+      if (e.detail === 1) { // e.detail is 1 for a single click/tap
+        const now = Date.now();
+        const timeSinceLastTap = now - lastTapTimeRef.current;
+
+        if (timeSinceLastTap > DOUBLE_TAP_DELAY_MS) {
+          // This is a definite single tap
+          clickTimerRef.current = setTimeout(() => {
+            performSingleTapAction();
+          }, DOUBLE_TAP_DELAY_MS);
+        }
+        lastTapTimeRef.current = now;
       }
-      // Set a timer for a single tap. If onDoubleClick fires, it will clear this.
-      clickTimerRef.current = setTimeout(() => {
-        clickTimerRef.current = null;
-        handleSingleTap();
-      }, SINGLE_TAP_DELAY_MS);
     },
-    onDoubleClick: () => {
-      // A double-click happened, so clear the pending single-tap timer.
-      if (clickTimerRef.current) {
-        clearTimeout(clickTimerRef.current);
-        clickTimerRef.current = null;
-      }
-      // Now, perform the like action.
-      likeThenPulse();
+    onDoubleClick: (e) => {
+      // This is a definite double-click
+      clearTimeout(clickTimerRef.current); // Always cancel any pending single-tap action
+      performLikeAction();
     },
   };
 }
