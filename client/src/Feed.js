@@ -715,7 +715,7 @@ export default function Feed({ user }) {
       }
     });
     setShowPause(false);
-    setShowPulseHeart(false);
+    setHeartAnimationKey(null);
   }, [currentIdx, muted, aloneVideo, shorts, overlayShown, showComments]);
 
   // Cleanup spam timer
