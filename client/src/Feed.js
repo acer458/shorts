@@ -924,7 +924,7 @@ export default function Feed() {
     let clickTimer = null;
     let lastTap = 0;
     const SINGLE_DELAY = 600;
-
+  
     const likeThenPulse = () => {
       if (!isLiked(filename)) {
         handleLike(idx, filename);
@@ -934,10 +934,10 @@ export default function Feed() {
         setTimeout(() => setShowPulseHeart(false), 700);
       });
     };
-
+  
     return {
       onClick: (e) => {
-        // Always block bubbling so nested buttons don’t cause parent toggles
+        // Always block bubbling so nested buttons don't cause parent toggles
         e.preventDefault();
         e.stopPropagation();
     
@@ -989,8 +989,13 @@ export default function Feed() {
         }
     
         // Single tap: schedule pause/play, cancellable if a second tap arrives
-        if (clickTimer) clearTimeout(clickTimer);
         clickTimer = setTimeout(() => {
+          // Check if another tap occurred during the delay (double tap)
+          if (Date.now() - lastTap < 260) {
+            clickTimer = null;
+            return; // Don't execute single tap action if it was actually a double tap
+          }
+          
           clickTimer = null;
           const vid = videoRefs.current[idx];
           if (!vid) return;
