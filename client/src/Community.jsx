@@ -473,10 +473,10 @@ const CommunityPage = () => {
               width: 100%;
             }
           }
-          .discord-logo {
+          .hero-logo-animation {
             animation: float 5s ease-in-out infinite;
           }
-          .discord-logo:hover {
+          .hero-logo-animation:hover {
             animation: pulse 0.6s ease-in-out infinite;
           }
         `}
@@ -578,17 +578,14 @@ const CommunityPage = () => {
         {/* Hero Section */}
         <section style={styles.hero}>
           <div style={styles.heroContent}>
-            <div style={styles.discordLogo} className="discord-logo">
-              <svg viewBox="0 0 245 240" width="80" height="80">
-                <path
-                  fill="#4aa3ff"
-                  d="M104.4 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1.1-6.1-4.5-11.1-10.2-11.1zM140.9 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1s-4.5-11.1-10.2-11.1z"
-                />
-                <path
-                  fill="#4aa3ff"
-                  d="M189.5 20h-134C44.2 20 35 29.2 35 40.6v135.2c0 11.4 9.2 20.6 20.5 20.6h113.4l-5.3-18.5 12.8 11.9 12.1 11.2 21.5 19V40.6c0-11.4-9.2-20.6-20.5-20.6zm-38.6 130.6s-3.6-4.3-6.6-8.1c13.1-3.7 18.1-11.9 18.1-11.9-4.1 2.7-8 4.6-11.5 5.9-5 2.1-9.8 3.5-14.5 4.3-9.6 1.8-18.4 1.3-25.9-.1-5.7-1.1-10.6-2.7-14.7-4.3-2.3-.9-4.8-2-7.3-3.4-.3-.2-.6-.3-.9-.5-.2-.1-.3-.2-.4-.3-1.8-1-2.8-1.7-2.8-1.7s4.8 8 17.5 11.8c-3 3.8-6.7 8.3-6.7 8.3-22.1-.7-30.5-15.2-30.5-15.2 0-32.2 14.4-58.3 14.4-58.3 14.4-10.8 28.1-10.8z"
-                />
-              </svg>
+            
+            {/* THIS IS THE FIXED PART */}
+            <div style={styles.heroLogoContainer} className="hero-logo-animation">
+              <img
+                src="https://res.cloudinary.com/dzozyqlqr/image/upload/v1752921306/LOGO-PropScholar_u6jhij.png"
+                alt="PropScholar Logo"
+                style={styles.heroLogo}
+              />
             </div>
 
             <h1 style={{ ...styles.heroTitle, fontSize: isMobile ? "2.2rem" : "3.5rem" }}>
@@ -618,7 +615,7 @@ const CommunityPage = () => {
           </div>
         </section>
 
-        {/* Stats Section - Now as "Why Join Our Community" */}
+        {/* Stats Section */}
         <section style={styles.statsSection}>
           <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? "2rem" : "2.5rem" }}>
             Why Join Our Community?
@@ -673,8 +670,7 @@ const CommunityPage = () => {
           </div>
         </section>
       </div>
-
-      {/* Render merged footer here */}
+      
       <Footer isMobile={isMobile} />
     </div>
   );
@@ -788,8 +784,17 @@ const styles = {
     alignItems: "center",
     gap: "30px",
   },
-  discordLogo: {
+  // NEW STYLES for the logo
+  heroLogoContainer: {
     marginBottom: "20px",
+  },
+  heroLogo: {
+    width: "80px",
+    height: "80px",
+    objectFit: "contain",
+    borderRadius: "16px",
+    background: '#000',
+    padding: '5px'
   },
   heroTitle: {
     fontWeight: "800",
