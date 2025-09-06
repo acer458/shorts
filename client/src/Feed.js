@@ -746,49 +746,59 @@ export default function Feed({ user }) {
   }
   
   function handleLike(idx, filename) {
+    // 1. Check if user is logged in (no change here)
     if (!user) {
+      // For logged-out users, we don't proceed, but we allow the animation
+      // to have been triggered by the calling function.
       alert("Please log in to like this video!");
       return;
     }
     if (likePending[filename]) return;
-    const liked = isLiked(filename);
-    setLikePending((l) => ({ ...l, [filename]: true }));
 
-    if (!liked) {
-      axios
-        .post(`${HOST}/shorts/${filename}/like`)
-        .then(() => {
-          setShorts((prev) =>
-            prev.map((v, i) => (i === idx ? { ...v, likes: (v.likes || 0) + 1 } : v))
-          );
-          setAloneVideo((prev) =>
-            prev && prev.url && prev.url.endsWith(filename)
-              ? { ...prev, likes: (prev.likes || 0) + 1 }
-              : prev
-          );
-          setLiked(filename, true);
-        })
-        .finally(() => {
-          setLikePending((l) => ({ ...l, [filename]: false }));
-        });
-    } else {
-      axios
-        .post(`${HOST}/shorts/${filename}/unlike`) // Assuming you create this endpoint
-        .then(() => {
-          setShorts((prev) =>
-            prev.map((v, i) => (i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v))
-          );
-          setAloneVideo((prev) =>
-            prev && prev.url && prev.url.endsWith(filename) && (prev.likes || 0) > 0
-              ? { ...prev, likes: prev.likes - 1 }
-              : prev
-          );
-          setLiked(filename, false);
-        })
-        .finally(() => {
-          setLikePending((l) => ({ ...l, [filename]: false }));
-        });
-    }
+    // 2. Determine the current and desired state BEFORE making any changes
+    const currentlyLiked = isLiked(filename);
+    const newLikedState = !currentlyLiked;
+
+    // 3. --- OPTIMISTIC UI UPDATE ---
+    // Update the UI immediately. This feels instant to the user and causes
+    // only ONE re-render, which happens at the same time as the animation starts.
+    setShorts((prev) =>
+      prev.map((v, i) => {
+        if (i === idx) {
+          // Create a new video object with the updated like count
+          const currentLikes = v.likes || 0;
+          return { ...v, likes: currentLikes + (newLikedState ? 1 : -1) };
+        }
+        return v;
+      })
+    );
+    setLiked(filename, newLikedState); // Also update localStorage immediately
+
+    // 4. --- API Call in the Background ---
+    // Now, send the update to the server. If it fails, we will revert the change.
+    setLikePending((l) => ({ ...l, [filename]: true }));
+    const endpoint = newLikedState ? 'like' : 'unlike';
+    axios
+      .post(`${HOST}/shorts/${filename}/${endpoint}`)
+      .catch(() => {
+        // --- REVERT ON FAILURE ---
+        // If the server fails, undo the changes we made to the UI.
+        alert("Action failed, please try again.");
+        setShorts((prev) =>
+          prev.map((v, i) => {
+            if (i === idx) {
+              const currentLikes = v.likes || 0;
+              // Revert the like count back to what it was
+              return { ...v, likes: currentLikes + (newLikedState ? -1 : 1) };
+            }
+            return v;
+          })
+        );
+        setLiked(filename, currentlyLiked); // Revert localStorage as well
+      })
+      .finally(() => {
+        setLikePending((l) => ({ ...l, [filename]: false }));
+      });
   }
 
   function handleShare(filename) {
