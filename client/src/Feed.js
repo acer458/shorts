@@ -2,8 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 
-
-
 // ---- CONFIG ----
 const HOST = "https://shorts-t2dk.onrender.com";
 const COMMENT_SPAM_DELAY_MS = 5000; // 5 seconds delay between each comment per video
@@ -188,9 +186,9 @@ function PulseHeart({ visible }) {
 
       <style>{`
         @keyframes heartPulse3 {
-          0%   { opacity: 0; transform: translate(-50%,-50%) scale(.85); }
-          35%  { opacity: 1; transform: translate(-50%,-50%) scale(1.18); }
-          60%  { opacity: 1; transform: translate(-50%,-50%) scale(.96); }
+          0%  { opacity: 0; transform: translate(-50%,-50%) scale(.85); }
+          35% { opacity: 1; transform: translate(-50%,-50%) scale(1.18); }
+          60% { opacity: 1; transform: translate(-50%,-50%) scale(.96); }
           100% { opacity: 0; transform: translate(-50%,-50%) scale(1.0); }
         }
       `}</style>
@@ -471,7 +469,7 @@ function unlockBodyScroll() {
 }
 
 // ---- MAIN FEED COMPONENT ----
-export default function Feed() {
+export default function Feed({ user }) {
   useAntiInspect();
   const location = useLocation();
   const navigate = useNavigate();
@@ -495,23 +493,23 @@ export default function Feed() {
   const [expandedCaptions, setExpandedCaptions] = useState({});
   const [videoProgress, setVideoProgress] = useState({});
   const [commentLikes, setCommentLikes] = useState({});
-
+  
   const [moreOpen, setMoreOpen] = useState({});
-
-
+  
+  
   // Bottom sheet drag
   const [modalDragY, setModalDragY] = useState(0);
   const [isDraggingModal, setIsDraggingModal] = useState(false);
   const dragStartY = useRef(0);
   const dragStartedOnGrabber = useRef(false);
-  
+    
   // COMMENTS_LOADING_STATE
   const [isCommentsLoading, setIsCommentsLoading] = useState(false);
-
+  
   // Replay overlay
   const [replayCounts, setReplayCounts] = useState({});
   const [overlayShown, setOverlayShown] = useState({});
-
+  
   // Spam protection
   const lastCommentTimeRef = useRef({});
   const [spamAlert, setSpamAlert] = useState({ show: false, message: "" });
@@ -589,7 +587,6 @@ export default function Feed() {
     return () => window.removeEventListener("keydown", onKey);
   }, [moreOpen]);
   
-
 
   // ---- Wheel and swipe listeners for feed ----
   // FEED_GESTURES_GUARD
@@ -721,13 +718,25 @@ export default function Feed() {
 
   // ---- LIKE / COMMENT / SHARE ----
   function isLiked(filename) {
-    return localStorage.getItem("like_" + filename) === "1";
+    const likedVideos = JSON.parse(localStorage.getItem("likedVideos") || "[]");
+    return likedVideos.includes(filename);
   }
+
   function setLiked(filename, yes) {
-    if (yes) localStorage.setItem("like_" + filename, "1");
-    else localStorage.removeItem("like_" + filename);
+    let likedVideos = JSON.parse(localStorage.getItem("likedVideos") || "[]");
+    if (yes) {
+      likedVideos.push(filename);
+    } else {
+      likedVideos = likedVideos.filter(f => f !== filename);
+    }
+    localStorage.setItem("likedVideos", JSON.stringify(likedVideos));
   }
+  
   function handleLike(idx, filename) {
+    if (!user) {
+      alert("Please log in to like this video!");
+      return;
+    }
     if (likePending[filename]) return;
     const liked = isLiked(filename);
     setLikePending((l) => ({ ...l, [filename]: true }));
@@ -750,18 +759,25 @@ export default function Feed() {
           setLikePending((l) => ({ ...l, [filename]: false }));
         });
     } else {
-      setShorts((prev) =>
-        prev.map((v, i) => (i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v))
-      );
-      setAloneVideo((prev) =>
-        prev && prev.url && prev.url.endsWith(filename) && (prev.likes || 0) > 0
-          ? { ...prev, likes: prev.likes - 1 }
-          : prev
-      );
-      setLiked(filename, false);
-      setLikePending((l) => ({ ...l, [filename]: false }));
+      axios
+        .post(`${HOST}/shorts/${filename}/unlike`) // Assuming you create this endpoint
+        .then(() => {
+          setShorts((prev) =>
+            prev.map((v, i) => (i === idx && (v.likes || 0) > 0 ? { ...v, likes: v.likes - 1 } : v))
+          );
+          setAloneVideo((prev) =>
+            prev && prev.url && prev.url.endsWith(filename) && (prev.likes || 0) > 0
+              ? { ...prev, likes: prev.likes - 1 }
+              : prev
+          );
+          setLiked(filename, false);
+        })
+        .finally(() => {
+          setLikePending((l) => ({ ...l, [filename]: false }));
+        });
     }
   }
+
   function handleShare(filename) {
     const url = window.location.origin + "/?v=" + filename;
     if (navigator.share) {
@@ -776,7 +792,13 @@ export default function Feed() {
       setTimeout(() => document.body.removeChild(temp), 1200);
     }
   }
+
   function handleAddComment(idx, filename) {
+    if (!user) {
+      alert("Please log in to comment!");
+      return;
+    }
+
     const text = (commentInputs[filename] || "").trim();
     if (!text) return;
 
@@ -788,41 +810,38 @@ export default function Feed() {
       );
       return;
     }
+    
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Authentication token missing. Please log in again.");
+      return;
+    }
 
     lastCommentTimeRef.current[filename] = now;
     axios
-      .post(`${HOST}/shorts/${filename}/comment`, { name: " PropScholar User", text })
-      .then(() => {
+      .post(`${HOST}/shorts/${filename}/comment`, { text }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => {
+        const newCommentData = res.data.comments;
         setShorts((prev) =>
           prev.map((v, i) =>
-            i === idx
-              ? {
-                  ...v,
-                  comments: [
-                    ...(v.comments || []),
-                    { name: "PropScholar User", text, createdAt: Date.now() },
-                  ],
-                }
-              : v
+            i === idx ? { ...v, comments: newCommentData } : v
           )
         );
         setAloneVideo((prev) =>
           prev && prev.url && prev.url.endsWith(filename)
-            ? {
-                ...prev,
-                comments: [
-                  ...(prev.comments || []),
-                  { name: "PropScholar User", text, createdAt: Date.now() },
-                ],
-              }
+            ? { ...prev, comments: newCommentData }
             : prev
         );
         setCommentInputs((prev) => ({ ...prev, [filename]: "" }));
       })
-      .catch(() => {
+      .catch((err) => {
         lastCommentTimeRef.current[filename] = 0;
+        alert("Failed to post comment. Please try again.");
       });
   }
+
   function handleSpam(message) {
     setSpamAlert({ show: true, message });
     if (spamAlertTimeout.current) clearTimeout(spamAlertTimeout.current);
@@ -926,9 +945,7 @@ export default function Feed() {
     const SINGLE_DELAY = 600;
 
     const likeThenPulse = () => {
-      if (!isLiked(filename)) {
-        handleLike(idx, filename);
-      }
+      handleLike(idx, filename);
       setShowPulseHeart(true);
       requestAnimationFrame(() => {
         setTimeout(() => setShowPulseHeart(false), 700);
@@ -940,10 +957,10 @@ export default function Feed() {
         // Always block bubbling so nested buttons don’t cause parent toggles
         e.preventDefault();
         e.stopPropagation();
-    
+      
         // If a timer already exists, do nothing (waiting to see if dblclick happens)
         if (clickTimer) return;
-    
+      
         // Schedule single click (pause/play) — will be canceled by dblclick
         clickTimer = setTimeout(() => {
           clickTimer = null;
@@ -958,7 +975,7 @@ export default function Feed() {
           }
         }, SINGLE_DELAY);
       },
-    
+      
       onDoubleClick: (e) => {
         // Treat as like-only, kill pending single click
         e.preventDefault();
@@ -969,13 +986,13 @@ export default function Feed() {
         }
         likeThenPulse();
       },
-    
+      
       onTouchEnd: (e) => {
         if (!e || !e.changedTouches || e.changedTouches.length !== 1) return;
         const now = Date.now();
         const isDouble = now - lastTap < 260;
         lastTap = now;
-    
+      
         if (isDouble) {
           // Double tap: like only, never pause
           e.preventDefault();
@@ -987,7 +1004,7 @@ export default function Feed() {
           likeThenPulse();
           return;
         }
-    
+      
         // Single tap: schedule pause/play, cancellable if a second tap arrives
         if (clickTimer) clearTimeout(clickTimer);
         clickTimer = setTimeout(() => {
@@ -1178,7 +1195,7 @@ export default function Feed() {
             <style>{`
               @keyframes glassRise {
                 from { opacity: 0; transform: translateY(60px) scale(1.07);}
-                to   { opacity: 1; transform: translateY(0) scale(1);}
+                to  { opacity: 1; transform: translateY(0) scale(1);}
               }
             `}</style>
           </div>
@@ -1236,21 +1253,21 @@ export default function Feed() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-          
+            
               // Drop just beneath the pop card while it's open; otherwise keep original stack
               zIndex: Object.values(moreOpen).some(Boolean) ? 90 : 105,
-          
+            
               // Let taps reach the pop card while menu is open; otherwise remain non-interactive
               pointerEvents: Object.values(moreOpen).some(Boolean) ? "none" : "none",
-          
+            
               // Keep the original soft dark veil, and slightly soften it more when menu is open
               background: Object.values(moreOpen).some(Boolean)
                 ? "rgba(0,0,0,0.22)"
                 : "rgba(0,0,0,0.26)",
-          
+            
               // Preserve your original entrance animation for smoothness
               animation: "pauseOverlayIn .32s cubic-bezier(.2,.9,.25,1)",
-          
+            
               // Avoid creating a competing stacking context when the menu is open
               transform: Object.values(moreOpen).some(Boolean) ? "none" : undefined,
               filter: Object.values(moreOpen).some(Boolean) ? "none" : undefined,
@@ -1278,8 +1295,8 @@ export default function Feed() {
                 animation: commentPulse 1.15s ease-in-out infinite;
               }
               @keyframes commentPulse {
-                0%   { transform: scale(1.00); }
-                50%  { transform: scale(1.04); }
+                0%  { transform: scale(1.00); }
+                50% { transform: scale(1.04); }
                 100% { transform: scale(1.00); }
               }
             `}</style>
@@ -1290,8 +1307,8 @@ export default function Feed() {
                 animation: heartBurst .36s cubic-bezier(.2,.9,.25,1);
               }
               @keyframes heartBurst {
-                0%   { transform: scale(.88); filter: drop-shadow(0 0 0 rgba(237,73,86,0)); }
-                55%  { transform: scale(1.22); filter: drop-shadow(0 0 14px rgba(237,73,86,0.45)); }
+                0%  { transform: scale(.88); filter: drop-shadow(0 0 0 rgba(237,73,86,0)); }
+                55% { transform: scale(1.22); filter: drop-shadow(0 0 14px rgba(237,73,86,0.45)); }
                 100% { transform: scale(1.02); filter: drop-shadow(0 0 10px rgba(237,73,86,0.35)); }
               }
             `}</style>
@@ -1415,6 +1432,10 @@ export default function Feed() {
               aria-label="Comment"
               onClick={(e) => {
                 e.stopPropagation();
+                if (!user) {
+                  alert("Please log in to view and post comments!");
+                  return;
+                }
                 setShowComments(filename);
                 setIsCommentsLoading(true);
                 setTimeout(() => setIsCommentsLoading(false), 300);
@@ -1589,11 +1610,11 @@ export default function Feed() {
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => { e.stopPropagation(); e.nativeEvent.stopImmediatePropagation?.(); }}
               style={{
-                position: "fixed",             // take out of parent stacking quirks
+                position: "fixed",           // take out of parent stacking quirks
                 right: 16,
-                bottom: 140,                   // align near actions; adjust if needed
-                zIndex: 9999,                  // above pause overlay
-                isolation: "isolate",          // new stacking context for children
+                bottom: 140,                 // align near actions; adjust if needed
+                zIndex: 9999,                // above pause overlay
+                isolation: "isolate",        // new stacking context for children
                 pointerEvents: "auto",
               }}
             >
@@ -1621,9 +1642,9 @@ export default function Feed() {
                 <style>
                   {`
                   @keyframes menuIn {
-                    0%   { opacity: 0; transform: translateY(10px) scale(.96); }
-                    60%  { opacity: 1; transform: translateY(0)    scale(1.02); }
-                    100% { opacity: 1; transform: translateY(0)    scale(1.00); }
+                    0%  { opacity: 0; transform: translateY(10px) scale(.96); }
+                    60% { opacity: 1; transform: translateY(0)   scale(1.02); }
+                    100% { opacity: 1; transform: translateY(0)   scale(1.00); }
                   }
                   @keyframes itemIn {
                     0% { opacity: 0; transform: translateY(6px); }
@@ -1762,7 +1783,7 @@ export default function Feed() {
               height={27}
               style={{
                 display: "block",
-                borderRadius: "50%",              // perfect circle
+                borderRadius: "50%",            // perfect circle
                 aspectRatio: "1 / 1",
                 objectFit: "cover",
                 // border: "1px solid rgba(255,255,255,0.35)", // subtle ring
@@ -1830,7 +1851,14 @@ export default function Feed() {
 
           <div style={{ marginTop: 8 }}>
             <button
-              onClick={(e) => { e.stopPropagation(); setShowComments(filename); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!user) {
+                  alert("Please log in to view and post comments!");
+                  return;
+                }
+                setShowComments(filename);
+              }}
               style={{
                 background: "none",
                 border: "none",
@@ -2039,19 +2067,19 @@ export default function Feed() {
                           </span>
                         </div>
                       </div>
-              
+                  
                       {/* Comment like button (crisp + glow) */}
                       <button
                         style={{
                           marginLeft: 8,
                           background: "none",
                           border: "none",
-                          padding: 6,              // prevents glow clipping, improves tap target
+                          padding: 6,         // prevents glow clipping, improves tap target
                           cursor: "pointer",
                           display: "flex",
                           alignItems: "center",
-                          lineHeight: 0,           // crisp render baseline
-                          borderRadius: 10,        // soft hit area
+                          lineHeight: 0,        // crisp render baseline
+                          borderRadius: 10,       // soft hit area
                         }}
                         onClick={() =>
                           setCommentLikes((prev) => ({
@@ -2199,6 +2227,8 @@ export default function Feed() {
             fontSize: 16,
             padding: "8px 28px",
             cursor: "pointer",
+            letterSpacing: ".02em",
+            boxShadow: "0 2px 10px #0003",
           }}
         >
           ← Back to Feed
@@ -2211,69 +2241,6 @@ export default function Feed() {
       <>
         <SkeletonShort />
       </>
-    );
-  }
-
-  // ---- Single video mode ----
-  if (aloneVideo) {
-    const v = aloneVideo;
-    const urlParts = (v.url || "").split("/");
-    const filename = urlParts[urlParts.length - 1];
-    const liked = isLiked(filename);
-    const prog = videoProgress[filename] || 0;
-    const allComments = (v.comments || []).map((c) => ({ ...c }));
-    const caption = v.caption || "";
-    const previewLimit = 90;
-    const isTruncated = caption && caption.length > previewLimit;
-    const showFull = expandedCaptions[filename];
-    const displayedCaption = !caption ? "" : showFull ? caption : truncateString(caption, previewLimit);
-
-    return (
-      <div
-        style={{
-          width: "100vw",
-          height: "100dvh",
-          position: "relative",
-          background: "black",
-          overflow: "hidden",
-        }}
-      >
-        {renderVideo({
-          v,
-          idx: 0,
-          filename,
-          prog,
-          liked,
-          isCurrent: true,
-          allComments,
-          caption,
-          showFull,
-          isTruncated,
-          displayedCaption,
-        })}
-        <button
-          onClick={() => navigate("/", { replace: true })}
-          aria-label="Back to Feeda"
-          style={{
-            position: "absolute",
-            top: 20,
-            left: 16,
-            zIndex: 100,
-            background: "#222f",
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: 16,
-            padding: "6px 17px",
-            borderRadius: 15,
-            border: "none",
-            cursor: "pointer",
-            letterSpacing: ".02em",
-            boxShadow: "0 2px 10px #0003",
-          }}
-        >
-          ← Feed
-        </button>
-      </div>
     );
   }
 
@@ -2305,12 +2272,12 @@ export default function Feed() {
         width: "100vw",
         background: "black",
         borderRadius: "18px",
-        boxShadow: "0 10px 28px rgba(0,0,0,0.38)",   // depth
+        boxShadow: "0 10px 28px rgba(0,0,0,0.38)",    // depth
         outline: "1px solid rgba(255,255,255,0.06)", // faint edge
         margin: 0,
         padding: 0,
-        overflow: "hidden",                           // clip children to rounded corners
-        WebkitBackfaceVisibility: "hidden",           // smoother corners on Safari
+        overflow: "hidden",                       // clip children to rounded corners
+        WebkitBackfaceVisibility: "hidden",         // smoother corners on Safari
         backfaceVisibility: "hidden",
         fontFamily: "Inter, Arial, sans-serif",
       }}
