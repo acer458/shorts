@@ -131,7 +131,7 @@ function PulseHeart({ visible }) {
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
         opacity: visible ? 1 : 0,
-        transition: "opacity 0.6s ease-out",
+        transition: "opacity 1.2s ease-out",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
@@ -153,7 +153,7 @@ function PulseHeart({ visible }) {
           filter: "drop-shadow(0 0 18px rgba(255, 80, 80, 0.7))",
           opacity: 0,
           transform: "scale(0)",
-          animation: visible ? "heartAppear 4.2s cubic-bezier(0.21, 0.61, 0.35, 1) forwards" : "none",
+          animation: visible ? "heartAppear 6s cubic-bezier(0.21, 0.61, 0.35, 1) forwards" : "none",
         }}
       >
         ❤️
@@ -174,7 +174,7 @@ function PulseHeart({ visible }) {
             filter: "drop-shadow(0 0 10px rgba(255, 80, 80, 0.5))",
             opacity: 0,
             transform: "scale(0)",
-            animation: visible ? `secondaryHeartAppear 4s cubic-bezier(0.21, 0.61, 0.35, 1) ${i * 0.15}s forwards` : "none",
+            animation: visible ? `secondaryHeartAppear 5.8s cubic-bezier(0.21, 0.61, 0.35, 1) ${i * 0.15}s forwards` : "none",
             ...(i === 1 && { "--ty": "-75px", "--tx": "-35px" }),
             ...(i === 2 && { "--ty": "-85px", "--tx": "45px" }),
             ...(i === 3 && { "--ty": "75px", "--tx": "-45px" }),
@@ -200,7 +200,7 @@ function PulseHeart({ visible }) {
             filter: "drop-shadow(0 0 8px rgba(255, 80, 80, 0.4))",
             opacity: 0,
             transform: "scale(0)",
-            animation: visible ? `childHeartAppear 3.8s cubic-bezier(0.21, 0.61, 0.35, 1) ${i * 0.2}s forwards` : "none",
+            animation: visible ? `childHeartAppear 5.6s cubic-bezier(0.21, 0.61, 0.35, 1) ${i * 0.2}s forwards` : "none",
             ...(i === 1 && { "--ty": "-60px", "--tx": "-60px" }),
             ...(i === 2 && { "--ty": "60px", "--tx": "60px" }),
             ...(i === 3 && { "--ty": "-65px", "--tx": "65px" }),
@@ -222,7 +222,7 @@ function PulseHeart({ visible }) {
             borderRadius: "50%",
             opacity: 0,
             zIndex: 7,
-            animation: visible ? `ringPulse 4.4s cubic-bezier(0.23, 1, 0.32, 1) ${i * 0.12}s forwards` : "none",
+            animation: visible ? `ringPulse 6.2s cubic-bezier(0.23, 1, 0.32, 1) ${i * 0.12}s forwards` : "none",
             ...(i === 1 && { background: "radial-gradient(circle, rgba(255, 82, 82, 0.8) 0%, rgba(255, 107, 107, 0.5) 40%, transparent 70%)" }),
             ...(i === 2 && { background: "radial-gradient(circle, rgba(255, 107, 107, 0.6) 0%, rgba(255, 142, 142, 0.4) 30%, transparent 60%)" }),
             ...(i === 3 && { background: "radial-gradient(circle, rgba(255, 142, 142, 0.5) 0%, rgba(255, 82, 82, 0.3) 20%, transparent 50%)" }),
@@ -253,7 +253,7 @@ function PulseHeart({ visible }) {
             opacity: 0,
             zIndex: 6,
             background: particle.bg,
-            animation: visible ? `particleFloat 3.6s ease-out ${particle.delay}s forwards` : "none",
+            animation: visible ? `particleFloat 5.4s ease-out ${particle.delay}s forwards` : "none",
             "--tx": `${particle.tx}px`,
             "--ty": `${particle.ty}px`,
           }}
@@ -272,7 +272,7 @@ function PulseHeart({ visible }) {
           opacity: 0,
           zIndex: 5,
           filter: "blur(25px)",
-          animation: visible ? "glowPulse 4.6s cubic-bezier(0.23, 1, 0.32, 1) forwards" : "none",
+          animation: visible ? "glowPulse 6.4s cubic-bezier(0.23, 1, 0.32, 1) forwards" : "none",
         }}
       />
 
@@ -292,21 +292,33 @@ function PulseHeart({ visible }) {
           32% {
             transform: scale(1.12) rotate(2deg);
           }
-          42%, 60% {
+          42%, 45% {
             opacity: 1;
             transform: scale(1) rotate(0deg);
           }
-          70% {
+          50% {
             opacity: 0.95;
             transform: scale(1.05);
           }
-          80% {
-            opacity: 0.85;
+          60% {
+            opacity: 0.9;
             transform: scale(1.1);
           }
+          70% {
+            opacity: 0.8;
+            transform: scale(1.2);
+          }
+          80% {
+            opacity: 0.6;
+            transform: scale(1.3);
+          }
           90% {
-            opacity: 0.5;
-            transform: scale(1.25);
+            opacity: 0.3;
+            transform: scale(1.4);
+          }
+          95% {
+            opacity: 0.15;
+            transform: scale(1.45);
           }
           100% {
             opacity: 0;
@@ -327,12 +339,24 @@ function PulseHeart({ visible }) {
             opacity: 0.9;
             transform: scale(1) translateY(var(--ty)) translateX(var(--tx));
           }
-          65% {
+          50% {
             opacity: 0.85;
           }
-          80% {
-            opacity: 0.5;
+          60% {
+            opacity: 0.75;
+            transform: scale(1.05) translateY(var(--ty)) translateX(var(--tx));
+          }
+          70% {
+            opacity: 0.6;
             transform: scale(1.1) translateY(var(--ty)) translateX(var(--tx));
+          }
+          80% {
+            opacity: 0.4;
+            transform: scale(1.15) translateY(var(--ty)) translateX(var(--tx));
+          }
+          90% {
+            opacity: 0.2;
+            transform: scale(1.18) translateY(var(--ty)) translateX(var(--tx));
           }
           100% {
             opacity: 0;
@@ -349,16 +373,28 @@ function PulseHeart({ visible }) {
             opacity: 0.9;
             transform: scale(1.05) translateY(var(--ty)) translateX(var(--tx));
           }
-          50% {
+          40% {
             opacity: 0.85;
             transform: scale(1) translateY(var(--ty)) translateX(var(--tx));
           }
-          70% {
-            opacity: 0.7;
+          55% {
+            opacity: 0.75;
+          }
+          65% {
+            opacity: 0.6;
+            transform: scale(1.05) translateY(var(--ty)) translateX(var(--tx));
+          }
+          75% {
+            opacity: 0.45;
+            transform: scale(1.08) translateY(var(--ty)) translateX(var(--tx));
           }
           85% {
-            opacity: 0.4;
-            transform: scale(1.08) translateY(var(--ty)) translateX(var(--tx));
+            opacity: 0.3;
+            transform: scale(1.1) translateY(var(--ty)) translateX(var(--tx));
+          }
+          92% {
+            opacity: 0.15;
+            transform: scale(1.11) translateY(var(--ty)) translateX(var(--tx));
           }
           100% {
             opacity: 0;
@@ -371,16 +407,32 @@ function PulseHeart({ visible }) {
             opacity: 0.8;
             transform: scale(0);
           }
-          30% {
+          20% {
+            opacity: 0.7;
+          }
+          40% {
             opacity: 0.6;
+            transform: scale(1.5);
+          }
+          50% {
+            opacity: 0.5;
+            transform: scale(1.8);
           }
           60% {
             opacity: 0.4;
             transform: scale(2.2);
           }
+          70% {
+            opacity: 0.3;
+            transform: scale(2.5);
+          }
           80% {
             opacity: 0.2;
-            transform: scale(2.5);
+            transform: scale(2.65);
+          }
+          90% {
+            opacity: 0.1;
+            transform: scale(2.75);
           }
           100% {
             opacity: 0;
@@ -393,16 +445,32 @@ function PulseHeart({ visible }) {
             opacity: 0;
             transform: translate(0, 0) scale(0);
           }
-          20% {
-            opacity: 0.95;
+          15% {
+            opacity: 0.9;
+          }
+          30% {
+            opacity: 0.85;
+            transform: translate(calc(var(--tx) * 0.3), calc(var(--ty) * 0.3)) scale(1.1);
+          }
+          45% {
+            opacity: 0.75;
+            transform: translate(calc(var(--tx) * 0.5), calc(var(--ty) * 0.5)) scale(1.2);
           }
           60% {
-            opacity: 0.7;
+            opacity: 0.6;
             transform: translate(calc(var(--tx) * 0.7), calc(var(--ty) * 0.7)) scale(1.3);
           }
+          70% {
+            opacity: 0.45;
+            transform: translate(var(--tx), var(--ty)) scale(1.4);
+          }
           80% {
-            opacity: 0.4;
-            transform: translate(var(--tx), var(--ty)) scale(1.5);
+            opacity: 0.3;
+            transform: translate(calc(var(--tx) * 1.05), calc(var(--ty) * 1.05)) scale(1.5);
+          }
+          90% {
+            opacity: 0.15;
+            transform: translate(calc(var(--tx) * 1.08), calc(var(--ty) * 1.08)) scale(1.55);
           }
           100% {
             opacity: 0;
@@ -415,16 +483,32 @@ function PulseHeart({ visible }) {
             opacity: 0;
             transform: scale(0.7);
           }
-          30% {
-            opacity: 0.7;
+          20% {
+            opacity: 0.6;
+          }
+          40% {
+            opacity: 0.5;
+            transform: scale(1.4);
+          }
+          50% {
+            opacity: 0.45;
+            transform: scale(1.7);
           }
           60% {
-            opacity: 0.5;
-            transform: scale(1.8);
+            opacity: 0.4;
+            transform: scale(2.0);
+          }
+          70% {
+            opacity: 0.3;
+            transform: scale(2.2);
           }
           80% {
-            opacity: 0.3;
-            transform: scale(2.1);
+            opacity: 0.2;
+            transform: scale(2.3);
+          }
+          90% {
+            opacity: 0.1;
+            transform: scale(2.35);
           }
           100% {
             opacity: 0;
