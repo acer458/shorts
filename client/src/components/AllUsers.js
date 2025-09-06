@@ -25,14 +25,41 @@ export default function AllUsers({ authHeaders }) {
         fetchUsers();
     }, [authHeaders]);
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         const token = localStorage.getItem("adminToken");
         if (!token) {
             alert("Admin token not found. Please log in again.");
             return;
         }
 
-        window.open(HOST + "/admin/users/download-csv", "_blank");
+        try {
+            const res = await axios.get(HOST + "/admin/users/download-csv", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+                responseType: 'blob' // Important: this tells axios to handle the response as a file blob
+            });
+
+            // Create a URL for the blob
+            const url = window.URL.createObjectURL(new Blob([res.data]));
+            // Create a temporary link element
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'users.csv');
+            // Append the link to the body and click it to trigger the download
+            document.body.appendChild(link);
+            link.click();
+            // Clean up the temporary link and URL
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            if (err.response?.status === 401) {
+                alert("Authorization failed. Please log in as an admin.");
+            } else {
+                alert("Failed to download file. Please try again.");
+            }
+            console.error("Download error:", err);
+        }
     };
 
     if (loading) {
