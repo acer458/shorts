@@ -623,7 +623,6 @@ const styles = {
     fontWeight: "600",
     cursor: "pointer",
     transition: "all 0.3s ease",
-    boxShadow: "0 0 10px rgba(74, 163, 255, 0.5), 0 0 20px rgba(74, 163, 255, 0.3)",
   },
   menuButton: {
     display: "flex",
@@ -671,7 +670,6 @@ const styles = {
     display: "flex",
     alignItems: "center",
     transition: "all 0.3s ease",
-    boxShadow: "0 0 15px rgba(74, 163, 255, 0.5)",
   },
   statsSection: { marginBottom: "80px", textAlign: "center" },
   sectionTitle: {
