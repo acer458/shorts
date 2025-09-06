@@ -5,10 +5,11 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 app.use(cors());
-app.use(express.json()); // For parsing JSON bodies
+app.use(express.json());
 
 // Persistent Disk Path - MUST match Render disk mount path (e.g., '/data')
 const DISK_PATH = '/data';
@@ -16,12 +17,22 @@ if (!fs.existsSync(DISK_PATH)) fs.mkdirSync(DISK_PATH, { recursive: true });
 
 // Store all metadata in persistent disk
 const VIDEOS_JSON = path.join(DISK_PATH, 'videos.json');
+const USERS_JSON = path.join(DISK_PATH, 'users.json');
+
 function getVideos() {
   if (!fs.existsSync(VIDEOS_JSON)) return [];
   try { return JSON.parse(fs.readFileSync(VIDEOS_JSON, 'utf-8') || '[]'); } catch { return []; }
 }
 function saveVideos(videos) {
   fs.writeFileSync(VIDEOS_JSON, JSON.stringify(videos, null, 2), 'utf-8');
+}
+
+function getUsers() {
+  if (!fs.existsSync(USERS_JSON)) return [];
+  try { return JSON.parse(fs.readFileSync(USERS_JSON, 'utf-8') || '[]'); } catch { return []; }
+}
+function saveUsers(users) {
+  fs.writeFileSync(USERS_JSON, JSON.stringify(users, null, 2), 'utf-8');
 }
 
 // Debug endpoint for Render disk checks
@@ -59,6 +70,57 @@ function adminJwtAuth(req, res, next) {
     return res.status(401).json({ error: "Invalid token" });
   }
 }
+
+// ========== User Auth ===========
+function userJwtAuth(req, res, next) {
+  const header = req.header("Authorization");
+  if (!header) return res.status(401).json({ error: "No token" });
+  const token = header.replace("Bearer ", "");
+  try {
+    const decoded = jwt.verify(token, SECRET);
+    req.user = decoded; // Attach user info to request
+    return next();
+  } catch {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+}
+
+app.post("/user/signup", async (req, res) => {
+  const { name, email, password } = req.body || {};
+  if (!name || !email || !password) return res.status(400).json({ error: "Missing fields" });
+
+  const users = getUsers();
+  if (users.find(u => u.email === email)) {
+    return res.status(409).json({ error: "Email already registered" });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const newUser = { name, email, password: hashedPassword, id: crypto.randomUUID() };
+  users.push(newUser);
+  saveUsers(users);
+
+  const token = jwt.sign({ id: newUser.id, name: newUser.name }, SECRET, { expiresIn: "7d" });
+  res.status(201).json({ token, user: { id: newUser.id, name: newUser.name, email: newUser.email } });
+});
+
+app.post("/user/login", async (req, res) => {
+  const { email, password } = req.body || {};
+  if (!email || !password) return res.status(400).json({ error: "Missing fields" });
+
+  const users = getUsers();
+  const user = users.find(u => u.email === email);
+  if (!user) {
+    return res.status(401).json({ error: "Invalid email or password" });
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return res.status(401).json({ error: "Invalid email or password" });
+  }
+
+  const token = jwt.sign({ id: user.id, name: user.name }, SECRET, { expiresIn: "7d" });
+  res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+});
 
 // ========== Multer for uploads ==========
 const storage = multer.diskStorage({
@@ -112,7 +174,7 @@ app.delete('/admin/comments/:videoFilename/:commentIdx', adminJwtAuth, (req, res
   const video = videos.find(v => v.filename === videoFilename);
   if (!video) return res.status(404).json({ error: "Video not found" });
   const idx = parseInt(commentIdx, 10);
-  if (isNaN(idx) || !video.comments || !video.comments[idx]) 
+  if (isNaN(idx) || !video.comments || !video.comments[idx])
     return res.status(404).json({ error: "Comment not found" });
   video.comments.splice(idx, 1);
   saveVideos(videos);
@@ -151,15 +213,22 @@ app.post('/shorts/:filename/like', (req, res) => {
   res.json({ success: true, likes: vid.likes });
 });
 
-// Add a comment
-app.post('/shorts/:filename/comment', (req, res) => {
-  const { name = "Anonymous", text } = req.body || {};
+// Add a comment - Now requires user authentication!
+app.post('/shorts/:filename/comment', userJwtAuth, (req, res) => {
+  const { text } = req.body || {};
   if (!text) return res.status(400).json({ error: "No comment text" });
+
   const videos = getVideos();
   const vid = findVideo(videos, req.params.filename);
   if (!vid) return res.status(404).json({ error: "Video not found" });
+
   vid.comments = vid.comments || [];
-  vid.comments.push({ name, text });
+  vid.comments.push({
+    name: req.user.name,
+    text,
+    createdAt: new Date(),
+    userId: req.user.id
+  });
   saveVideos(videos);
   res.json({ success: true, comments: vid.comments });
 });
@@ -180,11 +249,11 @@ app.post('/upload', adminJwtAuth, upload.single('video'), (req, res) => {
   const dup = findVideoByHash(videos, incomingHash);
   if (dup) {
     fs.unlinkSync(tempPath);
-    return res.json({ 
-      success: true, 
-      duplicate: true, 
-      url: dup.url, 
-      message: "Duplicate upload detected. Using existing video URL.", 
+    return res.json({
+      success: true,
+      duplicate: true,
+      url: dup.url,
+      message: "Duplicate upload detected. Using existing video URL.",
       filename: dup.filename
     });
   }
@@ -238,7 +307,7 @@ app.delete('/delete/:filename', adminJwtAuth, (req, res) => {
 
   if (fs.existsSync(filePath)) {
     try {
-      fs.unlinkSync(filePath); 
+      fs.unlinkSync(filePath);
     } catch (err) {
       return res.status(500).json({ error: "Failed to delete video file" });
     }
