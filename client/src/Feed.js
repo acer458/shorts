@@ -117,7 +117,7 @@ function PauseIcon() {
     </svg>
   );
 }
-import React, { useState, useEffect } from "react";
+
 
 // Helper array to create particles programmatically
 const particles = [
