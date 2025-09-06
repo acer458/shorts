@@ -567,7 +567,7 @@ const CommunityPage = () => {
                 </a>
                 <button style={styles.ctaButton} className="cta-btn">
                   Get Started
-                  </button>
+                </button>
               </nav>
             </>
           )}
@@ -586,7 +586,8 @@ const CommunityPage = () => {
                 />
                 <path
                   fill="#4aa3ff"
-                  d="M189.5 20h-134C44.2 20 35 29.2 35 40.6v135.2c0 11.4 9.2 20.6 20.5 20.6h113.4l-5.3-18.5 12.8 11.9 12.1 11.2 21.5 19V40.6c0-11.4-9.2-20.6-20.5-20.6zm-38.6 130.6s-3.6-4.3-6.6-8.1c13.1-3.7 18.1-11.9 18.1-11.9-4.1 2.7-8 4.6-11.5 5.9-5 2.1-9.8 3.5-14.5 4.3-9.6 1.8-18.4 1.3-25.9-.1-5.7-1.1-10.6-2.7-14.7-4.3-2.3-.9-4.8-2-7.3-3.4-.3-.2-.6-.3-.9-.5-.2-.1-.3-.2-.4-.3-1.8-1-2.8-1.7-2.8-1.7s4.8 8 17.5 11.8c-3 3.8-6.7 8.3-6.7 8.3-22.1-.7-30.5-15.2-30.5-15.2 0-32.2 14.4-58.3 14.4-58.3 14.4-10.8 28.1-极客
+                  d="M189.5 20h-134C44.2 20 35 29.2 35 40.6v135.2c0 11.4 9.2 20.6 20.5 20.6h113.4l-5.3-18.5 12.8 11.9 12.1 11.2 21.5 19V40.6c0-11.4-9.2-20.6-20.5-20.6zm-38.6 130.6s-3.6-4.3-6.6-8.1c13.1-3.7 18.1-11.9 18.1-11.9-4.1 2.7-8 4.6-11.5 5.9-5 2.1-9.8 3.5-14.5 4.3-9.6 1.8-18.4 1.3-25.9-.1-5.7-1.1-10.6-2.7-14.7-4.3-2.3-.9-4.8-2-7.3-3.4-.3-.2-.6-.3-.9-.5-.2-.1-.3-.2-.4-.3-1.8-1-2.8-1.7-2.8-1.7s4.8 8 17.5 11.8c-3 3.8-6.7 8.3-6.7 8.3-22.1-.7-30.5-15.2-30.5-15.2 0-32.2 14.4-58.3 14.4-58.3 14.4-10.8 28.1-10.8z"
+                />
               </svg>
             </div>
 
@@ -713,20 +714,20 @@ const styles = {
     boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
     border: "1px solid rgba(74, 163, 255, 0.2)",
   },
-  container: { 
-    maxWidth: "1200px", 
-    margin: "0 auto", 
-    padding: "20px" 
+  container: {
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "20px"
   },
-  logoContainer: { 
-    display: "flex", 
-    alignItems: "center", 
-    gap: "12px" 
+  logoContainer: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px"
   },
-  logo: { 
-    width: "40px", 
-    height: "40px", 
-    borderRadius: "10px" 
+  logo: {
+    width: "40px",
+    height: "40px",
+    borderRadius: "10px"
   },
   logoText: {
     fontSize: "24px",
@@ -828,97 +829,103 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     transition: "all 0.3s ease",
-    boxShadow: "0 8px 25px rgba(74, 163, 255, 极客
-              </svg>
-            </div>
-
-            <h1 style={{ ...styles.heroTitle, fontSize: isMobile ? "2.2rem" : "3.5rem" }}>
-              Join the Official <span style={styles.highlight}>PropScholar</span> Discord
-            </h1>
-
-            <p style={{ ...styles.heroSubtitle, fontSize: isMobile ? "1rem" : "1.2rem" }}>
-              Dedicated Support. Personalized Assistance. Quick Resolutions. Real-Time Updates.
-              <br />
-              Join our vibrant Discord community to access it all!
-            </p>
-
-            <div style={styles.buttonGroup}>
-              <button style={styles.joinButton} className="join-btn">
-                Join Our Community
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ marginLeft: "10px" }}>
-                  <path
-                    d="M5 12H19M19 12L12 5M19 12L12 19"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap: "round"
-                    strokeLinejoin: "round"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* Stats Section - Now as "Why Join Our Community" */}
-        <section style={styles.statsSection}>
-          <h2 style={{ ...styles.sectionTitle, fontSize: isMobile ? "2rem" : "2.5rem" }}>
-            Why Join Our Community?
-          </h2>
-
-          <div
-            style={{
-              ...styles.statsGrid,
-              flexDirection: isMobile ? "column" : "row",
-              gap: isMobile ? "20px" : "50px",
-            }}
-          >
-            {stats.map((stat, index) => (
-              <div key={index} style={{ ...styles.statCard, minWidth: isMobile ? "auto" : "250px" }} className="stat-card">
-                <div style={styles.statIcon}>{stat.icon}</div>
-                <div style={styles.statValue}>{stat.value}</div>
-                <div style={styles.statLabel}>{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Giveaway Section */}
-        <section style={styles.giveawaySection}>
-          <div style={{ ...styles.giveawayCard, padding: isMobile ? "30px" : "60px" }} className="giveaway-card">
-            <div style={styles.giveawayContent}>
-              <div style={styles.giveawayIcon}>🎁</div>
-              <h2 style={{ ...styles.giveawayTitle, fontSize: isMobile ? "1.8rem" : "2.2rem" }}>Weekly Giveaways!</h2>
-              <p style={{ ...styles.giveawayText, fontSize: isMobile ? "1rem" : "1.1rem" }}>
-                Join our community for a chance to win exclusive trading resources, <br />
-                funded accounts, and premium tools every week!
-              </p>
-              <button style={{ ...styles.joinButton, ...styles.giveawayButton }} className="join-btn">
-                Join to Participate
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section style={{ ...styles.ctaSection, padding: isMobile ? "30px" : "60px" }}>
-          <div style={styles.ctaContent}>
-            <h2 style={{ ...styles.ctaTitle, fontSize: isMobile ? "2rem" : "2.5rem" }}>
-              Ready to Level Up Your Trading?
-            </h2>
-            <p style={{ ...styles.ctaText, fontSize: isMobile ? "1rem" : "1.2rem" }}>
-              Join over 2,000 active traders in our Discord community. Get the support you need to succeed.
-            </p>
-            <button style={{ ...styles.joinButton, ...styles.ctaButtonStyle }} className="join-btn">
-              Join Discord Community
-            </button>
-          </div>
-        </section>
-      </div>
-
-      {/* Render merged footer here */}
-      <Footer isMobile={isMobile} />
-    </div>
-  );
+    boxShadow: "0 8px 25px rgba(74, 163, 255, 0.5)",
+  },
+  statsSection: {
+    padding: "80px 20px",
+    textAlign: "center",
+  },
+  sectionTitle: {
+    fontWeight: "800",
+    marginBottom: "50px",
+    background: "linear-gradient(135deg, #ffffff 0%, #b8c2e0 100%)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+  },
+  statsGrid: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "stretch",
+  },
+  statCard: {
+    background: "rgba(30, 30, 60, 0.6)",
+    borderRadius: "20px",
+    padding: "30px",
+    border: "1px solid rgba(74, 163, 255, 0.3)",
+    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.2)",
+    transition: "all 0.4s ease",
+    flex: "1",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "15px",
+  },
+  statIcon: {
+    fontSize: "40px",
+  },
+  statValue: {
+    fontSize: "32px",
+    fontWeight: "700",
+    color: "#4aa3ff",
+  },
+  statLabel: {
+    fontSize: "16px",
+    color: "#b8c2e0",
+  },
+  giveawaySection: {
+    padding: "40px 20px",
+  },
+  giveawayCard: {
+    background: "linear-gradient(145deg, #1e1e3e 0%, #2a2a5a 100%)",
+    borderRadius: "24px",
+    textAlign: "center",
+    border: "1px solid rgba(74, 163, 255, 0.3)",
+    boxShadow: "0 15px 40px rgba(0, 0, 0, 0.3)",
+  },
+  giveawayContent: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "20px",
+  },
+  giveawayIcon: {
+    fontSize: "50px",
+  },
+  giveawayTitle: {
+    fontWeight: "700",
+  },
+  giveawayText: {
+    color: "#b8c2e0",
+    lineHeight: "1.7",
+    maxWidth: "600px",
+  },
+  giveawayButton: {
+    marginTop: "10px",
+  },
+  ctaSection: {
+    textAlign: "center",
+    background: "rgba(16, 19, 43, 0.5)",
+    borderRadius: "24px",
+    margin: "80px 0",
+  },
+  ctaContent: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "20px",
+  },
+  ctaTitle: {
+    fontWeight: "800",
+  },
+  ctaText: {
+    color: "#b8c2e0",
+    maxWidth: "600px",
+    lineHeight: "1.6",
+  },
+  ctaButtonStyle: {
+    fontSize: "20px",
+    padding: "20px 45px",
+  },
 };
 
 export default CommunityPage;
