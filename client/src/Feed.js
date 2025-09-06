@@ -265,7 +265,6 @@ function PulseHeart({ visible }) {
   );
 }
 
-export default PulseHeart;
 
 function MuteMicIcon({ muted }) {
   return muted ? (
